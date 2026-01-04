@@ -1,0 +1,105 @@
+import {Col, Form, Input, message, Row} from "antd";
+import {Link, useNavigate} from "react-router-dom";
+import {useDispatch} from "react-redux";
+import BreadscrumbMenu from "../../../components/BreadscrumbMenu/BreadscrumbMenu.jsx";
+import LoginImage from "../../../assets/LoginImage.png"
+import PrimaryButton from "../../../components/Buttons/PrimaryButton/PrimaryButton.jsx";
+import "./Login.css"
+
+const Login = () => {
+    const [messageApi, contextHolder] = message.useMessage();
+    const navigate = useNavigate();
+    const dispatch = useDispatch();
+
+    const navigateBasedOnRole = (role) => {
+        switch (role) {
+            case 'ADMIN':
+                navigate('/admin/orders');
+                break;
+            case 'SELLER':
+                navigate('/seller/products');
+                break;
+            case 'CUSTOMER':
+                navigate('/');
+                break;
+            default:
+                navigate('/');
+        }
+    };
+
+    const onFinish = async (values) => {
+        console.log("Logging in...");
+    }
+
+    const breadcrumbItems = [{ title: 'Login' }];
+
+    return (
+        <div className="login-page-wrapper">
+            {contextHolder}
+
+            <div className="container">
+                <BreadscrumbMenu items={breadcrumbItems}/>
+            </div>
+
+            <div className="login-container">
+                <div className="login-card">
+                    <Row gutter={0} style={{width:'100%'}}>
+                        <Col xs={0} md={12} className="login-image-col">
+                            <img src={LoginImage} alt="Login Illustration" className="login-image"/>
+                        </Col>
+
+                        <Col xs={24} md={12} className="login-form-col">
+                            <div className="form-content">
+                                <h2 className="welcome-title">WELCOME BACK!</h2>
+                                <p className="welcome-subtitle">LOGIN TO CONTINUE SHOPPING</p>
+                            </div>
+
+                            <Form className="login-form"
+                                  name="login_form"
+                                  layout="vertical"
+                                  onSubmit={onFinish}>
+
+                                <Form.Item name="email"
+                                           label="Email"
+                                           rules={[
+                                               {required: true, message: 'Please input your email'},
+                                               {type: 'email', message: 'Invalid email address!'}
+                                           ]}>
+                                    <Input placeholder={"username@example.com"} className="custom-input"/>
+                                </Form.Item>
+
+                                <Form.Item name="password"
+                                           label="Password"
+                                           rules={[
+                                               {required: true, message: 'Please input your password'},
+                                               {type: 'password', message: 'Invalid password'},
+                                           ]}>
+                                    <Input.Password placeholder="••••••••" className="custom-input"/>
+                                </Form.Item>
+
+                                <div className="form-actions">
+                                    <Link to="/forgot-password" className="forgot-password-link">
+                                        Forgot Password?
+                                    </Link>
+                                </div>
+
+                                <Form.Item>
+                                    <PrimaryButton htmlType="submit" block loading={false}>
+                                        SIGN IN
+                                    </PrimaryButton>
+                                </Form.Item>
+
+                                <div className="register-redirect">
+                                    <span>NEW USER? </span>
+                                    <Link to="/register" className="highlight-link">SIGN UP NOW!</Link>
+                                </div>
+                            </Form>
+                        </Col>
+                    </Row>
+                </div>
+            </div>
+        </div>
+    )
+}
+
+export default Login;
