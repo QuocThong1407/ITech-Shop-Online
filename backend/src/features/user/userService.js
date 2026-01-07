@@ -55,7 +55,6 @@ const getUserById = async (userId) => {
 };
 
 const createUser = async ({ username, email, password, role }) => {
-  // Kiểm tra email hoặc username đã tồn tại
   const { data: existing } = await supabase
     .from("User")
     .select("id")
@@ -65,7 +64,6 @@ const createUser = async ({ username, email, password, role }) => {
     throw { status: 400, message: "Email or username already exists" };
   }
 
-  // Tạo user trên Supabase Auth (admin)
   const { data, error } = await supabaseAdmin.auth.admin.createUser({
     email,
     password,
@@ -94,7 +92,6 @@ const createUser = async ({ username, email, password, role }) => {
 
   if (userError) throw userError;
 
-  // Nếu là CUSTOMER → tạo Customer, Cart, Membership
   if (role === "CUSTOMER") {
     const customerId = uuidv4();
 
@@ -127,7 +124,6 @@ const createUser = async ({ username, email, password, role }) => {
     if (membershipError) throw membershipError;
   }
 
-  // Nếu là SELLER → tạo Seller
   if (role === "SELLER") {
     const { error: sellerError } = await supabase.from("Seller").insert({
       id: uuidv4(),
@@ -139,7 +135,6 @@ const createUser = async ({ username, email, password, role }) => {
     if (sellerError) throw sellerError;
   }
 
-  // Nếu là ADMIN → tạo Admin
   if (role === "ADMIN") {
     const { error: adminError } = await supabase.from("Admin").insert({
       id: uuidv4(),
