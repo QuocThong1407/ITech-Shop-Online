@@ -8,6 +8,7 @@ const morgan = require("morgan");
 const authRoutes = require("./features/auth/authRoutes");
 const userRoutes = require("./features/user/userRoutes");
 const categoryRoutes = require("./features/category/categoryRoutes");
+const addressRoutes = require("./features/address/addressRoutes");
 const { errorHandler, notFoundHandler } = require("./middleware/index");
 const app = express();
 app.use(helmet());
@@ -29,6 +30,7 @@ app.get("/health", (req, res) => {
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/categories", categoryRoutes);
+app.use("/api/addresses", addressRoutes);
 app.use(notFoundHandler);
 app.use(errorHandler);
 

@@ -48,11 +48,6 @@ const createUser = async (req, res) => {
         "Username, email, password and role are required"
       );
     }
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-    if (!emailRegex.test(email)) {
-      return errorResponse(res, 400, "Invalid email format");
-    }
     if (password.length < 8) {
       return errorResponse(res, 400, "Password must be at least 8 characters");
     }

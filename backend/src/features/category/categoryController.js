@@ -39,14 +39,6 @@ const createCategory = async (req, res) => {
       return errorResponse(res, 400, "Category name is required");
     }
 
-    if (name.trim().length < 2) {
-      return errorResponse(
-        res,
-        400,
-        "Category name must be at least 2 characters"
-      );
-    }
-
     const result = await categoryService.createCategory({
       name: name.trim(),
       description: description?.trim() || null,
@@ -63,15 +55,6 @@ const updateCategory = async (req, res) => {
   try {
     const { id } = req.params;
     const { name, description } = req.body;
-
-    if (name && name.trim().length < 2) {
-      return errorResponse(
-        res,
-        400,
-        "Category name must be at least 2 characters"
-      );
-    }
-
     const updates = {};
     if (name) updates.name = name.trim();
     if (description !== undefined)
