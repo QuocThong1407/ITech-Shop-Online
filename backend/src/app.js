@@ -1,0 +1,41 @@
+// backend/src/app.js
+require("dotenv").config();
+const express = require("express");
+const cors = require("cors");
+const cookieParser = require("cookie-parser");
+const helmet = require("helmet");
+const morgan = require("morgan");
+const authRoutes = require("./features/auth/authRoutes");
+const userRoutes = require("./features/user/userRoutes");
+const categoryRoutes = require("./features/category/categoryRoutes");
+const addressRoutes = require("./features/address/addressRoutes");
+const { errorHandler, notFoundHandler } = require("./middleware/index");
+const app = express();
+app.use(helmet());
+app.use(
+  cors({
+    origin: process.env.FRONTEND_URL || "http://localhost:3000",
+    credentials: true,
+  })
+);
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
+if (process.env.NODE_ENV === "development") {
+  app.use(morgan("dev"));
+}
+app.get("/health", (req, res) => {
+  res.status(200).json({ status: "OK", message: "Server is running" });
+});
+app.use("/api/auth", authRoutes);
+app.use("/api/users", userRoutes);
+app.use("/api/categories", categoryRoutes);
+app.use("/api/addresses", addressRoutes);
+app.use(notFoundHandler);
+app.use(errorHandler);
+
+//xác nhận start
+console.log("Server is starting...");
+console.log("PORT:", process.env.PORT || 5000);
+console.log("Environment:", process.env.NODE_ENV || "development");
+module.exports = app;
