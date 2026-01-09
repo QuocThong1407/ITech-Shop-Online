@@ -7,9 +7,10 @@ const getAddressesByCustomer = async (customerId) => {
   const { data, error } = await supabase
     .from("Address")
     .select(
-      "id, phoneNumber, address, street, ward, district, province, createdAt, updatedAt"
+      "id, phoneNumber, address, street, ward, district, province, createdAt, updatedAt, isDefault"
     )
     .eq("customerId", customerId)
+    .order("isDefault", { ascending: false })
     .order("createdAt", { ascending: false });
 
   if (error) throw error;
@@ -22,18 +23,15 @@ const getAddressById = async (addressId, customerId) => {
   const { data, error } = await supabase
     .from("Address")
     .select(
-      "id, phoneNumber, address, street, ward, district, province, createdAt, updatedAt"
+      "id, phoneNumber, address, street, ward, district, province, createdAt, updatedAt, isDefault"
     )
     .eq("id", addressId)
     .eq("customerId", customerId)
     .maybeSingle();
 
-  if (error) throw error;
-  if (!data) {
-    throw {
-      status: 404,
-      message: "Address not found or you don't have permission",
-    };
+  if (error) {
+    error.status = 404;
+    throw error;
   }
 
   return data;
@@ -55,14 +53,20 @@ const createAddress = async ({
     .select("id")
     .eq("id", customerId)
     .maybeSingle();
-
   if (customerError) throw customerError;
   if (!customer) {
     throw { status: 404, message: "Customer not found" };
   }
 
-  const now = new Date().toISOString();
+  // kt địa chỉ
+  const { count, error: countError } = await supabase
+    .from("Address")
+    .select("id", { count: "exact", head: true })
+    .eq("customerId", customerId);
+  if (countError) throw countError;
+  const isFirstAddress = count === 0;
 
+  const now = new Date().toISOString();
   const { data, error } = await supabase
     .from("Address")
     .insert({
@@ -74,11 +78,12 @@ const createAddress = async ({
       ward,
       district,
       province,
+      isDefault: isFirstAddress,
       createdAt: now,
       updatedAt: now,
     })
     .select(
-      "id, phoneNumber, address, street, ward, district, province, createdAt, updatedAt"
+      "id, phoneNumber, address, street, ward, district, province, createdAt, updatedAt, isDefault"
     )
     .single();
 
@@ -104,11 +109,25 @@ const updateAddress = async (addressId, customerId, updates) => {
       message: "Address not found or you don't have permission",
     };
   }
+  const ALLOWED_UPDATE_FIELDS = [
+    "phoneNumber",
+    "address",
+    "street",
+    "ward",
+    "district",
+    "province",
+  ];
+
+  const safeUpdates = Object.fromEntries(
+    Object.entries(updates).filter(([key]) =>
+      ALLOWED_UPDATE_FIELDS.includes(key)
+    )
+  );
 
   const { data, error: updateError } = await supabase
     .from("Address")
     .update({
-      ...updates,
+      ...safeUpdates,
       updatedAt: new Date().toISOString(),
     })
     .eq("id", addressId)
@@ -154,6 +173,13 @@ const deleteAddress = async (addressId, customerId) => {
     };
   }
 
+  if (address.isDefault) {
+    throw {
+      status: 400,
+      message: "Cannot delete default address",
+    };
+  }
+
   const { error: deleteError } = await supabase
     .from("Address")
     .delete()
@@ -164,128 +190,38 @@ const deleteAddress = async (addressId, customerId) => {
   return true;
 };
 
-// admin xem tất cả địa chỉ trong hệ thống
-const getAllAddresses = async ({
-  page = 1,
-  limit = 10,
-  search,
-  province,
-  district,
-}) => {
-  page = parseInt(page);
-  limit = parseInt(limit);
+const setDefaultAddress = async (addressId, customerId) => {
+  const { data: address, error: checkError } = await supabase
+    .from("Address")
+    .select("id")
+    .eq("id", addressId)
+    .eq("customerId", customerId)
+    .single();
 
-  let query = supabase.from("Address").select(
-    `
-      id, 
-      phoneNumber, 
-      address, 
-      street, 
-      ward, 
-      district, 
-      province, 
-      createdAt, 
-      updatedAt,
-      customerId,
-      Customer:customerId (
-        id,
-        User:userId (
-          id,
-          username,
-          email
-        )
-      )
-      `,
-    { count: "exact" }
-  );
-
-  // Search filter
-  if (search) {
-    query = query.or(
-      `address.ilike.%${search}%,phoneNumber.ilike.%${search}%,street.ilike.%${search}%,ward.ilike.%${search}%,district.ilike.%${search}%,province.ilike.%${search}%`
-    );
+  if (checkError) {
+    checkError.status = 404;
+    throw checkError;
   }
 
-  // Province filter
-  if (province) {
-    query = query.eq("province", province);
-  }
+  // unset default cũ
+  const { error: unsetError } = await supabase
+    .from("Address")
+    .update({ isDefault: false })
+    .eq("customerId", customerId);
 
-  // District filter
-  if (district) {
-    query = query.eq("district", district);
-  }
+  if (unsetError) throw unsetError;
 
-  const from = (page - 1) * limit;
-  const to = from + limit - 1;
-
-  const { data, error, count } = await query
-    .range(from, to)
-    .order("createdAt", { ascending: false });
+  // set default mới
+  const { data, error } = await supabase
+    .from("Address")
+    .update({ isDefault: true })
+    .eq("id", addressId)
+    .eq("customerId", customerId)
+    .select()
+    .single();
 
   if (error) throw error;
-
-  return {
-    addresses: data,
-    pagination: {
-      page,
-      limit,
-      total: count,
-      totalPages: Math.ceil(count / limit),
-    },
-  };
-};
-
-// admin xem thống kê địa chỉ
-const getAddressStats = async () => {
-  // Tổng số địa chỉ
-  const { count: totalCount, error: countError } = await supabase
-    .from("Address")
-    .select("id", { count: "exact", head: true });
-
-  if (countError) throw countError;
-
-  // thống kê theo tỉnh/tp
-  const { data: provinceData, error: provinceError } = await supabase
-    .from("Address")
-    .select("province");
-
-  if (provinceError) throw provinceError;
-
-  const provinceStats = {};
-  provinceData.forEach((addr) => {
-    const prov = addr.province || "Unknown";
-    provinceStats[prov] = (provinceStats[prov] || 0) + 1;
-  });
-
-  const topProvinces = Object.entries(provinceStats)
-    .map(([name, count]) => ({ name, count }))
-    .sort((a, b) => b.count - a.count)
-    .slice(0, 10);
-
-  // Thống kê theo quận/huyện
-  const { data: districtData, error: districtError } = await supabase
-    .from("Address")
-    .select("district");
-
-  if (districtError) throw districtError;
-
-  const districtStats = {};
-  districtData.forEach((addr) => {
-    const dist = addr.district || "Unknown";
-    districtStats[dist] = (districtStats[dist] || 0) + 1;
-  });
-
-  const topDistricts = Object.entries(districtStats)
-    .map(([name, count]) => ({ name, count }))
-    .sort((a, b) => b.count - a.count)
-    .slice(0, 10);
-
-  return {
-    total: totalCount || 0,
-    topProvinces,
-    topDistricts,
-  };
+  return data;
 };
 
 module.exports = {
@@ -294,6 +230,5 @@ module.exports = {
   createAddress,
   updateAddress,
   deleteAddress,
-  getAllAddresses,
-  getAddressStats,
+  setDefaultAddress,
 };
