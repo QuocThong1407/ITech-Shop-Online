@@ -4,6 +4,10 @@ import AdminLayout from "../components/Layouts/AdminLayout/AdminLayout.jsx";
 import Dashboard from "../pages/admin/Dashboard/Dashboard.jsx";
 import CustomerLayout from "../components/Layouts/CustomerLayout/CustomerLayout.jsx";
 import SellerLayout from "../components/Layouts/SellerLayout/SellerLayout.jsx";
+import FilteredProducts from "../pages/customer/FilteredProducts/FilteredProducts.jsx";
+import Category from "../pages/seller/Category/Category.jsx";
+import AddCategory from "../pages/seller/Category/AddCategory.jsx";
+import EditCategory from "../pages/seller/Category/EditCategory.jsx";
 
 export const routes = [
     {
@@ -13,6 +17,10 @@ export const routes = [
             {
                 index: true,
                 element: <Home/>
+            },
+            {
+                path: '/category/:categoryId',
+                element: <FilteredProducts />
             },
         ]
     },
@@ -33,6 +41,18 @@ export const routes = [
             {
                 path: 'dashboard',
                 element: <Dashboard/>
+            },
+            {
+                path: "categories",
+                element: <Category />
+            },
+            {
+                path: "categories/new",
+                element: <AddCategory />
+            },
+            {
+                path: "categories/:id",
+                element: <EditCategory />
             },
         ]
     }
