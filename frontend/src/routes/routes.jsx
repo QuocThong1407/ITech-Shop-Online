@@ -8,6 +8,8 @@ import FilteredProducts from "../pages/customer/FilteredProducts/FilteredProduct
 import Category from "../pages/seller/Category/Category.jsx";
 import AddCategory from "../pages/seller/Category/AddCategory.jsx";
 import EditCategory from "../pages/seller/Category/EditCategory.jsx";
+import Login from "../pages/public/Login/Login.jsx";
+import Register from "../pages/customer/Register/Register.jsx";
 
 export const routes = [
     {
@@ -22,6 +24,13 @@ export const routes = [
                 path: '/category/:categoryId',
                 element: <FilteredProducts />
             },
+                path: "/login",
+                element: <Login/>
+            },
+            {
+                path: "/register",
+                element: <Register/>
+            }
         ]
     },
     {
