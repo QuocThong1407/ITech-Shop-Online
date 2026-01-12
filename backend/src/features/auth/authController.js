@@ -6,9 +6,9 @@ const {
 
 const register = async (req, res) => {
   try {
-    const { username, email, password } = req.body;
+    const { username, email, password, password_confirmation } = req.body;
 
-    if (!username || !email || !password) {
+    if (!username || !email || !password || !password_confirmation) {
       return errorResponse(res, 400, "Missing required fields");
     }
 
@@ -20,7 +20,7 @@ const register = async (req, res) => {
       return errorResponse(res, 400, "Password must be at least 8 characters");
     }
 
-    const result = await authService.register({ username, email, password });
+    const result = await authService.register({ username, email, password, password_confirmation });
     successResponse(res, 201, result, "Registration successful");
   } catch (err) {
     errorResponse(res, err.status || 500, err.message || "Registration failed");
