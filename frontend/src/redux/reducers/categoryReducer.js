@@ -1,7 +1,8 @@
 import { CategoryActionTypes } from "../constants/category-action-types"
 
 const initialState = {
-    categories: []
+    allCategories: [],
+    topCategories: []
 }
 
 export const categoryReducer = (state = initialState, {type, payload}) => {
@@ -9,7 +10,8 @@ export const categoryReducer = (state = initialState, {type, payload}) => {
         case CategoryActionTypes.SET_CATEGORIES:
             return {
                 ...state,
-                categories: payload
+                allCategories: payload.allCategories,
+                topCategories: payload.topCategories
             }
         default:
             return state

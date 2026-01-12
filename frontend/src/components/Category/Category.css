@@ -1,0 +1,66 @@
+.category-list {
+    display: flex;
+    flex-wrap: nowrap;           /* Không cho xuống hàng - giữ 1 hàng duy nhất */
+    gap: 8px;
+    overflow-x: auto;            /* Cho scroll ngang */
+    overflow-y: hidden;          /* Ẩn scroll dọc */
+    padding: 8px;
+    /* Smooth scrolling on mobile */
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Hide scrollbar but keep functionality */
+.category-list::-webkit-scrollbar {
+    height: 6px;
+}
+
+.category-list::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+}
+
+.category-list::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 10px;
+}
+
+.category-list::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+
+.category {
+    width: 120px;
+    height: 120px;
+    /* min-height: 120px; */
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+}
+
+.category__image {
+    width: 100%;
+    height: 100px;
+    overflow: hidden;
+    /* border-radius: 8px; */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    /* background-color: #f5f5f5; */
+}
+
+.category__image img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.category__name {
+    text-align: center;
+    white-space: normal;
+    word-break: break-word;
+    line-height: 1.3;
+    font-size: 13px;
+    margin-top: 8px;
+    padding: 0 4px;
+    overflow: visible; 
+}
