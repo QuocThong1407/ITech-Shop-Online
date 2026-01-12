@@ -5,8 +5,8 @@ import { useSelector } from "react-redux";
 import { Card, Col, Empty, Layout, Menu, Row, Spin } from "antd";
 import ProductCard from "../../../components/Product/ProductCard.jsx";
 import BreadscrumbMenu from "../../../components/BreadscrumbMenu/BreadscrumbMenu.jsx";
-import ProductFilters from "../../../components/ProductFilters/ProductFilters.jsx";
-import productService from "../../../services/productService.js";
+// import ProductFilters from "../../../components/ProductFilters/ProductFilters.jsx";
+// import productService from "../../../services/productService.js";
 
 const { Sider, Content } = Layout;
 

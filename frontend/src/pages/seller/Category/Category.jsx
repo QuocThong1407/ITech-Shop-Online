@@ -20,8 +20,8 @@ import {
     SearchOutlined,
 } from '@ant-design/icons'
 import categoryService from '../../../services/categoryService.js'
-import ActionButtons from '../../../components/common/ActionButtons/ActionButtons.jsx'
-import TablePagination from '../../../components/common/TablePagination/TablePagination.jsx'
+// import ActionButtons from '../../../components/common/ActionButtons/ActionButtons.jsx'
+// import TablePagination from '../../../components/common/TablePagination/TablePagination.jsx'
 
 const { Text } = Typography
 
