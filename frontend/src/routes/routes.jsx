@@ -1,4 +1,3 @@
-
 import Home from "../pages/customer/Home/Home.jsx";
 import AdminLayout from "../components/Layouts/AdminLayout/AdminLayout.jsx";
 import Dashboard from "../pages/admin/Dashboard/Dashboard.jsx";
@@ -24,13 +23,14 @@ export const routes = [
                 path: '/category/:categoryId',
                 element: <FilteredProducts />
             },
+            {
                 path: "/login",
                 element: <Login/>
             },
             {
                 path: "/register",
                 element: <Register/>
-            }
+            },
         ]
     },
     {

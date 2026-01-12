@@ -6,7 +6,7 @@ import {
     PictureTwoTone
 } from '@ant-design/icons'
 import categoryService from '../../../services/categoryService.js'
-import uploadService from '../../../services/uploadService.js'
+// import uploadService from '../../../services/uploadService.js'
 
 const EditCategory = () => {
     const navigate = useNavigate()
