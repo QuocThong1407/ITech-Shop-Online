@@ -24,6 +24,7 @@ export const routes = [
                 path: '/category/:categoryId',
                 element: <FilteredProducts />
             },
+            {
                 path: "/login",
                 element: <Login/>
             },
