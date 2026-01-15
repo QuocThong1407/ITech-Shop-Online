@@ -94,7 +94,6 @@ const getPromotionById = async (promotionId) => {
   if (error) throw error;
   if (!promotion) throw { status: 404, message: "Promotion not found" };
 
-  // Get associated products
   const { data: products } = await supabase
     .from("_PromotionProducts")
     .select(
@@ -109,7 +108,6 @@ const getPromotionById = async (promotionId) => {
     )
     .eq("B", promotionId);
 
-  // Get associated categories
   const { data: categories } = await supabase
     .from("_PromotionCategories")
     .select(
@@ -139,7 +137,6 @@ const createPromotion = async ({
 }) => {
   const now = new Date().toISOString();
 
-  // Verify that createdBy is an admin
   const { data: admin } = await supabase
     .from("Admin")
     .select("id")
@@ -241,7 +238,6 @@ const deletePromotion = async (promotionId) => {
     throw { status: 404, message: "Promotion not found" };
   }
 
-  // Delete related records first
   await supabase.from("Coupon").delete().eq("promotionId", promotionId);
   await supabase.from("ClearanceEvent").delete().eq("promotionId", promotionId);
   await supabase.from("_PromotionProducts").delete().eq("B", promotionId);
@@ -268,7 +264,6 @@ const applyPromotionToProducts = async (promotionId, productIds) => {
     throw { status: 404, message: "Promotion not found" };
   }
 
-  // Verify all products exist
   const { data: products } = await supabase
     .from("Product")
     .select("id")
@@ -278,10 +273,8 @@ const applyPromotionToProducts = async (promotionId, productIds) => {
     throw { status: 400, message: "One or more products not found" };
   }
 
-  // Delete existing associations
   await supabase.from("_PromotionProducts").delete().eq("B", promotionId);
 
-  // Create new associations
   const associations = productIds.map((productId) => ({
     A: productId,
     B: promotionId,
@@ -310,7 +303,6 @@ const applyPromotionToCategories = async (promotionId, categoryIds) => {
     throw { status: 404, message: "Promotion not found" };
   }
 
-  // Verify all categories exist
   const { data: categories } = await supabase
     .from("Category")
     .select("id")
@@ -320,10 +312,8 @@ const applyPromotionToCategories = async (promotionId, categoryIds) => {
     throw { status: 400, message: "One or more categories not found" };
   }
 
-  // Delete existing associations
   await supabase.from("_PromotionCategories").delete().eq("B", promotionId);
 
-  // Create new associations
   const associations = categoryIds.map((categoryId) => ({
     A: categoryId,
     B: promotionId,
