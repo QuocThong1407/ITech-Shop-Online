@@ -81,6 +81,7 @@ const updateAddress = async (req, res) => {
     if (!customerId) {
       return errorResponse(res, 403, "Customer profile not found");
     }
+    const updates = req.body;
     const result = await addressService.updateAddress(id, customerId, updates);
     successResponse(res, 200, result, "Address updated successfully");
   } catch (error) {
@@ -109,32 +110,26 @@ const deleteAddress = async (req, res) => {
   }
 };
 
-// admin xem tất cả địa chỉ trong hệ thống
-const getAllAddresses = async (req, res) => {
+// đặt địa chỉ làm mặc định
+const setDefaultAddress = async (req, res) => {
   try {
-    const { page, limit, search, province, district } = req.query;
-    const result = await addressService.getAllAddresses({
-      page,
-      limit,
-      search,
-      province,
-      district,
-    });
-    successResponse(res, 200, result);
-  } catch (error) {
-    console.error("Get all addresses error:", error);
-    errorResponse(res, 500, error.message || "Failed to get addresses");
-  }
-};
+    const { id } = req.params;
+    const customerId = req.user.customerId;
 
-// admin xem thống kê địa chỉ
-const getAddressStats = async (req, res) => {
-  try {
-    const stats = await addressService.getAddressStats();
-    successResponse(res, 200, stats);
+    if (!customerId) {
+      return errorResponse(res, 403, "Customer profile not found");
+    }
+
+    const result = await addressService.setDefaultAddress(id, customerId);
+    successResponse(res, 200, result, "Default address updated successfully");
   } catch (error) {
-    console.error("Get address stats error:", error);
-    errorResponse(res, 500, "Failed to get address statistics");
+    console.error("Set default address error:", error);
+    const statusCode = error.status || 400;
+    errorResponse(
+      res,
+      statusCode,
+      error.message || "Failed to set default address"
+    );
   }
 };
 
@@ -144,6 +139,5 @@ module.exports = {
   createAddress,
   updateAddress,
   deleteAddress,
-  getAllAddresses,
-  getAddressStats,
+  setDefaultAddress,
 };
