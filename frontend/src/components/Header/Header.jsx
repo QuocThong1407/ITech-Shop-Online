@@ -23,7 +23,7 @@ const Header = () => {
     useEffect(() => {
         const fetchCategories = async () => {
             try {
-                const categories = await categoryService.getAllCategoriesSimple();
+                const categories = await categoryService.getCategoryStats();
                 dispatch(setCategories(categories.data))
             }
             catch (error) {
@@ -68,7 +68,7 @@ const Header = () => {
     };
 
     const categoryMenu = {
-        items: categories.map(category => ({
+        items: categories.allCategories.map(category => ({
             key: category.id,
             label: <Link to={`/category/${category.id}`}>{category.name}</Link>,
         }))

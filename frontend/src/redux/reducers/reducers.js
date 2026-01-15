@@ -5,7 +5,7 @@ import authReducer from "./authReducer.js";
 
 const allReducers = combineReducers({
     authReducer,
-    allCategories: categoryReducer,
+    categories: categoryReducer,
     allProducts: productReducer
 });
 

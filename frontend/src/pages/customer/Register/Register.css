@@ -39,6 +39,10 @@
     box-shadow: 0 25px 50px rgba(0, 0, 0, 0.12);
 }
 
+.register-card > .ant-spin-nested-loading {
+    flex: 1;
+}
+
 .register-image-col {
     position: relative;
     display: flex;

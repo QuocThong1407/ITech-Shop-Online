@@ -11,7 +11,14 @@ const supabaseAdmin = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
-const register = async ({ username, email, password }) => {
+const register = async ({ username, email, password, password_confirmation }) => {
+  if (password !== password_confirmation) {
+    throw {
+      status: 400,
+      message: "Passwords do not match",
+    }
+  }
+
   const now = new Date().toISOString();
 
   const { data: existing } = await supabaseAdmin

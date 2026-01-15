@@ -12,7 +12,8 @@ const Home = () => {
   const [error, setError] = useState(null)
 
   const allProducts = useSelector(state => state.allProducts.products)
-  const allCategories = useSelector(state => state.allCategories.categories)
+  const allCategories = useSelector(state => state.categories.allCategories)
+  const topCategories = useSelector(state => state.categories.topCategories)
   const user = useSelector(state => state.authReducer.user)
   const navigate = useNavigate()
 
@@ -46,7 +47,7 @@ const Home = () => {
   return (
     <div>
       <CategoryListing />
-      {allCategories.slice(0, 3).map(category => (
+      {topCategories.map(category => (
         <ProductSection
           key={category.id}
           title={category.name}
