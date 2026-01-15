@@ -24,6 +24,16 @@ const authenticate = async (req, res, next) => {
       return errorResponse(res, 401, "Invalid token");
     }
 
+    const { data: userDb, error: userError } = await supabase
+      .from("User")
+      .select("role")
+      .eq("id", user.id)
+      .single();
+
+    if (userError || !userDb) {
+      return errorResponse(res, 500, "Failed to fetch user role");
+    }
+
     const { data: customer, error: customerError } = await supabase
       .from("Customer")
       .select("id")
@@ -37,7 +47,7 @@ const authenticate = async (req, res, next) => {
     req.user = {
       userId: user.id,
       customerId: customer?.id || null,
-      role: user.user_metadata?.role || "CUSTOMER",
+      role: userDb.role,
       email: user.email,
     };
 
