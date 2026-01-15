@@ -9,6 +9,8 @@ const authRoutes = require("./features/auth/authRoutes");
 const userRoutes = require("./features/user/userRoutes");
 const categoryRoutes = require("./features/category/categoryRoutes");
 const addressRoutes = require("./features/address/addressRoutes");
+//const reviewRoutes = require("./features/review/reviewRoutes");
+const promotionRoutes = require("./features/promotion/promotionRoutes");
 const { errorHandler, notFoundHandler } = require("./middleware/index");
 const app = express();
 app.use(helmet());
@@ -31,6 +33,8 @@ app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/categories", categoryRoutes);
 app.use("/api/addresses", addressRoutes);
+//app.use("/api/reviews", reviewRoutes);
+app.use("/api/promotions", promotionRoutes);
 app.use(notFoundHandler);
 app.use(errorHandler);
 
