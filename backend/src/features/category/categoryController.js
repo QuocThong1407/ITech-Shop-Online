@@ -42,6 +42,7 @@ const createCategory = async (req, res) => {
     const result = await categoryService.createCategory({
       name: name.trim(),
       description: description?.trim() || null,
+      file: req.file || null,
     });
 
     successResponse(res, 201, result, "Category created successfully");
@@ -60,7 +61,11 @@ const updateCategory = async (req, res) => {
     if (description !== undefined)
       updates.description = description?.trim() || null;
 
-    const result = await categoryService.updateCategory(id, updates);
+    const result = await categoryService.updateCategory(
+      id,
+      updates,
+      req.file || null
+    );
     successResponse(res, 200, result, "Category updated successfully");
   } catch (error) {
     console.error("Update category error:", error);
