@@ -12,6 +12,7 @@ const addressRoutes = require("./features/address/addressRoutes");
 //const reviewRoutes = require("./features/review/reviewRoutes");
 const promotionRoutes = require("./features/promotion/promotionRoutes");
 const couponRoutes = require("./features/coupon/couponRoutes");
+const productRoutes = require("./features/product/productRoutes");
 const { errorHandler, notFoundHandler } = require("./middleware/index");
 const app = express();
 app.use(helmet());
@@ -37,6 +38,7 @@ app.use("/api/addresses", addressRoutes);
 //app.use("/api/reviews", reviewRoutes);
 app.use("/api/promotions", promotionRoutes);
 app.use("/api/coupons", couponRoutes);
+app.use("/api/products", productRoutes);
 app.use(notFoundHandler);
 app.use(errorHandler);
 

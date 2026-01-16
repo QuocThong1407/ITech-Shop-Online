@@ -3,6 +3,8 @@ const express = require("express");
 const router = express.Router();
 const categoryController = require("./categoryController");
 const { authenticate, checkRole } = require("../../middleware/index");
+const multer = require("multer");
+const upload = multer({ storage: multer.memoryStorage() });
 
 // public
 router.get("/", categoryController.getAllCategories); // GET /api/categories
@@ -12,8 +14,8 @@ router.get("/:id", categoryController.getCategoryById); // GET /api/categories/:
 // admin only
 router.use(authenticate, checkRole("ADMIN"));
 
-router.post("/", categoryController.createCategory); // POST /api/categories
-router.put("/:id", categoryController.updateCategory); // PUT /api/categories/:id
+router.post("/", upload.single("image"), categoryController.createCategory); // POST /api/categories
+router.put("/:id", upload.single("image"), categoryController.updateCategory); // PUT /api/categories/:id
 router.delete("/:id", categoryController.deleteCategory); // DELETE /api/categories/:id
 
 module.exports = router;
