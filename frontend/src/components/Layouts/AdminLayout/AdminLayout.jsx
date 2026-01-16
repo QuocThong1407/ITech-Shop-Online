@@ -16,14 +16,9 @@ const AdminLayout = () => {
 
     const menuItems = [
         {
-            key: "/admin/customers",
+            key: "/admin/users",
             icon: <UserOutlined />,
-            label: <Link to="/admin/customers">Customers</Link>,
-        },
-        {
-            key: "/admin/staffs",
-            icon: <UserOutlined />,
-            label: <Link to="/admin/staffs">Staffs</Link>,
+            label: <Link to="/admin/users">Users</Link>,
         },
         {
             key: "/admin/promotions",

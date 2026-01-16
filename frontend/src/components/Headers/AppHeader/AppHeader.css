@@ -3,6 +3,11 @@
     background-color: #fff;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
     z-index: 9999;
+    height: 64px;
+    position: sticky;
+    top: 0;
+    left: 0;
+    right: 0;
 }
 
 .admin-header .admin-header__main {
