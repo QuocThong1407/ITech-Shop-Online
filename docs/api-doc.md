@@ -8,20 +8,23 @@ This guide helps frontend developers integrate with the backend API.
 http://localhost:5000/api
 ```
 
-## Authentication 
+## Authentication
+
 The API uses **JWT (JSON Web Token)**.
+
 1. Obtain a token via `/auth/login` or `/auth/register`.
 2. Include the token in the `Authorization` header for protected endpoints.
 
 **Example Request:**
+
 ```javascript
-fetch('http://localhost:5000/api/users/me', {
-  method: 'GET',
+fetch("http://localhost:5000/api/users/me", {
+  method: "GET",
   headers: {
-    'Content-Type': 'application/json',
-    'Authorization': 'Bearer <YOUR_ACCESS_TOKEN>'
-  }
-})
+    "Content-Type": "application/json",
+    Authorization: "Bearer <YOUR_ACCESS_TOKEN>",
+  },
+});
 ```
 
 ### Register User
@@ -320,6 +323,235 @@ fetch('http://localhost:5000/api/users/me', {
 
 ---
 
+## Products
+
+### Get All Products
+
+- **Method:** GET
+- **URL:** `/products`
+- **Query Params:** `page` (int, default 1), `limit` (int, default 10), `categoryId` (string), `search` (string), `minPrice` (number), `maxPrice` (number), `sellerId` (string)
+- **Response (200):** `{ products: [...], pagination: {...} }`
+- **Errors:** 500
+
+### Get Product by ID
+
+- **Method:** GET
+- **URL:** `/products/:id`
+- **Response (200):** Product object with variants
+- **Errors:** 404, 500
+
+### Create Product (Seller Only)
+
+- **Method:** POST
+- **URL:** `/products`
+- **Auth:** Required (Seller)
+- **Body:** JSON
+  ```json
+  {
+    "name": "string",
+    "description": "string",
+    "price": "number (>= 0)",
+    "stockQuantity": "integer (>= 0)",
+    "categoryId": "string",
+    "images": ["string"],
+    "variantTypes": ["string"],
+    "variantOptions": "object"
+  }
+  ```
+- **Response (201):** Product object
+- **Errors:** 400, 401, 403, 500
+
+### Update Product (Seller Only)
+
+- **Method:** PUT
+- **URL:** `/products/:id`
+- **Auth:** Required (Seller, owns product)
+- **Body:** JSON (optional fields)
+  ```json
+  {
+    "name": "string",
+    "description": "string",
+    "price": "number (>= 0)",
+    "stockQuantity": "integer (>= 0)",
+    "categoryId": "string",
+    "images": ["string"]
+  }
+  ```
+- **Response (200):** Updated product object
+- **Errors:** 400, 401, 403, 404, 500
+
+### Delete Product (Seller Only)
+
+- **Method:** DELETE
+- **URL:** `/products/:id`
+- **Auth:** Required (Seller, owns product)
+- **Response (200):** Success message (soft delete - sets `is_deleted: true`)
+- **Errors:** 400, 401, 403, 404, 500
+
+---
+
+## Promotions
+
+### Get All Promotions
+
+- **Method:** GET
+- **URL:** `/promotions`
+- **Query Params:** `page` (int, default 1), `limit` (int, default 10), `status` (ACTIVE/INACTIVE/EXPIRED), `search` (string)
+- **Response (200):** `{ promotions: [...], pagination: {...} }`
+- **Errors:** 500
+
+### Get Promotion by ID
+
+- **Method:** GET
+- **URL:** `/promotions/:id`
+- **Response (200):** Promotion object with related products/categories
+- **Errors:** 404, 500
+
+### Create Promotion (Admin Only)
+
+- **Method:** POST
+- **URL:** `/promotions`
+- **Auth:** Required (Admin)
+- **Body:** JSON
+  ```json
+  {
+    "name": "string",
+    "description": "string",
+    "startDate": "ISO timestamp",
+    "endDate": "ISO timestamp (must be after startDate)"
+  }
+  ```
+- **Response (201):** Promotion object
+- **Errors:** 400, 401, 403, 500
+
+### Update Promotion (Admin Only)
+
+- **Method:** PUT
+- **URL:** `/promotions/:id`
+- **Auth:** Required (Admin)
+- **Body:** JSON (optional fields)
+  ```json
+  {
+    "name": "string",
+    "description": "string",
+    "startDate": "ISO timestamp",
+    "endDate": "ISO timestamp"
+  }
+  ```
+- **Response (200):** Updated promotion object
+- **Errors:** 400, 401, 403, 404, 500
+
+### Update Promotion Status (Admin Only)
+
+- **Method:** PATCH
+- **URL:** `/promotions/:id/status`
+- **Auth:** Required (Admin)
+- **Body:** JSON
+  ```json
+  {
+    "status": "ACTIVE | INACTIVE | EXPIRED"
+  }
+  ```
+- **Response (200):** Updated promotion object
+- **Errors:** 400, 401, 403, 404, 500
+
+### Delete Promotion (Admin Only)
+
+- **Method:** DELETE
+- **URL:** `/promotions/:id`
+- **Auth:** Required (Admin)
+- **Response (200):** Success message
+- **Errors:** 400, 401, 403, 404, 500
+
+### Apply Promotion to Products (Admin Only)
+
+- **Method:** POST
+- **URL:** `/promotions/:id/apply`
+- **Auth:** Required (Admin)
+- **Body:** JSON
+  ```json
+  {
+    "productIds": ["string", "string"]
+  }
+  ```
+- **Response (200):** Success message
+- **Errors:** 400, 401, 403, 404, 500
+
+### Apply Promotion to Categories (Admin Only)
+
+- **Method:** POST
+- **URL:** `/promotions/:id/apply-categories`
+- **Auth:** Required (Admin)
+- **Body:** JSON
+  ```json
+  {
+    "categoryIds": ["string", "string"]
+  }
+  ```
+- **Response (200):** Success message
+- **Errors:** 400, 401, 403, 404, 500
+
+---
+
+## Coupons
+
+### Create Coupon (Admin Only)
+
+- **Method:** POST
+- **URL:** `/coupons`
+- **Auth:** Required (Admin)
+- **Body:** JSON
+  ```json
+  {
+    "promotionId": "string",
+    "code": "string",
+    "discountPercentage": "number (0-100)",
+    "maxUsage": "integer (>= 1)"
+  }
+  ```
+- **Response (201):** Coupon object
+- **Errors:** 400, 401, 403, 500
+
+### Validate Coupon
+
+- **Method:** POST
+- **URL:** `/coupons/validate`
+- **Auth:** Required
+- **Body:** JSON
+  ```json
+  {
+    "code": "string",
+    "orderAmount": "number (> 0)"
+  }
+  ```
+- **Response (200):** `{ valid: true/false, discount: number, finalAmount: number }`
+- **Errors:** 400, 401, 500
+
+### Get Coupons by Promotion (Admin Only)
+
+- **Method:** GET
+- **URL:** `/coupons/promotion/:id`
+- **Auth:** Required (Admin)
+- **Response (200):** Array of coupon objects
+- **Errors:** 401, 403, 404, 500
+
+### Update Coupon (Admin Only)
+
+- **Method:** PUT
+- **URL:** `/coupons/:id`
+- **Auth:** Required (Admin)
+- **Body:** JSON (optional fields)
+  ```json
+  {
+    "code": "string",
+    "discountPercentage": "number (0-100)",
+    "maxUsage": "integer (>= 1)"
+  }
+  ```
+- **Response (200):** Updated coupon object
+- **Errors:** 400, 401, 403, 404, 500
+
+---
 
 ## Notes for Frontend Implementation
 
@@ -332,15 +564,17 @@ fetch('http://localhost:5000/api/users/me', {
 ## Common Response Format
 
 Success response:
+
 ```json
 {
   "success": true,
   "message": "Success message",
-  "data": { }
+  "data": {}
 }
 ```
 
 Error response:
+
 ```json
 {
   "success": false,
@@ -350,6 +584,7 @@ Error response:
 ```
 
 ## HTTP Status Codes
+
 - 200: Success
 - 201: Created
 - 400: Bad Request
