@@ -1,7 +1,12 @@
 import {get, post} from "../utils/request.js";
 
-const login = ({email, password}) => {
-    return post('/auth/login', {email, password});
+const login = async ({email, password}) => {
+    const response = await post('/auth/login', { email, password });
+    if (response.data) {
+        const token = response.data.accessToken;
+        localStorage.setItem('accessToken', token);
+    }
+    return response;
 }
 
 const register = ({username, email, password, password_confirmation}) => {
