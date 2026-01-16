@@ -21,8 +21,11 @@ const AppSider = ({menuItems}) => {
                style={{
                    background: "#fff",
                    borderRight: "1px solid #f0f0f0",
-                   height: "100vh",
+                   height: "calc(100vh - 64px)",
                    zIndex: 999,
+                   position: "sticky",
+                   top: 64,
+                   left: 0
                }}>
             <Menu
                 mode="inline"
