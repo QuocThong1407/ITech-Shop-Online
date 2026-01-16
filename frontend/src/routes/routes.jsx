@@ -9,6 +9,7 @@ import AddCategory from "../pages/seller/Category/AddCategory.jsx";
 import EditCategory from "../pages/seller/Category/EditCategory.jsx";
 import Login from "../pages/public/Login/Login.jsx";
 import Register from "../pages/customer/Register/Register.jsx";
+import Users from "../pages/admin/Users/Users.jsx";
 
 export const routes = [
     {
@@ -41,6 +42,10 @@ export const routes = [
                 path: 'dashboard',
                 element: <Dashboard/>
             },
+            {
+                path: 'users',
+                element: <Users/>
+            }
         ]
     },
     {
