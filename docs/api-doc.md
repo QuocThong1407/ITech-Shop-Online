@@ -561,6 +561,53 @@ fetch("http://localhost:5000/api/users/me", {
 
 ---
 
+## Product Variants
+
+### Create Product Variant (Seller Only)
+
+- **Method:** POST
+- **URL:** `/variants`
+- **Auth:** Required (Seller, owns product)
+- **Body:** JSON
+  ```json
+  {
+    "productId": "string",
+    "quantity": "integer (>= 0)",
+    "variantAttributes": "object",
+    "images": ["string"],
+    "priceAdjustment": "number (optional, default 0)"
+  }
+  ```
+- **Response (201):** Variant object
+- **Errors:** 400, 401, 403 (not product owner), 404 (product not found), 500
+
+### Update Product Variant (Seller Only)
+
+- **Method:** PUT
+- **URL:** `/variants/:id`
+- **Auth:** Required (Seller, owns product)
+- **Body:** JSON (optional fields)
+  ```json
+  {
+    "quantity": "integer (>= 0)",
+    "variantAttributes": "object",
+    "images": ["string"],
+    "priceAdjustment": "number"
+  }
+  ```
+- **Response (200):** Updated variant object
+- **Errors:** 400 (deleted product), 401, 403, 404, 500
+
+### Delete Product Variant (Seller Only)
+
+- **Method:** DELETE
+- **URL:** `/variants/:id`
+- **Auth:** Required (Seller, owns product)
+- **Response (200):** Success message
+- **Errors:** 401, 403, 404, 500
+
+---
+
 ## Notes for Frontend Implementation
 
 - Always use `Authorization: Bearer <token>` header for authenticated requests
