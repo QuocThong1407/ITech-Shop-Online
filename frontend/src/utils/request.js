@@ -1,19 +1,39 @@
 const API_DOMAIN = import.meta.env.VITE_API_DOMAIN;
 
 const request = async (path, options = {}) => {
+    const token = localStorage.getItem('accessToken');
+
+    const headers = {
+        Accept: 'application/json',
+        ...options.headers,
+    };
+
+    if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+    }
+
     const defaultOptions = {
         credentials: 'include',
         ...options,
-        headers: {
-            Accept: 'application/json',
-            ...options.headers,
-        },
+        headers: headers,
     };
 
     const response = await fetch(API_DOMAIN + path, defaultOptions);
 
     if (!response.ok) {
         const errorData = await response.json();
+
+        if (response.status === 401) {
+            localStorage.removeItem('accessToken');
+            localStorage.removeItem('user');
+
+            if (window.location.pathname !== '/login') {
+                alert("Your login session has expired. Please log in again.");
+                window.location.href = '/login';
+            }
+            return;
+        }
+
         throw new Error(errorData.message || 'Errors has occurred');
     }
 

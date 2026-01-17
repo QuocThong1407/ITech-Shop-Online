@@ -1,0 +1,141 @@
+import React, { useEffect, useState } from 'react';
+import { Typography, Card, Progress, Row, Col, Spin, Empty, Tag } from 'antd';
+import { CrownOutlined, TrophyOutlined, RocketOutlined } from '@ant-design/icons';
+import membershipService from '../../../services/membershipService';
+import './Membership.scss';
+
+const { Title, Text } = Typography;
+
+const Membership = () => {
+    const [membership, setMembership] = useState(null);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        fetchMembership();
+    }, []);
+
+    const fetchMembership = async () => {
+        setLoading(true);
+        try {
+            const res = await membershipService.getMyMembership();
+            if (res && res.data && res.data.membership) {
+                setMembership(res.data.membership);
+            }
+        } catch (error) {
+            console.error("Failed to fetch membership", error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const getTierColor = (tier) => {
+        switch (tier) {
+            case 'BRONZE': return '#cd7f32';
+            case 'SILVER': return '#c0c0c0';
+            case 'GOLD': return '#ffd700';
+            default: return '#008ECC';
+        }
+    };
+
+    const getTierIcon = (tier) => {
+        switch (tier) {
+            case 'BRONZE': return <RocketOutlined style={{ color: '#cd7f32' }} />;
+            case 'SILVER': return <TrophyOutlined style={{ color: '#c0c0c0' }} />;
+            case 'GOLD': return <CrownOutlined style={{ color: '#ffd700' }} />;
+            default: return <CrownOutlined />;
+        }
+    };
+
+    const getNextTierInfo = (spent) => {
+        if (spent < 100) {
+            return { next: 'SILVER', goal: 100, remaining: 100 - spent };
+        }
+        if (spent < 500) {
+            return { next: 'GOLD', goal: 500, remaining: 500 - spent };
+        }
+        return { next: null, goal: 2000, remaining: 0 };
+    };
+
+    const formatPrice = (amount) => {
+        return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
+    };
+
+    if (loading) {
+        return (
+            <div className="membership-loading">
+                <Spin size="large" />
+            </div>
+        );
+    }
+
+    if (!membership) {
+        return (
+            <div className="membership-empty">
+                <Empty description="No membership data found. Start shopping to earn rewards!" />
+            </div>
+        );
+    }
+
+    const { spent, membership: tier } = membership;
+    const nextTier = getNextTierInfo(spent);
+    const percent = nextTier.next ? Math.min(100, (spent / nextTier.goal) * 100) : 100;
+
+    return (
+        <div className="membership">
+            <Title level={2} style={{ color: '#008ECC', marginBottom: '32px' }}>My Membership</Title>
+
+            <Row gutter={[24, 24]}>
+                <Col span={24}>
+                    <Card className="membership__card tier-card">
+                        <div className="membership__tier-info">
+                            <div className="membership__tier-icon">
+                                {getTierIcon(tier)}
+                            </div>
+                            <div className="membership__tier-text">
+                                <Text type="secondary">Current Tier</Text>
+                                <Title level={3} style={{ margin: 0, color: getTierColor(tier) }}>{tier}</Title>
+                            </div>
+                        </div>
+                    </Card>
+                </Col>
+
+                <Col span={24}>
+                    <Card className="membership__card">
+                        <Title level={4}>Spending Progress</Title>
+                        <div className="membership__spent">
+                            <Text type="secondary">Total Spent: </Text>
+                            <Text strong style={{ fontSize: '18px', color: '#ff4d4f' }}>{formatPrice(spent)}</Text>
+                        </div>
+
+                        <div className="membership__progress">
+                            <Progress
+                                percent={Math.round(percent)}
+                                strokeColor={getTierColor(tier)}
+                                status="active"
+                            />
+                            {nextTier.next && (
+                                <div className="membership__next-tier">
+                                    <Text type="secondary">
+                                        Spend {formatPrice(nextTier.remaining)} more to reach <Tag color={getTierColor(nextTier.next)}>{nextTier.next}</Tag>
+                                    </Text>
+                                </div>
+                            )}
+                        </div>
+                    </Card>
+                </Col>
+
+                <Col span={24}>
+                    <Card className="membership__card">
+                        <Title level={4}>Membership Benefits</Title>
+                        <ul className="membership__benefits">
+                            <li>Exclusive discounts for {tier} members</li>
+                            <li>Priority customer support</li>
+                        </ul>
+                    </Card>
+                </Col>
+            </Row>
+        </div>
+    );
+};
+
+export default Membership;

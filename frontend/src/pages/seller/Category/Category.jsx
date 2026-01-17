@@ -11,7 +11,7 @@ import {
     Space,
     Table,
     Typography,
-    Image,
+    // Image,
 } from 'antd'
 import {
     DeleteOutlined,
@@ -123,13 +123,13 @@ const Category = () => {
             key: 'name',
             render: (text, record) => (
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    {record.image && (
+                    {/* {record.image && (
                         <Image
                             src={record.image}
                             alt={text}
                             style={{ width: '40px', height: '40px', borderRadius: '4px', objectFit: 'cover' }}
                         />
-                    )}
+                    )} */}
                     <div>
                         <div 
                             style={{ fontWeight: 500, cursor: 'pointer' }}
