@@ -2,6 +2,11 @@
 const { supabase, supabaseAdmin } = require("../../configs/supabase");
 const { v4: uuidv4 } = require("uuid");
 
+const {
+  uploadImageToSupabase,
+  deleteImageFromSupabase,
+} = require("../../utils/uploadHelper");
+
 const getAllCategories = async ({ page = 1, limit = 10, search }) => {
   page = parseInt(page);
   limit = parseInt(limit);
@@ -63,12 +68,22 @@ const createCategory = async ({ name, description, file }) => {
   const now = new Date().toISOString();
   const categoryId = uuidv4();
 
+  let imageUrl = null;
+  if (file) {
+    imageUrl = await uploadImageToSupabase(
+      file,
+      "categories",
+      `${categoryId}/`
+    );
+  }
+
   const { data: category, error } = await supabase
     .from("Category")
     .insert({
       id: categoryId,
       name,
       description,
+      image: imageUrl,
       createdAt: now,
       updatedAt: now,
     })
@@ -76,37 +91,6 @@ const createCategory = async ({ name, description, file }) => {
     .single();
 
   if (error) throw error;
-
-  if (file) {
-    const ext = file.originalname.split(".").pop();
-    const allowed = ["jpg", "jpeg", "png", "webp"];
-    if (!allowed.includes(ext.toLowerCase())) {
-      throw { status: 400, message: "Invalid image format" };
-    }
-    const filePath = `${categoryId}/image.${ext}`;
-
-    const { error: uploadError } = await supabaseAdmin.storage
-      .from("categories")
-      .upload(filePath, file.buffer, {
-        contentType: file.mimetype,
-        upsert: true,
-      });
-
-    if (uploadError) {
-      throw { status: 400, message: uploadError.message };
-    }
-
-    const { data } = supabaseAdmin.storage
-      .from("categories")
-      .getPublicUrl(filePath);
-
-    await supabase
-      .from("Category")
-      .update({ image: data.publicUrl })
-      .eq("id", categoryId);
-
-    category.image = data.publicUrl;
-  }
 
   return category;
 };
@@ -136,6 +120,17 @@ const updateCategory = async (categoryId, updates, file) => {
       };
     }
   }
+  //xử lý upload ảnh mới
+  if (file) {
+    if (existingCategory.image) {
+      await deleteImageFromSupabase(existingCategory.image, "categories");
+    }
+    updates.image = await uploadImageToSupabase(
+      file,
+      "categories",
+      `${categoryId}/`
+    );
+  }
 
   const { data: category, error: updateError } = await supabase
     .from("Category")
@@ -148,44 +143,6 @@ const updateCategory = async (categoryId, updates, file) => {
     .single();
 
   if (updateError) throw updateError;
-
-  if (file) {
-    if (existingCategory.image) {
-      const oldPath = existingCategory.image.split("/categories/")[1];
-      if (oldPath) {
-        await supabaseAdmin.storage.from("categories").remove([oldPath]);
-      }
-    }
-
-    const ext = file.originalname.split(".").pop();
-    const allowed = ["jpg", "jpeg", "png", "webp"];
-    if (!allowed.includes(ext.toLowerCase())) {
-      throw { status: 400, message: "Invalid image format" };
-    }
-    const filePath = `${categoryId}/image.${ext}`;
-
-    const { error: uploadError } = await supabaseAdmin.storage
-      .from("categories")
-      .upload(filePath, file.buffer, {
-        contentType: file.mimetype,
-        upsert: true,
-      });
-
-    if (uploadError) {
-      throw { status: 400, message: uploadError.message };
-    }
-
-    const { data } = supabaseAdmin.storage
-      .from("categories")
-      .getPublicUrl(filePath);
-
-    await supabase
-      .from("Category")
-      .update({ image: data.publicUrl })
-      .eq("id", categoryId);
-
-    category.image = data.publicUrl;
-  }
 
   return category;
 };
@@ -227,11 +184,8 @@ const deleteCategory = async (categoryId) => {
     };
   }
   //xóa ảnh
-  if (category?.image) {
-    const path = category.image.split("/categories/")[1];
-    if (path) {
-      await supabaseAdmin.storage.from("categories").remove([path]);
-    }
+  if (category.image) {
+    await deleteImageFromSupabase(category.image, "categories");
   }
 
   const { error: deleteError } = await supabase

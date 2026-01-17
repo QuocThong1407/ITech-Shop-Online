@@ -1,6 +1,10 @@
 // backend/src/features/product/productService.js
 const { supabase } = require("../../configs/supabase");
 const { v4: uuidv4 } = require("uuid");
+const {
+  uploadImageToSupabase,
+  deleteImageFromSupabase,
+} = require("../../utils/uploadHelper");
 
 const getAllProducts = async ({
   page = 1,
@@ -147,7 +151,7 @@ const createProduct = async ({
   price,
   stockQuantity,
   categoryId,
-  images,
+  files,
   variantTypes,
   variantOptions,
   createdBy,
@@ -176,16 +180,30 @@ const createProduct = async ({
     throw { status: 400, message: "Category not found" };
   }
 
+  const productId = uuidv4();
+  let imageUrls = [];
+
+  if (files && files.length > 0) {
+    for (const file of files) {
+      const url = await uploadImageToSupabase(
+        file,
+        "products",
+        `${productId}/`
+      );
+      imageUrls.push(url);
+    }
+  }
+
   const { data, error } = await supabase
     .from("Product")
     .insert({
-      id: uuidv4(),
+      id: productId,
       name,
       description,
       price,
       stockQuantity,
       categoryId,
-      images: images || [],
+      images: imageUrls,
       variantTypes: variantTypes || [],
       variantOptions: variantOptions || {},
       createdBy: seller.id,
@@ -201,7 +219,7 @@ const createProduct = async ({
   return data;
 };
 
-const updateProduct = async (productId, updates, userId) => {
+const updateProduct = async (productId, updates, userId, files) => {
   const { data: seller } = await supabase
     .from("Seller")
     .select("id")
@@ -214,7 +232,7 @@ const updateProduct = async (productId, updates, userId) => {
 
   const { data: existing } = await supabase
     .from("Product")
-    .select("id, createdBy")
+    .select("id, createdBy, images")
     .eq("id", productId)
     .eq("is_deleted", false)
     .single();
@@ -225,6 +243,26 @@ const updateProduct = async (productId, updates, userId) => {
 
   if (existing.createdBy !== seller.id) {
     throw { status: 403, message: "You can only update your own products" };
+  }
+
+  if (files && files.length > 0) {
+    if (existing.images && existing.images.length > 0) {
+      for (const img of existing.images) {
+        await deleteImageFromSupabase(img, "products");
+      }
+    }
+
+    const newImages = [];
+    for (const file of files) {
+      const url = await uploadImageToSupabase(
+        file,
+        "products",
+        `${productId}/`
+      );
+      newImages.push(url);
+    }
+
+    updates.images = newImages;
   }
 
   if (updates.categoryId) {
@@ -238,8 +276,7 @@ const updateProduct = async (productId, updates, userId) => {
       throw { status: 400, message: "Category not found" };
     }
   }
-
-  const updateData = { updatedAt: new Date().toISOString() };
+  const updateData = {};
 
   if (updates.name !== undefined) updateData.name = updates.name;
   if (updates.description !== undefined)
@@ -257,7 +294,7 @@ const updateProduct = async (productId, updates, userId) => {
 
   const { data, error } = await supabase
     .from("Product")
-    .update(updateData)
+    .update({ ...updateData, updatedAt: new Date().toISOString() })
     .eq("id", productId)
     .select()
     .single();
