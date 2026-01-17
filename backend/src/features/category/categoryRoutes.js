@@ -4,8 +4,6 @@ const router = express.Router();
 const categoryController = require("./categoryController");
 const { authenticate, checkRole, upload } = require("../../middleware/index");
 const multer = require("multer");
-const upload = multer({ storage: multer.memoryStorage() });
-
 // public
 router.get("/", categoryController.getAllCategories); // GET /api/categories
 router.get("/stats", categoryController.getCategoryStats); // GET /api/categories/stats
