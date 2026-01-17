@@ -6,6 +6,7 @@ const { authenticate, checkRole } = require("../../middleware/index");
 
 // Public routes
 router.get("/", promotionController.getAllPromotions); // GET /api/promotions
+router.get("/stats", promotionController.getPromotionStats); // GET /api/promotions/stats
 router.get("/:id", promotionController.getPromotionById); // GET /api/promotions/:id
 
 // Admin only
