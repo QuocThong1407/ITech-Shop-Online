@@ -2,6 +2,21 @@
 const { supabase } = require("../../configs/supabase");
 const { v4: uuidv4 } = require("uuid");
 
+//helper
+const determineStatus = (startDate, endDate) => {
+  const now = new Date();
+  const start = new Date(startDate);
+  const end = new Date(endDate);
+
+  if (now < start) {
+    return "UPCOMING";
+  } else if (now >= start && now <= end) {
+    return "ACTIVE";
+  } else {
+    return "EXPIRED";
+  }
+};
+
 const getAllPromotions = async ({ page = 1, limit = 10, status, search }) => {
   let query = supabase.from("Promotion").select(
     `
@@ -147,6 +162,9 @@ const createPromotion = async ({
     throw { status: 403, message: "Only admins can create promotions" };
   }
 
+  //status sẽ được set tự động dựa trên ngày bắt đầu và kết thúc
+  const initialStatus = determineStatus(startDate, endDate);
+
   const { data, error } = await supabase
     .from("Promotion")
     .insert({
@@ -156,7 +174,7 @@ const createPromotion = async ({
       startDate: new Date(startDate).toISOString(),
       endDate: new Date(endDate).toISOString(),
       createdBy: admin.id,
-      status: "ACTIVE",
+      status: initialStatus,
       createdAt: now,
       updatedAt: now,
     })
@@ -204,12 +222,38 @@ const updatePromotion = async (
 const updatePromotionStatus = async (promotionId, status) => {
   const { data: existing } = await supabase
     .from("Promotion")
-    .select("id")
+    .select("id, startDate, endDate, status")
     .eq("id", promotionId)
     .single();
 
   if (!existing) {
     throw { status: 404, message: "Promotion not found" };
+  }
+  //admin không thể thay đổi trạng thái thành UPCOMING hoặc EXPIRED
+  if (status === "UPCOMING" || status === "EXPIRED") {
+    const autoStatus = determineStatus(existing.startDate, existing.endDate);
+    if (status !== autoStatus) {
+      throw {
+        status: 400,
+        message: `Cannot manually set status to ${status}. This status is auto-determined by dates.`,
+      };
+    }
+  }
+  //kiểm tra khi kích hoạt
+  if (status === "ACTIVE") {
+    const autoStatus = determineStatus(existing.startDate, existing.endDate);
+    if (autoStatus === "UPCOMING") {
+      throw {
+        status: 400,
+        message: "Cannot activate promotion before start date",
+      };
+    }
+    if (autoStatus === "EXPIRED") {
+      throw {
+        status: 400,
+        message: "Cannot activate expired promotion",
+      };
+    }
   }
 
   const { data, error } = await supabase
@@ -331,6 +375,53 @@ const applyPromotionToCategories = async (promotionId, categoryIds) => {
   };
 };
 
+const getPromotionStats = async () => {
+  const { data: promotions } = await supabase
+    .from("Promotion")
+    .select("status, startDate, endDate");
+
+  if (!promotions) {
+    return {
+      total: 0,
+      upcoming: 0,
+      active: 0,
+      inactive: 0,
+      expired: 0,
+    };
+  }
+
+  // Update auto-statuses and count
+  const now = new Date();
+  const stats = {
+    total: promotions.length,
+    upcoming: 0,
+    active: 0,
+    inactive: 0,
+    expired: 0,
+  };
+
+  promotions.forEach((promo) => {
+    // If status is INACTIVE, admin manually set it
+    if (promo.status === "INACTIVE") {
+      stats.inactive++;
+      return;
+    }
+
+    // Otherwise, determine by dates
+    const autoStatus = determineStatus(promo.startDate, promo.endDate);
+
+    if (autoStatus === "UPCOMING") {
+      stats.upcoming++;
+    } else if (autoStatus === "ACTIVE") {
+      stats.active++;
+    } else if (autoStatus === "EXPIRED") {
+      stats.expired++;
+    }
+  });
+
+  return stats;
+};
+
 module.exports = {
   getAllPromotions,
   getPromotionById,
@@ -340,4 +431,5 @@ module.exports = {
   deletePromotion,
   applyPromotionToProducts,
   applyPromotionToCategories,
+  getPromotionStats,
 };

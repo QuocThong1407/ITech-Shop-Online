@@ -92,12 +92,12 @@ const updatePromotionStatus = async (req, res) => {
       return errorResponse(res, 400, "Status is required");
     }
 
-    const validStatuses = ["ACTIVE", "INACTIVE", "EXPIRED"];
+    const validStatuses = ["ACTIVE", "INACTIVE", "UPCOMING", "EXPIRED"];
     if (!validStatuses.includes(status)) {
       return errorResponse(
         res,
         400,
-        "Invalid status. Must be ACTIVE, INACTIVE, or EXPIRED"
+        "Invalid status. Must be ACTIVE, INACTIVE, UPCOMING, or EXPIRED"
       );
     }
 
@@ -194,6 +194,16 @@ const applyPromotionToCategories = async (req, res) => {
   }
 };
 
+const getPromotionStats = async (req, res) => {
+  try {
+    const stats = await promotionService.getPromotionStats();
+    successResponse(res, 200, stats);
+  } catch (error) {
+    console.error("Get promotion stats error:", error);
+    errorResponse(res, 500, "Failed to get promotion statistics");
+  }
+};
+
 module.exports = {
   getAllPromotions,
   getPromotionById,
@@ -203,4 +213,5 @@ module.exports = {
   deletePromotion,
   applyPromotionToProducts,
   applyPromotionToCategories,
+  getPromotionStats,
 };
