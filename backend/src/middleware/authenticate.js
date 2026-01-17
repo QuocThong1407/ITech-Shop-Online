@@ -43,10 +43,21 @@ const authenticate = async (req, res, next) => {
     if (customerError) {
       return errorResponse(res, 500, "Failed to fetch customer profile");
     }
+    const { data: seller, error: sellerError } = await supabase
+      .from("Seller")
+      .select("id")
+      .eq("userId", user.id)
+      .maybeSingle();
+
+    if (sellerError) {
+      return errorResponse(res, 500, "Failed to fetch seller profile");
+    }
 
     req.user = {
+      id: user.id,
       userId: user.id,
       customerId: customer?.id || null,
+      sellerId: seller?.id || null,
       role: userDb.role,
       email: user.email,
     };
