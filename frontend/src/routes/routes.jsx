@@ -10,13 +10,6 @@ import EditCategory from "../pages/seller/Category/EditCategory.jsx";
 import Login from "../pages/public/Login/Login.jsx";
 import Register from "../pages/customer/Register/Register.jsx";
 import Users from "../pages/admin/Users/Users.jsx";
-import ForgotPassword from "../pages/customer/ForgotPassword/ForgotPassword.jsx";
-import ResetPassword from "../pages/public/ResetPassword/ResetPassword.jsx";
-import Address from "../pages/customer/Address/Address.jsx";
-import AddressEdit from "../pages/customer/Address/AddressEdit.jsx";
-import ChangePassword from "../pages/customer/ChangePassword/ChangePassword.jsx";
-import Cart from "../pages/customer/Cart/Cart.jsx";
-import Membership from "../pages/customer/Membership/Membership.jsx";
 
 export const routes = [
     {
@@ -38,38 +31,6 @@ export const routes = [
             {
                 path: "/register",
                 element: <Register/>
-            },
-            {
-                path: "/forgot-password",
-                element: <ForgotPassword/>
-            },
-            {
-                path: "/reset-password",
-                element: <ResetPassword/>
-            },
-            {
-                path: "/profile/my-address",
-                element: <Address/>
-            },
-            {
-                path: "/profile/my-address/new",
-                element: <AddressEdit/>
-            },
-            {
-                path: "/profile/my-address/edit/:id",
-                element: <AddressEdit/>
-            },
-            {
-                path: "/profile/change-password",
-                element: <ChangePassword/>
-            },
-            {
-                path: "/cart",
-                element: <Cart/>
-            },
-            {
-                path: "/profile/membership",
-                element: <Membership/>
             },
         ]
     },

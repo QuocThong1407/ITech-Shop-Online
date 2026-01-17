@@ -18,7 +18,8 @@ const Register = () => {
             const response = await authServices.register({
                 username: values.username,
                 email: values.email,
-                password: values.password
+                password: values.password,
+                password_confirmation: values.password_confirmation
             })
 
             if (response.success) {

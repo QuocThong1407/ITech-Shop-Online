@@ -1,11 +1,12 @@
 import { Link, useParams } from "react-router";
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
+// import { get } from "../../../utils/request.js";
 import { Card, Col, Empty, Layout, Menu, Row, Spin } from "antd";
 import ProductCard from "../../../components/Product/ProductCard.jsx";
 import BreadscrumbMenu from "../../../components/BreadscrumbMenu/BreadscrumbMenu.jsx";
-import ProductFilters from "../../../components/ProductFilters/ProductFilters.jsx";
-import productService from "../../../services/productService.js";
+// import ProductFilters from "../../../components/ProductFilters/ProductFilters.jsx";
+// import productService from "../../../services/productService.js";
 
 const { Sider, Content } = Layout;
 
