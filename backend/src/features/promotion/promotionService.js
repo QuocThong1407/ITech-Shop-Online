@@ -1,7 +1,10 @@
 // backend/src/features/promotion/promotionService.js
 const { supabase } = require("../../configs/supabase");
 const { v4: uuidv4 } = require("uuid");
-
+const {
+  uploadImageToSupabase,
+  deleteImageFromSupabase,
+} = require("../../utils/uploadHelper");
 //helper
 const determineStatus = (startDate, endDate) => {
   const now = new Date();
@@ -75,6 +78,7 @@ const getPromotionById = async (promotionId) => {
       `
       id,
       name,
+      image,
       description,
       startDate,
       endDate,
@@ -149,8 +153,19 @@ const createPromotion = async ({
   startDate,
   endDate,
   createdBy,
+  file,
 }) => {
   const now = new Date().toISOString();
+  const promotionId = uuidv4();
+
+  let imageUrl = null;
+  if (file) {
+    imageUrl = await uploadImageToSupabase(
+      file,
+      "promotions",
+      `${promotionId}/`
+    );
+  }
 
   const { data: admin } = await supabase
     .from("Admin")
@@ -168,13 +183,14 @@ const createPromotion = async ({
   const { data, error } = await supabase
     .from("Promotion")
     .insert({
-      id: uuidv4(),
+      id: promotionId,
       name,
       description: description || null,
       startDate: new Date(startDate).toISOString(),
       endDate: new Date(endDate).toISOString(),
       createdBy: admin.id,
       status: initialStatus,
+      image: imageUrl || null,
       createdAt: now,
       updatedAt: now,
     })
@@ -186,30 +202,43 @@ const createPromotion = async ({
   return data;
 };
 
-const updatePromotion = async (
-  promotionId,
-  { name, description, startDate, endDate }
-) => {
+const updatePromotion = async (promotionId, updates, file) => {
   const { data: existing } = await supabase
     .from("Promotion")
-    .select("id")
+    .select("id, image, startDate, endDate")
     .eq("id", promotionId)
     .single();
 
   if (!existing) {
     throw { status: 404, message: "Promotion not found" };
   }
+  if (file) {
+    if (existing.image) {
+      await deleteImageFromSupabase(existing.image, "promotions");
+    }
+    updates.image = await uploadImageToSupabase(
+      file,
+      "promotions",
+      `${promotionId}/`
+    );
+  }
+  if (updates.startDate || updates.endDate) {
+    const start = updates.startDate ?? existing.startDate;
+    const end = updates.endDate ?? existing.endDate;
+    updates.status = determineStatus(start, end);
+  }
 
-  const updateData = { updatedAt: new Date().toISOString() };
-
-  if (name) updateData.name = name;
-  if (description !== undefined) updateData.description = description;
-  if (startDate) updateData.startDate = new Date(startDate).toISOString();
-  if (endDate) updateData.endDate = new Date(endDate).toISOString();
+  //chuẩn hóa ngày
+  if (updates.startDate) {
+    updates.startDate = new Date(updates.startDate).toISOString();
+  }
+  if (updates.endDate) {
+    updates.endDate = new Date(updates.endDate).toISOString();
+  }
 
   const { data, error } = await supabase
     .from("Promotion")
-    .update(updateData)
+    .update({ ...updates, updatedAt: new Date().toISOString() })
     .eq("id", promotionId)
     .select()
     .single();
@@ -274,14 +303,16 @@ const updatePromotionStatus = async (promotionId, status) => {
 const deletePromotion = async (promotionId) => {
   const { data: promotion } = await supabase
     .from("Promotion")
-    .select("id")
+    .select("id, image")
     .eq("id", promotionId)
     .single();
 
   if (!promotion) {
     throw { status: 404, message: "Promotion not found" };
   }
-
+  if (promotion.image) {
+    await deleteImageFromSupabase(promotion.image, "promotions");
+  }
   await supabase.from("Coupon").delete().eq("promotionId", promotionId);
   await supabase.from("ClearanceEvent").delete().eq("promotionId", promotionId);
   await supabase.from("_PromotionProducts").delete().eq("B", promotionId);
@@ -390,7 +421,6 @@ const getPromotionStats = async () => {
     };
   }
 
-  // Update auto-statuses and count
   const now = new Date();
   const stats = {
     total: promotions.length,
@@ -401,13 +431,11 @@ const getPromotionStats = async () => {
   };
 
   promotions.forEach((promo) => {
-    // If status is INACTIVE, admin manually set it
     if (promo.status === "INACTIVE") {
       stats.inactive++;
       return;
     }
 
-    // Otherwise, determine by dates
     const autoStatus = determineStatus(promo.startDate, promo.endDate);
 
     if (autoStatus === "UPCOMING") {

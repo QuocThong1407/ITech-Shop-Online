@@ -44,7 +44,6 @@ const createProduct = async (req, res) => {
       price,
       stockQuantity,
       categoryId,
-      images,
       variantTypes,
       variantOptions,
     } = req.body;
@@ -77,15 +76,9 @@ const createProduct = async (req, res) => {
 
     const createdBy = req.user.userId;
     const result = await productService.createProduct({
-      name,
-      description,
-      price,
-      stockQuantity,
-      categoryId,
-      images,
-      variantTypes,
-      variantOptions,
-      createdBy,
+      ...req.body,
+      createdBy: req.user.userId,
+      files: req.files,
     });
 
     successResponse(res, 201, result, "Product created successfully");
@@ -113,7 +106,12 @@ const updateProduct = async (req, res) => {
       );
     }
 
-    const result = await productService.updateProduct(id, updates, userId);
+    const result = await productService.updateProduct(
+      id,
+      updates,
+      userId,
+      req.files
+    );
     successResponse(res, 200, result, "Product updated successfully");
   } catch (error) {
     console.error("Update product error:", error);

@@ -2,7 +2,7 @@
 const express = require("express");
 const router = express.Router();
 const categoryController = require("./categoryController");
-const { authenticate, checkRole } = require("../../middleware/index");
+const { authenticate, checkRole, upload } = require("../../middleware/index");
 const multer = require("multer");
 const upload = multer({ storage: multer.memoryStorage() });
 

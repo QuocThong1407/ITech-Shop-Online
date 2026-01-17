@@ -35,7 +35,6 @@ const getPromotionById = async (req, res) => {
 const createPromotion = async (req, res) => {
   try {
     const { name, description, startDate, endDate } = req.body;
-
     if (!name || !startDate || !endDate) {
       return errorResponse(
         res,
@@ -48,18 +47,14 @@ const createPromotion = async (req, res) => {
       return errorResponse(res, 400, "End date must be after start date");
     }
 
-    const createdBy = req.user.userId;
     const result = await promotionService.createPromotion({
-      name,
-      description,
-      startDate,
-      endDate,
-      createdBy,
+      ...req.body,
+      createdBy: req.user.userId,
+      file: req.file || null,
     });
 
     successResponse(res, 201, result, "Promotion created successfully");
   } catch (error) {
-    console.error("Create promotion error:", error);
     errorResponse(res, 400, error.message || "Failed to create promotion");
   }
 };
@@ -74,11 +69,13 @@ const updatePromotion = async (req, res) => {
         return errorResponse(res, 400, "End date must be after start date");
       }
     }
-
-    const result = await promotionService.updatePromotion(id, updates);
+    const result = await promotionService.updatePromotion(
+      id,
+      updates,
+      req.file || null
+    );
     successResponse(res, 200, result, "Promotion updated successfully");
   } catch (error) {
-    console.error("Update promotion error:", error);
     errorResponse(res, 400, error.message || "Failed to update promotion");
   }
 };
