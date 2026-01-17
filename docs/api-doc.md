@@ -608,6 +608,64 @@ fetch("http://localhost:5000/api/users/me", {
 
 ---
 
+## Shopping Cart
+
+### Get My Cart
+
+- **Method:** GET
+- **URL:** `/cart/me`
+- **Auth:** Required (Customer)
+- **Response (200):** Cart object with items (excludes deleted products), `{ id, customerId, items: [...], totalItems, totalPrice, createdAt, updatedAt }`
+- **Errors:** 401, 403, 404, 500
+
+### Add Item to Cart
+
+- **Method:** POST
+- **URL:** `/cart/items`
+- **Auth:** Required (Customer)
+- **Body:** JSON
+  ```json
+  {
+    "productVariantId": "string",
+    "quantity": "integer (> 0)"
+  }
+  ```
+- **Response (201):** Cart item object (if item exists, quantity will be added)
+- **Note:** Automatically merges with existing item if already in cart
+- **Errors:** 400 (invalid quantity, product unavailable, exceeds stock), 401, 403, 404, 500
+
+### Update Cart Item
+
+- **Method:** PUT
+- **URL:** `/cart/items/:id`
+- **Auth:** Required (Customer)
+- **Body:** JSON
+  ```json
+  {
+    "quantity": "integer (> 0)"
+  }
+  ```
+- **Response (200):** Updated cart item object
+- **Errors:** 400 (exceeds stock), 401, 403 (not your cart item), 404, 500
+
+### Delete Cart Item
+
+- **Method:** DELETE
+- **URL:** `/cart/items/:id`
+- **Auth:** Required (Customer)
+- **Response (200):** Success message
+- **Errors:** 401, 403 (not your cart item), 404, 500
+
+### Clear Cart
+
+- **Method:** DELETE
+- **URL:** `/cart/clear`
+- **Auth:** Required (Customer)
+- **Response (200):** Success message (removes all items from cart)
+- **Errors:** 401, 403, 404, 500
+
+---
+
 ## Notes for Frontend Implementation
 
 - Always use `Authorization: Bearer <token>` header for authenticated requests
