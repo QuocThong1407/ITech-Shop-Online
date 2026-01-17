@@ -396,8 +396,15 @@ fetch("http://localhost:5000/api/users/me", {
 
 - **Method:** GET
 - **URL:** `/promotions`
-- **Query Params:** `page` (int, default 1), `limit` (int, default 10), `status` (ACTIVE/INACTIVE/EXPIRED), `search` (string)
+- **Query Params:** `page` (int, default 1), `limit` (int, default 10), `status` (ACTIVE/INACTIVE/UPCOMING/EXPIRED), `search` (string)
 - **Response (200):** `{ promotions: [...], pagination: {...} }`
+- **Errors:** 500
+
+### Get Promotion Statistics
+
+- **Method:** GET
+- **URL:** `/promotions/stats`
+- **Response (200):** `{ total, upcoming, active, inactive, expired }`
 - **Errors:** 500
 
 ### Get Promotion by ID
@@ -421,7 +428,7 @@ fetch("http://localhost:5000/api/users/me", {
     "endDate": "ISO timestamp (must be after startDate)"
   }
   ```
-- **Response (201):** Promotion object
+- **Response (201):** Promotion object (status auto-determined: UPCOMING/ACTIVE/EXPIRED based on dates)
 - **Errors:** 400, 401, 403, 500
 
 ### Update Promotion (Admin Only)
@@ -449,11 +456,12 @@ fetch("http://localhost:5000/api/users/me", {
 - **Body:** JSON
   ```json
   {
-    "status": "ACTIVE | INACTIVE | EXPIRED"
+    "status": "ACTIVE | INACTIVE"
   }
   ```
 - **Response (200):** Updated promotion object
-- **Errors:** 400, 401, 403, 404, 500
+- **Note:** Cannot manually set UPCOMING or EXPIRED (auto-determined by dates). Cannot activate before start date or after end date.
+- **Errors:** 400 (invalid status change), 401, 403, 404, 500
 
 ### Delete Promotion (Admin Only)
 
