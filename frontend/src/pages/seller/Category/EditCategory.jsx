@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { Avatar, Button, Card, Flex, Form, Image, Input, Space, Typography, Upload, message } from 'antd'
+import { Button, Card, Flex, Form, Input, Space, Typography, message } from 'antd'
+// import { Avatar, Image, Upload } from 'antd'
 import {
     SaveOutlined,
-    PictureTwoTone
+    // PictureTwoTone
 } from '@ant-design/icons'
 import categoryService from '../../../services/categoryService.js'
 // import uploadService from '../../../services/uploadService.js'
@@ -12,10 +13,10 @@ const EditCategory = () => {
     const navigate = useNavigate()
     const { id } = useParams()
 
-    const [previewOpen, setPreviewOpen] = useState(false)
-    const [previewImage, setPreviewImage] = useState('')
-    const [fileList, setFileList] = useState([])
-    const [originalImageUrl, setOriginalImageUrl] = useState(null)
+    // const [previewOpen, setPreviewOpen] = useState(false)
+    // const [previewImage, setPreviewImage] = useState('')
+    // const [fileList, setFileList] = useState([])
+    // const [originalImageUrl, setOriginalImageUrl] = useState(null)
 
     const [loading, setLoading] = useState(true)
     const [submitting, setSubmitting] = useState(false)
@@ -35,18 +36,18 @@ const EditCategory = () => {
                     description: res.data.description,
                 })
 
-                if (res.data.image) {
-                    setFileList([
-                        {
-                            uid: '-1',
-                            name: 'image.png',
-                            status: 'done',
-                            url: res.data.image
-                        }
-                    ])
-                    setPreviewImage(res.data.image)
-                    setOriginalImageUrl(res.data.image)
-                }
+                // if (res.data.image) {
+                //     setFileList([
+                //         {
+                //             uid: '-1',
+                //             name: 'image.png',
+                //             status: 'done',
+                //             url: res.data.image
+                //         }
+                //     ])
+                //     setPreviewImage(res.data.image)
+                //     setOriginalImageUrl(res.data.image)
+                // }
             } catch (error) {
                 messageApi.error("Failed to load category!")
             } finally {
@@ -57,46 +58,46 @@ const EditCategory = () => {
         fetchCategory()
     }, [id])
 
-    const handleChange = async ({ fileList: newList }) => {
-        // Handle file removal from storage (only for newly uploaded files)
-        if (newList.length < fileList.length) {
-            const removedFile = fileList.find(f => !newList.some(nf => nf.uid === f.uid));
-            const urlToDelete = removedFile?.response?.data?.url;
-            // Only delete if it's a newly uploaded file (has response)
-            // If it's the original file, we handle it during onFinish
-            if (urlToDelete) {
-                try {
-                    await uploadService.deleteFile(urlToDelete);
-                } catch (error) {
-                    console.error("Failed to delete file from storage:", error);
-                }
-            }
-        }
-        setFileList(newList)
-    }
+    // const handleChange = async ({ fileList: newList }) => {
+    //     // Handle file removal from storage (only for newly uploaded files)
+    //     if (newList.length < fileList.length) {
+    //         const removedFile = fileList.find(f => !newList.some(nf => nf.uid === f.uid));
+    //         const urlToDelete = removedFile?.response?.data?.url;
+    //         // Only delete if it's a newly uploaded file (has response)
+    //         // If it's the original file, we handle it during onFinish
+    //         if (urlToDelete) {
+    //             try {
+    //                 await uploadService.deleteFile(urlToDelete);
+    //             } catch (error) {
+    //                 console.error("Failed to delete file from storage:", error);
+    //             }
+    //         }
+    //     }
+    //     setFileList(newList)
+    // }
 
-    const handlePreview = async (file) => {
-        if (!file.url && !file.preview) {
-            file.preview = await new Promise((resolve) => {
-                getBase64(file.originFileObj, resolve)
-            })
-        }
-        setPreviewImage(file.url || file.preview)
-        setPreviewOpen(true)
-    }
+    // const handlePreview = async (file) => {
+    //     if (!file.url && !file.preview) {
+    //         file.preview = await new Promise((resolve) => {
+    //             getBase64(file.originFileObj, resolve)
+    //         })
+    //     }
+    //     setPreviewImage(file.url || file.preview)
+    //     setPreviewOpen(true)
+    // }
 
-    const beforeUpload = (file) => {
-        getBase64(file, (url) => setImageUrl(url))
-        return false
-    }
+    // const beforeUpload = (file) => {
+    //     getBase64(file, (url) => setImageUrl(url))
+    //     return false
+    // }
 
     const onFinish = async (values) => {
         setSubmitting(true)
         try {
-            const currentImageUrl = fileList[0]?.response?.data?.url || fileList[0]?.url || null;
+            // const currentImageUrl = fileList[0]?.response?.data?.url || fileList[0]?.url || null;
 
             const updatedCategory = {
-                image: currentImageUrl,
+                // image: currentImageUrl,
                 name: values.name,
                 description: values.description,
             }
@@ -104,13 +105,13 @@ const EditCategory = () => {
             await categoryService.updateCategory(id, updatedCategory)
 
             // Cleanup old image if it was replaced or removed
-            if (originalImageUrl && originalImageUrl !== currentImageUrl) {
-                try {
-                    await uploadService.deleteFile(originalImageUrl);
-                } catch (error) {
-                    console.error("Failed to delete old image:", error);
-                }
-            }
+            // if (originalImageUrl && originalImageUrl !== currentImageUrl) {
+            //     try {
+            //         await uploadService.deleteFile(originalImageUrl);
+            //     } catch (error) {
+            //         console.error("Failed to delete old image:", error);
+            //     }
+            // }
 
             messageApi.open({
                 type: 'success',
@@ -145,7 +146,7 @@ const EditCategory = () => {
 
             <Form form={form} layout="vertical" onFinish={onFinish}>
                 <Flex className="adding-section" gap={16}>
-                    <div style={{ flex: 0.5 }}>
+                    {/* <div style={{ flex: 0.5 }}>
                         <Card title="Thumbnail">
                             <Typography.Text>Photo</Typography.Text>
                             <Form.Item label="category image">
@@ -188,7 +189,7 @@ const EditCategory = () => {
                                 </div>
                             </Form.Item>
                         </Card>
-                    </div>
+                    </div> */}
                     <Card title="General Information" style={{ flex: 2 }}>
                         <Form.Item
                             label="Category Name"
@@ -210,32 +211,32 @@ const EditCategory = () => {
 
 export default EditCategory
 
-const getBase64 = (img, callback) => {
-    const reader = new FileReader()
-    reader.addEventListener('load', () => callback(reader.result))
-    reader.readAsDataURL(img)
-}
+// const getBase64 = (img, callback) => {
+//     const reader = new FileReader()
+//     reader.addEventListener('load', () => callback(reader.result))
+//     reader.readAsDataURL(img)
+// }
 
-const uploadButton = (
-    <Flex
-        vertical
-        justify='center'
-        align="center"
-        gap={8}
-        style={{
-            width: '100%',
-            aspectRatio: '1 / 1',
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            borderRadius: '5px',
-            border: '1px dashed #d9d9d9',
-        }}
-    >
-        <Avatar>
-            <PictureTwoTone />
-        </Avatar>
-        <Typography.Text align='center'>Drop or drag image here, or click add image</Typography.Text>
-        <Button>Add image</Button>
-    </Flex>
-)
+// const uploadButton = (
+//     <Flex
+//         vertical
+//         justify='center'
+//         align="center"
+//         gap={8}
+//         style={{
+//             width: '100%',
+//             aspectRatio: '1 / 1',
+//             display: 'flex',
+//             justifyContent: 'center',
+//             alignItems: 'center',
+//             borderRadius: '5px',
+//             border: '1px dashed #d9d9d9',
+//         }}
+//     >
+//         <Avatar>
+//             <PictureTwoTone />
+//         </Avatar>
+//         <Typography.Text align='center'>Drop or drag image here, or click add image</Typography.Text>
+//         <Button>Add image</Button>
+//     </Flex>
+// )
