@@ -90,6 +90,25 @@ const updateCurrentUser = (data) => {
     return patch('/users/me', data);
 };
 
+/**
+ * Get current user info (alias for getCurrentUser, used by AccountInfo)
+ * @returns {Promise} Current user object
+ */
+const getUserInfo = () => {
+    return get('/users/me');
+};
+
+/**
+ * Update current user info (alias for updateCurrentUser, used by AccountInfo)
+ * @param {Object} data - User data to update
+ * @param {string} [data.username] - New username
+ * @param {string} [data.email] - New email (if supported)
+ * @returns {Promise} Updated user object
+ */
+const updateUserInfo = (data) => {
+    return patch('/users/me', data);
+};
+
 const userService = {
     getAllUsers,
     getUserStatistics,
@@ -99,6 +118,8 @@ const userService = {
     deleteUser,
     getCurrentUser,
     updateCurrentUser,
+    getUserInfo,
+    updateUserInfo,
 };
 
 export default userService;

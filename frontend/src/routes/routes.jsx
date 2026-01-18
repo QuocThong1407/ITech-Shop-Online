@@ -17,6 +17,14 @@ import AddressEdit from "../pages/customer/Address/AddressEdit.jsx";
 import ChangePassword from "../pages/customer/ChangePassword/ChangePassword.jsx";
 import Cart from "../pages/customer/Cart/Cart.jsx";
 import Membership from "../pages/customer/Membership/Membership.jsx";
+import AllProducts from "../pages/customer/AllProducts/AllProducts.jsx";
+import SearchProduct from "../pages/customer/SearchProduct/SearchProduct.jsx";
+import PromotionProducts from "../pages/customer/PromotionProducts/PromotionProducts.jsx";
+import Orders from "../pages/customer/Orders/Orders.jsx";
+import OrderDetail from "../pages/customer/Orders/OrderDetail.jsx";
+import LeaveReview from "../pages/customer/Orders/LeaveReview.jsx";
+import AccountInfo from "../pages/customer/AccountInfo/AccountInfo.jsx";
+import ProductDetail from "../components/ProductDetail/ProductDetail.jsx";
 
 export const routes = [
     {
@@ -70,6 +78,38 @@ export const routes = [
             {
                 path: "/profile/membership",
                 element: <Membership/>
+            },
+            {
+                path: "/products",
+                element: <AllProducts/>
+            },
+            {
+                path: "/product/:productId",
+                element: <ProductDetail/>
+            },
+            {
+                path: "/search",
+                element: <SearchProduct/>
+            },
+            {
+                path: "/promotion/:id",
+                element: <PromotionProducts/>
+            },
+            {
+                path: "/orders",
+                element: <Orders/>
+            },
+            {
+                path: "/orders/:orderId",
+                element: <OrderDetail/>
+            },
+            {
+                path: "/orders/:orderId/review",
+                element: <LeaveReview/>
+            },
+            {
+                path: "/profile/account-info",
+                element: <AccountInfo/>
             },
         ]
     },
