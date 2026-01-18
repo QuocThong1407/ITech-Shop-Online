@@ -1,7 +1,11 @@
-// backend/src/features/variant/variantService.js
+// backend/src/features/variant/variantService.js - OPTIMIZED VERSION
 const { supabase } = require("../../configs/supabase");
 const { v4: uuidv4 } = require("uuid");
+const { syncVariantMetadata } = require("../product/productService");
 
+/**
+ * TỐI ƯU: Tự động sync metadata sau mỗi thao tác
+ */
 const createVariant = async ({
   productId,
   quantity,
@@ -12,6 +16,7 @@ const createVariant = async ({
 }) => {
   const now = new Date().toISOString();
 
+  // Verify seller
   const { data: seller } = await supabase
     .from("Seller")
     .select("id")
@@ -22,6 +27,7 @@ const createVariant = async ({
     throw { status: 403, message: "Only sellers can create variants" };
   }
 
+  // Verify product ownership
   const { data: product } = await supabase
     .from("Product")
     .select("id, createdBy, is_deleted")
@@ -34,19 +40,20 @@ const createVariant = async ({
   }
 
   if (product.createdBy !== seller.id) {
-    throw {
-      status: 403,
-      message: "You can only create variants for your own products",
-    };
+    throw { status: 403, message: "Not your product" };
   }
 
+  // TỐI ƯU: KHÔNG cần kiểm tra variantTypes
+  // Chỉ cần variantAttributes hợp lệ
+
+  // Insert variant
   const { data, error } = await supabase
     .from("ProductVariant")
     .insert({
       id: uuidv4(),
       productId,
-      quantity,
-      variantAttributes,
+      quantity: quantity || 0,
+      variantAttributes: variantAttributes || {},
       images: images || [],
       priceAdjustment: priceAdjustment || 0,
       createdAt: now,
@@ -56,6 +63,8 @@ const createVariant = async ({
     .single();
 
   if (error) throw error;
+
+  await syncVariantMetadata(productId);
 
   return data;
 };
@@ -82,7 +91,7 @@ const updateVariant = async (variantId, updates, userId) => {
         createdBy,
         is_deleted
       )
-    `
+    `,
     )
     .eq("id", variantId)
     .single();
@@ -105,11 +114,13 @@ const updateVariant = async (variantId, updates, userId) => {
   const updateData = { updatedAt: new Date().toISOString() };
 
   if (updates.quantity !== undefined) updateData.quantity = updates.quantity;
-  if (updates.variantAttributes !== undefined)
-    updateData.variantAttributes = updates.variantAttributes;
   if (updates.images !== undefined) updateData.images = updates.images;
-  if (updates.priceAdjustment !== undefined)
+  if (updates.priceAdjustment !== undefined) {
     updateData.priceAdjustment = updates.priceAdjustment;
+  }
+  if (updates.variantAttributes !== undefined) {
+    updateData.variantAttributes = updates.variantAttributes;
+  }
 
   const { data, error } = await supabase
     .from("ProductVariant")
@@ -119,6 +130,8 @@ const updateVariant = async (variantId, updates, userId) => {
     .single();
 
   if (error) throw error;
+
+  await syncVariantMetadata(variant.productId);
 
   return data;
 };
@@ -144,7 +157,7 @@ const deleteVariant = async (variantId, userId) => {
         id,
         createdBy
       )
-    `
+    `,
     )
     .eq("id", variantId)
     .single();
@@ -167,11 +180,25 @@ const deleteVariant = async (variantId, userId) => {
 
   if (error) throw error;
 
+  await syncVariantMetadata(variant.productId);
+
   return true;
+};
+
+const getVariantsByProductId = async (productId) => {
+  const { data, error } = await supabase
+    .from("ProductVariant")
+    .select("*")
+    .eq("productId", productId)
+    .order("createdAt", { ascending: true });
+
+  if (error) throw error;
+  return data || [];
 };
 
 module.exports = {
   createVariant,
   updateVariant,
   deleteVariant,
+  getVariantsByProductId,
 };
