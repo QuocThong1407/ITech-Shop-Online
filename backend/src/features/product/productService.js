@@ -48,7 +48,7 @@ const getAllProducts = async ({
         )
       )
     `,
-      { count: "exact" }
+      { count: "exact" },
     )
     .eq("is_deleted", false);
 
@@ -133,7 +133,7 @@ const getProductById = async (productId) => {
         createdAt,
         updatedAt
       )
-    `
+    `,
     )
     .eq("id", productId)
     .eq("is_deleted", false)
@@ -154,6 +154,7 @@ const createProduct = async ({
   files,
   variantTypes,
   variantOptions,
+  variants,
   createdBy,
 }) => {
   const now = new Date().toISOString();
@@ -188,7 +189,7 @@ const createProduct = async ({
       const url = await uploadImageToSupabase(
         file,
         "products",
-        `${productId}/`
+        `${productId}/`,
       );
       imageUrls.push(url);
     }
@@ -216,6 +217,51 @@ const createProduct = async ({
 
   if (error) throw error;
 
+  if (variants) {
+    let parsedVariants;
+    try {
+      parsedVariants =
+        typeof variants === "string" ? JSON.parse(variants) : variants;
+    } catch (e) {
+      await supabase.from("Product").delete().eq("id", productId);
+      throw { status: 400, message: "Invalid variants format" };
+    }
+
+    if (Array.isArray(parsedVariants) && parsedVariants.length > 0) {
+      const variantRecords = parsedVariants.map((v) => ({
+        id: uuidv4(),
+        productId: productId,
+        quantity: v.quantity,
+        variantAttributes: v.variantAttributes,
+        images: v.images || [],
+        priceAdjustment: v.priceAdjustment || 0,
+        createdAt: now,
+        updatedAt: now,
+      }));
+
+      const { error: variantError } = await supabase
+        .from("ProductVariant")
+        .insert(variantRecords);
+
+      if (variantError) {
+        await supabase.from("Product").delete().eq("id", productId);
+        throw variantError;
+      }
+
+      const { data: productWithVariants } = await supabase
+        .from("Product")
+        .select(
+          `
+          *,
+          ProductVariant(*)
+        `,
+        )
+        .eq("id", productId)
+        .single();
+
+      return productWithVariants;
+    }
+  }
   return data;
 };
 
@@ -257,7 +303,7 @@ const updateProduct = async (productId, updates, userId, files) => {
       const url = await uploadImageToSupabase(
         file,
         "products",
-        `${productId}/`
+        `${productId}/`,
       );
       newImages.push(url);
     }
