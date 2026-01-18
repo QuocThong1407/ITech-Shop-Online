@@ -4,7 +4,7 @@ import { MailOutlined, SafetyCertificateOutlined } from "@ant-design/icons";
 import "./ChangePassword.scss"
 import { useSelector } from "react-redux";
 import { useState } from "react";
-import authServices from "../../../services/authServices.js";
+import authServices from "../../../services/authService.js";
 
 const ChangePassword = () => {
     const user = useSelector((state) => state.authReducer.user);

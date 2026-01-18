@@ -4,7 +4,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import LoginImage from "../../../assets/LoginImage.png";
 import BreadscrumbMenu from "../../../components/BreadscrumbMenu/BreadscrumbMenu.jsx";
 import { Link } from "react-router-dom";
-import authServices from "../../../services/authServices.js";
+import authServices from "../../../services/authService.js";
 import "./ResetPassword.scss";
 
 const ResetPassword = () => {

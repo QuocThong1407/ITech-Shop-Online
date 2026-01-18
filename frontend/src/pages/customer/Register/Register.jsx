@@ -5,7 +5,7 @@ import RegisterImage from "../../../assets/LoginImage.png"
 import PrimaryButton from "../../../components/Buttons/PrimaryButton/PrimaryButton.jsx";
 import "./Register.css"
 import {useState} from "react";
-import authServices from "../../../services/authServices.js";
+import authServices from "../../../services/authService.js";
 
 const Register = () => {
     const [messageApi, contextHolder] = message.useMessage();
