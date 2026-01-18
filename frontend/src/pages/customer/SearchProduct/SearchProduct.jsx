@@ -1,5 +1,5 @@
-import React, {useState} from 'react'
-import { useSearchParams } from 'react-router'
+import React, {useState, useMemo} from 'react'
+import { useSearchParams, Link } from 'react-router'
 import { useEffect } from 'react'
 import productService from '../../../services/productService'
 import {Flex, Typography, Pagination, Layout, Spin, Row, Col, Empty} from 'antd'
@@ -16,10 +16,10 @@ const SearchProduct = () => {
     const [loading, setLoading] = useState(true);
     const [filters, setFilters] = useState({});
 
-    const handleFilterChange = (key, value) => {
+    const handleFilterChange = (filterKey, value) => {
         setFilters(prevFilters => ({
             ...prevFilters,
-            [key]: value,
+            [filterKey]: value,
         }));
     };
 
@@ -27,9 +27,13 @@ const SearchProduct = () => {
         const fetchAllProductsByName = async () => {
             setLoading(true);
             try {
+                // Only pass backend-supported filters
+                const { minPrice, maxPrice } = filters;
                 const response = await productService.getAllProducts({
                     search: key,
-                    ...filters
+                    minPrice,
+                    maxPrice,
+                    limit: 100 // Get more products for client-side filtering
                 })
 
                 if (response?.data?.products) {
@@ -47,7 +51,40 @@ const SearchProduct = () => {
             }
         }
         fetchAllProductsByName()
-    }, [key, filters])
+    }, [key, filters.minPrice, filters.maxPrice])
+
+    // Client-side filtering and sorting
+    const filteredAndSortedProducts = useMemo(() => {
+        let result = [...productsByName];
+
+        // Filter by minimum rating (client-side)
+        if (filters.minRating && filters.minRating > 0) {
+            result = result.filter(p => (p.averageRating || 0) >= filters.minRating);
+        }
+
+        // Sort (client-side)
+        const sortBy = filters.sortBy || 'name';
+        const sortOrder = filters.sortOrder || 'asc';
+
+        result.sort((a, b) => {
+            let comparison = 0;
+            switch (sortBy) {
+                case 'price':
+                    comparison = (a.price || 0) - (b.price || 0);
+                    break;
+                case 'rating':
+                    comparison = (a.averageRating || 0) - (b.averageRating || 0);
+                    break;
+                case 'name':
+                default:
+                    comparison = (a.name || '').localeCompare(b.name || '');
+                    break;
+            }
+            return sortOrder === 'desc' ? -comparison : comparison;
+        });
+
+        return result;
+    }, [productsByName, filters.minRating, filters.sortBy, filters.sortOrder]);
 
     const renderEmptyState = () => {
         if (Object.keys(filters).length > 0) {
@@ -64,11 +101,13 @@ const SearchProduct = () => {
 
             <Content style={{ padding: '24px', background: '#fff', borderRadius: '8px', marginTop: '24px' }}>
                 <Spin spinning={loading}>
-                    {productsByName.length > 0 ? (
+                    {filteredAndSortedProducts.length > 0 ? (
                         <Row gutter={[16, 16]}>
-                            {productsByName.map(product => (
+                            {filteredAndSortedProducts.map(product => (
                                 <Col key={product.id} xs={24} sm={12} md={8} lg={6}>
-                                    <ProductCard product={product} />
+                                    <Link to={`/product/${product.id}`}>
+                                        <ProductCard product={product} />
+                                    </Link>
                                 </Col>
                             ))}
                         </Row>
