@@ -1,7 +1,47 @@
+/* Product Grid Container */
+.product-grid-container {
+    padding: 24px;
+}
+
+/* Product Link */
 .product-link {
     display: block;
     width: 100%;
     height: 100%; 
     text-decoration: none; 
     color: inherit; 
+}
+
+/* Grid Header */
+.product-grid-header {
+    margin-bottom: 24px;
+}
+
+.product-grid-title.ant-typography {
+    margin-bottom: 8px !important;
+    font-weight: 600;
+}
+
+/* Empty State */
+.product-grid-empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 400px;
+    padding: 48px;
+}
+
+.empty-content {
+    text-align: center;
+}
+
+.empty-title.ant-typography {
+    margin-bottom: 8px !important;
+}
+
+/* Responsive adjustments */
+@media (max-width: 576px) {
+    .product-grid-container {
+        padding: 16px;
+    }
 }
