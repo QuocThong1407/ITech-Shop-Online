@@ -1,0 +1,40 @@
+.thumbnail-gallery__container {
+    display: flex;
+    overflow-x: auto; 
+    scroll-behavior: smooth;
+    padding: 10px;
+    background-color: #f0f2f5;
+    scrollbar-width: thin;
+    scrollbar-color: #d9d9d9 #f0f2f5;
+    border-radius: 5px;
+}
+
+.thumbnail-gallery__container::-webkit-scrollbar {
+    display: none;
+}
+
+.thumbnail-gallery__container {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+.thumbnail-gallery__container > div {
+    flex-shrink: 0; 
+}
+
+.thumbnail__item {
+    border-radius: 5px;
+    width: 8%;
+    /* aspect-ratio: 1; */
+    /* height: 60px; */
+    padding: 5px;
+    margin-right: 10px;
+    cursor: pointer;
+    border: 2px solid transparent; 
+    transition: border 0.3s ease;
+}
+
+.selected-thumbnail {
+    border-color: #1890ff;
+    box-shadow: 0 0 5px rgba(24, 144, 255, 0.5);
+}

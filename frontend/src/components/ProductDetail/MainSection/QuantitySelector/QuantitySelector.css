@@ -1,0 +1,13 @@
+.info__quantity {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.quantity__value {
+    min-width: 32px;
+    text-align: center;
+    font-weight: 500;
+    user-select: none;
+    color: black;
+}
