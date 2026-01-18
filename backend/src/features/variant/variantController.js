@@ -14,7 +14,7 @@ const createVariant = async (req, res) => {
       return errorResponse(
         res,
         400,
-        "Product ID, quantity and variant attributes are required"
+        "Product ID, quantity and variant attributes are required",
       );
     }
 

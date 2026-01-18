@@ -46,6 +46,7 @@ const createProduct = async (req, res) => {
       categoryId,
       variantTypes,
       variantOptions,
+      variants,
     } = req.body;
 
     if (
@@ -58,7 +59,7 @@ const createProduct = async (req, res) => {
       return errorResponse(
         res,
         400,
-        "Name, description, price, stock quantity and category ID are required"
+        "Name, description, price, stock quantity and category ID are required",
       );
     }
 
@@ -70,11 +71,9 @@ const createProduct = async (req, res) => {
       return errorResponse(
         res,
         400,
-        "Stock quantity must be a positive number"
+        "Stock quantity must be a positive number",
       );
     }
-
-    const createdBy = req.user.userId;
     const result = await productService.createProduct({
       ...req.body,
       createdBy: req.user.userId,
@@ -102,7 +101,7 @@ const updateProduct = async (req, res) => {
       return errorResponse(
         res,
         400,
-        "Stock quantity must be a positive number"
+        "Stock quantity must be a positive number",
       );
     }
 
@@ -110,7 +109,7 @@ const updateProduct = async (req, res) => {
       id,
       updates,
       userId,
-      req.files
+      req.files,
     );
     successResponse(res, 200, result, "Product updated successfully");
   } catch (error) {

@@ -346,20 +346,43 @@ fetch("http://localhost:5000/api/users/me", {
 - **URL:** `/products`
 - **Auth:** Required (Seller)
 - **Body:** JSON
+
   ```json
   {
     "name": "string",
     "description": "string",
-    "price": "number (>= 0)",
-    "stockQuantity": "integer (>= 0)",
+    "price": 0,
+    "stockQuantity": 0,
     "categoryId": "string",
-    "images": ["string"],
-    "variantTypes": ["string"],
-    "variantOptions": "object"
+
+    "variantTypes": ["COLOR | SIZE | MATERIAL"],
+
+    "variantOptions": {
+      "COLOR": ["string"],
+      "SIZE": ["string"],
+      "MATERIAL": ["string"]
+    },
+
+    "variants": [
+      {
+        "variantAttributes": {
+          "COLOR": "string"
+        },
+        "quantity": 0,
+        "priceAdjustment": 0,
+        "images": ["string"]
+      }
+    ]
   }
   ```
+
 - **Response (201):** Product object
 - **Errors:** 400, 401, 403, 500
+- **Notes**:
+  `variantTypes` là danh sách các kiểu biến thể (enum) mà sản phẩm hỗ trợ
+  `variantOptions` chỉ khai báo các giá trị cho những type có trong `variantTypes`
+  `variantAttributes` của mỗi variant phải khớp với `variantTypes`
+  Nếu có `variants`, `stockQuantity` sẽ được backend tự động tính bằng tổng quantity của các variant
 
 ### Update Product (Seller Only)
 
