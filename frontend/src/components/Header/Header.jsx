@@ -18,7 +18,7 @@ const Header = () => {
 
     const { isAuthenticated, user } = useSelector((state) => state.authReducer);
 
-    const categories = useSelector((state) => state.allCategories.categories);
+    const categories = useSelector((state) => state.categories.allCategories);
 
     useEffect(() => {
         const fetchCategories = async () => {
@@ -68,7 +68,7 @@ const Header = () => {
     };
 
     const categoryMenu = {
-        items: categories.allCategories.map(category => ({
+        items: categories.map(category => ({
             key: category.id,
             label: <Link to={`/category/${category.id}`}>{category.name}</Link>,
         }))
