@@ -1,4 +1,4 @@
-// backend/src/features/variant/variantController.js
+// backend/src/features/variant/variantController.js - FIXED VERSION
 const variantService = require("./variantService");
 const {
   successResponse,
@@ -10,15 +10,23 @@ const createVariant = async (req, res) => {
     const { productId, quantity, variantAttributes, images, priceAdjustment } =
       req.body;
 
-    if (!productId || quantity === undefined || !variantAttributes) {
+    if (!productId) {
+      return errorResponse(res, 400, "Product ID is required");
+    }
+
+    if (!variantAttributes || typeof variantAttributes !== "object") {
       return errorResponse(
         res,
         400,
-        "Product ID, quantity and variant attributes are required",
+        "Variant attributes are required and must be an object",
       );
     }
 
-    if (quantity < 0) {
+    if (Object.keys(variantAttributes).length === 0) {
+      return errorResponse(res, 400, "Variant attributes cannot be empty");
+    }
+
+    if (quantity !== undefined && quantity < 0) {
       return errorResponse(res, 400, "Quantity must be a positive number");
     }
 
@@ -60,6 +68,15 @@ const updateVariant = async (req, res) => {
       return errorResponse(res, 400, "Price adjustment must be a number");
     }
 
+    if (updates.variantAttributes !== undefined) {
+      if (typeof updates.variantAttributes !== "object") {
+        return errorResponse(res, 400, "Variant attributes must be an object");
+      }
+      if (Object.keys(updates.variantAttributes).length === 0) {
+        return errorResponse(res, 400, "Variant attributes cannot be empty");
+      }
+    }
+
     const result = await variantService.updateVariant(id, updates, userId);
     successResponse(res, 200, result, "Product variant updated successfully");
   } catch (error) {
@@ -81,8 +98,20 @@ const deleteVariant = async (req, res) => {
   }
 };
 
+const getVariantsByProductId = async (req, res) => {
+  try {
+    const { productId } = req.params;
+    const variants = await variantService.getVariantsByProductId(productId);
+    successResponse(res, 200, variants);
+  } catch (error) {
+    console.error("Get variants error:", error);
+    errorResponse(res, 400, error.message || "Failed to get variants");
+  }
+};
+
 module.exports = {
   createVariant,
   updateVariant,
   deleteVariant,
+  getVariantsByProductId,
 };

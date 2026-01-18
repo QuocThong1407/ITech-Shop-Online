@@ -1,4 +1,4 @@
-// backend/src/features/product/productController.js
+// backend/src/features/product/productController.js - FIXED VERSION
 const productService = require("./productService");
 const {
   successResponse,
@@ -38,28 +38,14 @@ const getProductById = async (req, res) => {
 
 const createProduct = async (req, res) => {
   try {
-    const {
-      name,
-      description,
-      price,
-      stockQuantity,
-      categoryId,
-      variantTypes,
-      variantOptions,
-      variants,
-    } = req.body;
+    const { name, description, price, stockQuantity, categoryId, variants } =
+      req.body;
 
-    if (
-      !name ||
-      !description ||
-      price === undefined ||
-      stockQuantity === undefined ||
-      !categoryId
-    ) {
+    if (!name || !description || price === undefined || !categoryId) {
       return errorResponse(
         res,
         400,
-        "Name, description, price, stock quantity and category ID are required",
+        "Name, description, price, and category ID are required",
       );
     }
 
@@ -67,13 +53,63 @@ const createProduct = async (req, res) => {
       return errorResponse(res, 400, "Price must be a positive number");
     }
 
-    if (stockQuantity < 0) {
-      return errorResponse(
-        res,
-        400,
-        "Stock quantity must be a positive number",
-      );
+    if (variants) {
+      let parsedVariants;
+      try {
+        parsedVariants =
+          typeof variants === "string" ? JSON.parse(variants) : variants;
+      } catch (e) {
+        return errorResponse(res, 400, "Invalid variants format");
+      }
+
+      if (!Array.isArray(parsedVariants)) {
+        return errorResponse(res, 400, "Variants must be an array");
+      }
+
+      if (parsedVariants.length === 0) {
+        return errorResponse(
+          res,
+          400,
+          "Variants array cannot be empty. Either provide variants or remove the variants field.",
+        );
+      }
+
+      for (const v of parsedVariants) {
+        if (!v.variantAttributes || typeof v.variantAttributes !== "object") {
+          return errorResponse(
+            res,
+            400,
+            "Each variant must have variantAttributes object",
+          );
+        }
+
+        if (Object.keys(v.variantAttributes).length === 0) {
+          return errorResponse(res, 400, "Variant attributes cannot be empty");
+        }
+
+        if (v.quantity !== undefined && v.quantity < 0) {
+          return errorResponse(res, 400, "Variant quantity must be positive");
+        }
+      }
+
+      const seen = new Set();
+      for (const v of parsedVariants) {
+        const key = JSON.stringify(v.variantAttributes);
+        if (seen.has(key)) {
+          return errorResponse(res, 400, `Duplicate variant found: ${key}`);
+        }
+        seen.add(key);
+      }
+    } else {
+      if (stockQuantity === undefined || stockQuantity < 0) {
+        return errorResponse(
+          res,
+          400,
+          "Stock quantity is required for products without variants",
+        );
+      }
     }
+
     const result = await productService.createProduct({
       ...req.body,
       createdBy: req.user.userId,
@@ -92,6 +128,14 @@ const updateProduct = async (req, res) => {
     const { id } = req.params;
     const updates = req.body;
     const userId = req.user.userId;
+
+    if (updates.variantTypes || updates.variantOptions) {
+      return errorResponse(
+        res,
+        400,
+        "variantTypes and variantOptions are auto-managed. Use variant endpoints to modify variants.",
+      );
+    }
 
     if (updates.price !== undefined && updates.price < 0) {
       return errorResponse(res, 400, "Price must be a positive number");

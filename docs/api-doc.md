@@ -345,63 +345,67 @@ fetch("http://localhost:5000/api/users/me", {
 - **Method:** POST
 - **URL:** `/products`
 - **Auth:** Required (Seller)
-- **Body:** JSON
+- **Body:** FormData (multipart/form-data)
 
-  ```json
-  {
-    "name": "string",
-    "description": "string",
-    "price": 0,
-    "stockQuantity": 0,
-    "categoryId": "string",
-
-    "variantTypes": ["COLOR | SIZE | MATERIAL"],
-
-    "variantOptions": {
-      "COLOR": ["string"],
-      "SIZE": ["string"],
-      "MATERIAL": ["string"]
-    },
-
-    "variants": [
-      {
-        "variantAttributes": {
-          "COLOR": "string"
-        },
-        "quantity": 0,
-        "priceAdjustment": 0,
-        "images": ["string"]
-      }
-    ]
-  }
-  ```
-
-- **Response (201):** Product object
-- **Errors:** 400, 401, 403, 500
-- **Notes**:
-  `variantTypes` là danh sách các kiểu biến thể (enum) mà sản phẩm hỗ trợ
-  `variantOptions` chỉ khai báo các giá trị cho những type có trong `variantTypes`
-  `variantAttributes` của mỗi variant phải khớp với `variantTypes`
-  Nếu có `variants`, `stockQuantity` sẽ được backend tự động tính bằng tổng quantity của các variant
-
-### Update Product (Seller Only)
-
-- **Method:** PUT
-- **URL:** `/products/:id`
-- **Auth:** Required (Seller, owns product)
-- **Body:** JSON (optional fields)
-  ```json
+  ```javascript
+  // Option 1: Product without variants
   {
     "name": "string",
     "description": "string",
     "price": "number (>= 0)",
     "stockQuantity": "integer (>= 0)",
     "categoryId": "string",
-    "images": ["string"]
+    "images": File[] // max 10 files
+  }
+
+  // Option 2: Product with variants
+  {
+    "name": "string",
+    "description": "string",
+    "price": "number (>= 0)",
+    "categoryId": "string",
+    "images": File[], // max 10 files
+    "variants": JSON string [
+      {
+        "variantAttributes": { "color": "red", "size": "M" },
+        "quantity": 10,
+        "priceAdjustment": 5,
+        "images": ["url1", "url2"]
+      }
+    ]
+  }
+  ```
+
+- **Response (201):** Product object (with variants if provided)
+- **Note:**
+  - If variants provided, `stockQuantity` auto-calculated from variant quantities
+  - `variantTypes` and `variantOptions` auto-generated from variants
+  - All variant attributes must be non-empty objects
+  - No duplicate variants allowed
+- **Errors:** 400 (validation, empty variants, duplicate variants), 401, 403, 500
+
+### Update Product (Seller Only)
+
+- **Method:** PUT
+- **URL:** `/products/:id`
+- **Auth:** Required (Seller, owns product)
+- **Body:** FormData (multipart/form-data, optional fields)
+  ```javascript
+  {
+    "name": "string",
+    "description": "string",
+    "price": "number (>= 0)",
+    "stockQuantity": "integer (>= 0)", // Only for products without variants
+    "categoryId": "string",
+    "images": File[] // max 10 files, replaces all existing images
   }
   ```
 - **Response (200):** Updated product object
-- **Errors:** 400, 401, 403, 404, 500
+- **Note:**
+  - Cannot update `variantTypes` or `variantOptions` directly
+  - Cannot manually update `stockQuantity` for products with variants (auto-calculated)
+  - Use variant endpoints to manage variants
+- **Errors:** 400 (updating stock of variant product), 401, 403, 404, 500
 
 ### Delete Product (Seller Only)
 
@@ -586,6 +590,14 @@ fetch("http://localhost:5000/api/users/me", {
 
 ## Product Variants
 
+### Get Variants by Product ID
+
+- **Method:** GET
+- **URL:** `/variants/product/:productId`
+- **Auth:** Required (Seller)
+- **Response (200):** Array of variant objects
+- **Errors:** 400, 401, 403, 500
+
 ### Create Product Variant (Seller Only)
 
 - **Method:** POST
@@ -595,14 +607,17 @@ fetch("http://localhost:5000/api/users/me", {
   ```json
   {
     "productId": "string",
-    "quantity": "integer (>= 0)",
-    "variantAttributes": "object",
+    "quantity": "integer (>= 0, default 0)",
+    "variantAttributes": { "color": "red", "size": "M" },
     "images": ["string"],
-    "priceAdjustment": "number (optional, default 0)"
+    "priceAdjustment": "number (default 0)"
   }
   ```
 - **Response (201):** Variant object
-- **Errors:** 400, 401, 403 (not product owner), 404 (product not found), 500
+- **Note:**
+  - `variantAttributes` must be non-empty object
+  - Auto-syncs product's `variantTypes`, `variantOptions`, and `stockQuantity`
+- **Errors:** 400 (empty attributes), 401, 403 (not product owner), 404 (product not found), 500
 
 ### Update Product Variant (Seller Only)
 
@@ -613,13 +628,16 @@ fetch("http://localhost:5000/api/users/me", {
   ```json
   {
     "quantity": "integer (>= 0)",
-    "variantAttributes": "object",
+    "variantAttributes": { "color": "blue", "size": "L" },
     "images": ["string"],
     "priceAdjustment": "number"
   }
   ```
 - **Response (200):** Updated variant object
-- **Errors:** 400 (deleted product), 401, 403, 404, 500
+- **Note:**
+  - If `variantAttributes` provided, must be non-empty object
+  - Auto-syncs product metadata after update
+- **Errors:** 400 (deleted product, empty attributes), 401, 403, 404, 500
 
 ### Delete Product Variant (Seller Only)
 
@@ -627,6 +645,7 @@ fetch("http://localhost:5000/api/users/me", {
 - **URL:** `/variants/:id`
 - **Auth:** Required (Seller, owns product)
 - **Response (200):** Success message
+- **Note:** Auto-syncs product metadata after deletion
 - **Errors:** 401, 403, 404, 500
 
 ---
