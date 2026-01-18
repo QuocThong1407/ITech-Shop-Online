@@ -1,68 +1,53 @@
 import { get, post, put, del } from "../utils/request.js";
 
 /**
- * Get carts for a customer
- * @param {string} customerId - Customer ID
- * @returns {Promise} { carts: [...] }
+ * Get current user's cart
+ * @returns {Promise} Cart object with items, totalItems, totalPrice
  */
-const getCarts = (customerId) => {
-    return get(`/carts?customerId=${customerId}`);
-};
-
-/**
- * Get cart by ID
- * @param {string} cartId - Cart ID
- * @returns {Promise} Cart object with items
- */
-const getCartById = (cartId) => {
-    return get(`/carts/${cartId}`);
+const getMyCart = () => {
+    return get("/cart/me");
 };
 
 /**
  * Add item to cart
- * @param {string} cartId - Cart ID
  * @param {Object} data - Cart item data
  * @param {string} data.productVariantId - Product variant ID
  * @param {number} data.quantity - Quantity to add
- * @returns {Promise} Updated cart
+ * @returns {Promise} Created cart item
  */
-const addToCart = (cartId, data) => {
-    return post(`/carts/${cartId}/items`, data);
+const addToCart = (data) => {
+    return post("/cart/items", data);
 };
 
 /**
  * Update cart item quantity
- * @param {string} cartId - Cart ID
  * @param {string} itemId - Cart item ID
  * @param {number} quantity - New quantity
- * @returns {Promise} Updated cart
+ * @returns {Promise} Updated cart item
  */
-const updateCartItem = (cartId, itemId, quantity) => {
-    return put(`/carts/${cartId}/items/${itemId}`, { quantity });
+const updateCartItem = (itemId, quantity) => {
+    return put(`/cart/items/${itemId}`, { quantity });
 };
 
 /**
  * Remove item from cart
- * @param {string} cartId - Cart ID
  * @param {string} itemId - Cart item ID
- * @returns {Promise} Updated cart
+ * @returns {Promise} Success response
  */
-const deleteCartItem = (cartId, itemId) => {
-    return del(`/carts/${cartId}/items/${itemId}`);
+const deleteCartItem = (itemId) => {
+    return del(`/cart/items/${itemId}`);
 };
 
 /**
  * Clear all items from cart
- * @param {string} cartId - Cart ID
- * @returns {Promise} Empty cart
+ * @returns {Promise} Success response
  */
-const clearCart = (cartId) => {
-    return del(`/carts/${cartId}/items`);
+const clearCart = () => {
+    return del("/cart/clear");
 };
 
 const cartService = {
-    getCarts,
-    getCartById,
+    getMyCart,
     addToCart,
     updateCartItem,
     deleteCartItem,
