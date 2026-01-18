@@ -194,6 +194,9 @@ const createProduct = async ({
       imageUrls.push(url);
     }
   }
+  if (variants?.length > 0) {
+    stockQuantity = variants.reduce((sum, v) => sum + v.quantity, 0);
+  }
 
   const { data, error } = await supabase
     .from("Product")
