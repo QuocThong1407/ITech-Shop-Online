@@ -90,14 +90,39 @@ const Cart = () => {
     const fetchCart = async () => {
         try {
             setLoading(true);
-            console.log('Fetching cart for customer ID:', user.customer.id);
-            const response = await cartService.getCarts(user.customer.id);
+            console.log('Fetching cart...');
+            const response = await cartService.getMyCart();
             console.log('Cart response:', response);
 
-            // Handle response structure: response.data.carts
-            if (response && response.data && response.data.carts && response.data.carts.length > 0) {
-                setCart(response.data.carts[0]);
-                console.log('Cart loaded:', response.data.carts[0]);
+            // Handle response structure: response.data contains cart with items
+            if (response && response.data) {
+                // Transform items to match expected UI structure (PascalCase to camelCase)
+                const transformedItems = (response.data.items || []).map(item => ({
+                    ...item,
+                    productVariant: {
+                        id: item.ProductVariant?.id,
+                        quantity: item.ProductVariant?.quantity,
+                        variantAttributes: item.ProductVariant?.variantAttributes,
+                        images: item.ProductVariant?.images,
+                        priceAdjustment: item.ProductVariant?.priceAdjustment || 0,
+                        product: {
+                            id: item.ProductVariant?.Product?.id,
+                            name: item.ProductVariant?.Product?.name,
+                            description: item.ProductVariant?.Product?.description,
+                            price: item.ProductVariant?.Product?.price,
+                            images: item.ProductVariant?.Product?.images,
+                            stockQuantity: item.ProductVariant?.Product?.stockQuantity,
+                            category: item.ProductVariant?.Product?.Category
+                        }
+                    }
+                }));
+
+                const cartData = {
+                    ...response.data,
+                    cartItems: transformedItems
+                };
+                setCart(cartData);
+                console.log('Cart loaded:', cartData);
             } else {
                 console.log('No cart found');
                 setCart(null);
@@ -149,11 +174,11 @@ const Cart = () => {
         }
     };
 
-    const handleUpdateQuantity = async (cartId, itemId, quantity) => {
+    const handleUpdateQuantity = async (itemId, quantity) => {
         if (quantity < 1) return;
         try {
-            console.log('Updating quantity:', { cartId, itemId, quantity });
-            await cartService.updateCartItem(cartId, itemId, quantity);
+            console.log('Updating quantity:', { itemId, quantity });
+            await cartService.updateCartItem(itemId, quantity);
             message.success('Quantity updated');
             fetchCart();
         } catch (error) {
@@ -162,10 +187,10 @@ const Cart = () => {
         }
     };
 
-    const handleDeleteItem = async (cartId, itemId) => {
+    const handleDeleteItem = async (itemId) => {
         try {
-            console.log('Deleting cart item:', { cartId, itemId });
-            await cartService.deleteCartItem(cartId, itemId);
+            console.log('Deleting cart item:', { itemId });
+            await cartService.deleteCartItem(itemId);
             message.success('Item removed from cart');
             setSelectedItems(selectedItems.filter((id) => id !== itemId));
             fetchCart();
@@ -435,7 +460,7 @@ const Cart = () => {
                                             max={item.productVariant.quantity}
                                             value={item.quantity}
                                             onChange={(value) =>
-                                                handleUpdateQuantity(cart.id, item.id, value)
+                                                handleUpdateQuantity(item.id, value)
                                             }
                                         />
 
@@ -445,7 +470,7 @@ const Cart = () => {
 
                                         <Popconfirm
                                             title="Remove this item?"
-                                            onConfirm={() => handleDeleteItem(cart.id, item.id)}
+                                            onConfirm={() => handleDeleteItem(item.id)}
                                             okText="Yes"
                                             cancelText="No"
                                         >
