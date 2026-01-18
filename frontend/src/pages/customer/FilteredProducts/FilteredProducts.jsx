@@ -1,5 +1,5 @@
 import { Link, useParams } from "react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useSelector } from "react-redux";
 import { Card, Col, Empty, Layout, Menu, Row, Spin } from "antd";
 import ProductCard from "../../../components/Product/ProductCard.jsx";
@@ -40,10 +40,13 @@ const FilteredProducts = () => {
             if (!categoryId) return;
             setLoading(true);
             try {
-                // Use getAllProducts which supports categoryId, search, and all sorting/filtering
+                // Only pass backend-supported filters
+                const { minPrice, maxPrice } = filters;
                 const response = await productService.getAllProducts({
                     categoryId,
-                    ...filters
+                    minPrice,
+                    maxPrice,
+                    limit: 100 // Get more products for client-side filtering
                 });
                 setProducts(response.data.products);
             } catch (error) {
@@ -54,7 +57,40 @@ const FilteredProducts = () => {
             }
         }
         fetchProducts();
-    }, [categoryId, filters]);
+    }, [categoryId, filters.minPrice, filters.maxPrice]);
+
+    // Client-side filtering and sorting
+    const filteredAndSortedProducts = useMemo(() => {
+        let result = [...products];
+
+        // Filter by minimum rating (client-side)
+        if (filters.minRating && filters.minRating > 0) {
+            result = result.filter(p => (p.averageRating || 0) >= filters.minRating);
+        }
+
+        // Sort (client-side)
+        const sortBy = filters.sortBy || 'name';
+        const sortOrder = filters.sortOrder || 'asc';
+
+        result.sort((a, b) => {
+            let comparison = 0;
+            switch (sortBy) {
+                case 'price':
+                    comparison = (a.price || 0) - (b.price || 0);
+                    break;
+                case 'rating':
+                    comparison = (a.averageRating || 0) - (b.averageRating || 0);
+                    break;
+                case 'name':
+                default:
+                    comparison = (a.name || '').localeCompare(b.name || '');
+                    break;
+            }
+            return sortOrder === 'desc' ? -comparison : comparison;
+        });
+
+        return result;
+    }, [products, filters.minRating, filters.sortBy, filters.sortOrder]);
 
     const breadcrumbItems = [];
     if (currentCategory) {
@@ -72,11 +108,13 @@ const FilteredProducts = () => {
 
                 <Content style={{ padding: '24px', background: '#fff', borderRadius: '8px', marginTop: '24px' }}>
                     <Spin spinning={loading}>
-                        {products.length > 0 ? (
+                        {filteredAndSortedProducts.length > 0 ? (
                             <Row gutter={[16, 16]}>
-                                {products.map(product => (
+                                {filteredAndSortedProducts.map(product => (
                                     <Col key={product.id} xs={24} sm={12} md={8} lg={6}>
-                                        <ProductCard product={product} />
+                                        <Link to={`/product/${product.id}`}>
+                                            <ProductCard product={product} />
+                                        </Link>
                                     </Col>
                                 ))}
                             </Row>

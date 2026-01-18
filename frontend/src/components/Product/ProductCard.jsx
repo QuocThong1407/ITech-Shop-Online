@@ -1,109 +1,92 @@
 import React from "react";
-import { Card, Rate, Typography, Tag, Space, Image, Flex } from "antd";
-import { StarFilled } from "@ant-design/icons";
-// import "./ProductCard.css";
+import { Card, Typography, Tag, Image, Flex } from "antd";
+import "./ProductCard.css";
 
 const ProductCard = ({ product }) => {
-    // Assumption: product.originalPrice and product.sold
-    // Assumed original price: 250, quantity sold: 1540
-    const originalPrice = product.originalPrice || 250; 
-    const soldCount = product.sold || 1540; // Assumed quantity sold
-
-    const discountPercent = Math.round(
-        ((originalPrice - product.price) / originalPrice) * 100
-    );
-
-    const formatSoldCount = (count) => {
-        if (count < 1000) {
-            return `${count} sold`;
-        } else {
-            const k = Math.floor(count / 1000);
-            return `${k}k+ sold`;
-        }
+    // Format price to VND
+    const formatVND = (price) => {
+        return new Intl.NumberFormat('vi-VN', {
+            style: 'currency',
+            currency: 'VND'
+        }).format(price);
     };
 
+    // Strip HTML tags from description
+    const stripHtml = (html) => {
+        if (!html) return '';
+        const doc = new DOMParser().parseFromString(html, 'text/html');
+        return doc.body.textContent || '';
+    };
+
+    // Get seller name from product
+    const sellerName = product.Seller?.User?.username || product.Seller?.email || "Seller";
+    
+    // Get category name
+    const categoryName = product.Category?.name || "Category";
+
+    // Get clean description (strip HTML)
+    const cleanDescription = stripHtml(product.description);
+
+    // Get the first image or use a placeholder
+    const productImage = product.images && product.images.length > 0 
+        ? product.images[0] 
+        : '/placeholder-product.png';
+
     return (
-        <Card hoverable className="product-card">
-            <Space direction="vertical" size="small" className="product-image-container" style={{ width: '100%' }}>
-                <div style={{ height: 24, marginBottom: 4 }}>
-                    {discountPercent > 0 && (
-                        <Tag color="red" className="discount-tag">
-                            -{discountPercent}%
-                        </Tag>
-                    )}
-                </div>
-                <div 
-                    className="product-image-wrapper"
-                    style={{ 
-                        height: 200, 
-                        display: 'flex', 
-                        alignItems: 'center', 
-                        justifyContent: 'center',
-                        overflow: 'hidden',
-                        transition: 'transform 0.3s ease'
-                    }}
-                >
+        <Card 
+            hoverable 
+            className="product-card"
+            styles={{ body: { padding: 0 } }}
+        >
+            {/* Image Container */}
+            <div className="product-image-container">
+                <div className="product-image-wrapper">
                     <Image
                         alt={product.name}
-                        src={product.images && product.images.length > 0 ? product.images[0] : ''} // Get first image
+                        src={productImage}
                         preview={false}
-                        height={200}
-                        style={{ 
-                            objectFit: 'contain',
-                            width: '100%',
-                        }}
+                        className="product-image"
+                        fallback="/placeholder-product.png"
                     />
                 </div>
-                <Space direction="vertical" className="product-info" style={{ width: '100%' }}>
-                    <Typography.Title 
-                        level={4} 
-                        strong 
-                        ellipsis={{ tooltip: product.name }} 
-                        className="product-name"
-                        style={{ transition: 'color 0.3s ease' }}
-                    >
-                        {product.name}
-                    </Typography.Title>
+            </div>
 
-                    <Typography.Paragraph 
-                        className="product-description" 
-                        ellipsis={{ rows: 2, tooltip: product.description }}
-                        style={{ marginBottom: 8, wordBreak: 'break-word' }}
-                    >
-                        {product.description}
-                    </Typography.Paragraph>
+            {/* Content */}
+            <div className="product-content">
+                {/* Category and Name */}
+                <div className="product-header">
+                    <div className="product-brand-name">
+                        <Tag className="brand-tag">{categoryName}</Tag>
+                        <Typography.Title 
+                            level={5} 
+                            className="product-name"
+                            ellipsis={{ tooltip: product.name }}
+                        >
+                            {product.name}
+                        </Typography.Title>
+                    </div>
+                </div>
 
-                    <Flex justify="space-between" align="center" className="product-bottom-bar" style={{ width: '100%' }}>
-                        <Typography.Text className="product-sale-price" type="danger" strong>
-                            {product.price.toLocaleString()}₫
-                        </Typography.Text>
+                {/* Description */}
+                <Typography.Paragraph 
+                    className="product-description"
+                    ellipsis={{ rows: 2, tooltip: cleanDescription }}
+                >
+                    {cleanDescription}
+                </Typography.Paragraph>
 
-                        <Typography.Text type="secondary" className="sold-count">
-                            {formatSoldCount(soldCount)}
-                        </Typography.Text>
-                    </Flex>
-                </Space>
-            </Space>
+                {/* Price and Seller */}
+                <Flex justify="space-between" align="center" className="product-footer">
+                    <Typography.Text className="product-price" strong>
+                        {formatVND(product.price)}
+                    </Typography.Text>
+                    <Tag color="default" className="category-tag">
+                        {sellerName}
+                    </Tag>
+                </Flex>
+            </div>
         </Card>
     );
 };
-
-// Add global styles for hover effects
-if (typeof document !== 'undefined') {
-    const styleId = 'product-card-hover-styles';
-    if (!document.getElementById(styleId)) {
-        const style = document.createElement('style');
-        style.id = styleId;
-        style.textContent = `
-            .product-card:hover .product-image-wrapper {
-                transform: translateY(-8px);
-            }
-            .product-card:hover .product-name {
-                color: #1890ff !important;
-            }
-        `;
-        document.head.appendChild(style);
-    }
-}
 
 export default ProductCard;

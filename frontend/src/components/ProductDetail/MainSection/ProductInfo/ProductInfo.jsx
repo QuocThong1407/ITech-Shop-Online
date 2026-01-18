@@ -1,5 +1,5 @@
 import React from "react"
-import { Button, Divider, Rate, Typography, Alert } from "antd"
+import { Button, Rate, Typography, Alert } from "antd"
 import { ShoppingCartOutlined, LoginOutlined } from "@ant-design/icons"
 import { useSelector } from "react-redux"
 import { useNavigate } from "react-router-dom"
@@ -24,6 +24,14 @@ const ProductInfo = ({
     console.log("ProductInfo selectedProductVariant:", selectedProductVariant)
     console.log("ProductInfo selectedAttributes:", selectedAttributes)
     console.log("ProductInfo isAuthenticated:", isAuthenticated)
+
+    // Format price to VND
+    const formatVND = (price) => {
+        return new Intl.NumberFormat('vi-VN', {
+            style: 'currency',
+            currency: 'VND'
+        }).format(price);
+    };
 
     const basePrice = productData.price || 0
     const adjustment = selectedProductVariant?.priceAdjustment || 0
@@ -56,7 +64,7 @@ const ProductInfo = ({
         checkPromotions(productData.promotions);
 
         // Check category-based promotions (for all-store and category-wide vouchers)
-        checkPromotions(productData.category?.promotions);
+        checkPromotions(productData.Category?.promotions);
 
         return Math.round(maxDiscount);
     };
@@ -84,17 +92,17 @@ const ProductInfo = ({
                     <Rate allowHalf disabled value={productData.averageRating || 0} />
                     <Text type="secondary">({(productData.averageRating || 0).toFixed(1)}/5)</Text>
                 </div>
-                <Divider type="vertical" />
+                <span className="meta__divider">|</span>
                 <Text type="secondary">{productData.reviewCount || 0} reviews</Text>
-                <Divider type="vertical" />
+                <span className="meta__divider">|</span>
                 <Text type="secondary">{productData.soldCount || 0} sold</Text>
             </div>
 
             <div className="info__price">
-                <Text className="price--sale">${salePrice.toLocaleString()}</Text>
+                <Text className="price--sale">{formatVND(salePrice)}</Text>
                 {discount > 0 && (
                     <>
-                        <Text className="price--original">${finalPrice.toLocaleString()}</Text>
+                        <Text className="price--original">{formatVND(finalPrice)}</Text>
                         <span className="price--discount">-{discount}%</span>
                     </>
                 )}

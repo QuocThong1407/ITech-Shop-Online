@@ -13,9 +13,9 @@
     color: #666;
 }
 
-.info__meta .ant-divider-vertical {
-    height: 16px;
-    border-color: #d9d9d9;
+.meta__divider {
+    color: #d9d9d9;
+    font-size: 12px;
 }
 
 .info__price {

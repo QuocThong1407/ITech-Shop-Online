@@ -4,7 +4,7 @@
  import "./ForgotPassword.scss"
  import BreadscrumbMenu from "../../../components/BreadscrumbMenu/BreadscrumbMenu.jsx";
  import {Link, useNavigate} from "react-router";
- import authServices from "../../../services/authServices.js";
+ import authServices from "../../../services/authService.js";
 
  const ForgotPassword = () => {
      const [loading, setLoading] = useState(false);

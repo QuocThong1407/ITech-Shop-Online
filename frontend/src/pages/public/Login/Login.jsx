@@ -6,8 +6,8 @@ import LoginImage from "../../../assets/LoginImage.png"
 import PrimaryButton from "../../../components/Buttons/PrimaryButton/PrimaryButton.jsx";
 import "./Login.css"
 import {useState} from "react";
-import authServices from "../../../services/authServices.js";
-import {setLoginSuccess} from "../../../redux/actions/authActions.js";
+import authServices from "../../../services/authService.js";
+import {setLoginSuccess} from "../../../redux/actions/authAction.js";
 
 const Login = () => {
     const [messageApi, contextHolder] = message.useMessage();

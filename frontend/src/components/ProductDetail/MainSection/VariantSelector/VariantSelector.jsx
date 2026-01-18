@@ -31,19 +31,25 @@ const VariantSelector = ({
     selectedAttributes,
     setSelectedAttributes
 }) => {
+    // Guard against missing data
+    if (!variantTypes || !variantOptions) return null;
+    
+    const variants = productVariants || [];
+
     return (
         <div className="info__variants">
             {variantTypes.map((type) => {
                 const optionsKey = findMatchingKey(variantOptions, type)
                 if (!optionsKey) return null
                 const options = variantOptions[optionsKey]
+                if (!options || !Array.isArray(options)) return null
 
                 return (
                     <div key={type} className="variant-group">
                         <Text strong>{type}:</Text>
                         <div className="variant-options">
                             {options.map((option) => {
-                                const isValid = productVariants.some((v) => {
+                                const isValid = variants.length === 0 || variants.some((v) => {
                                     // Build attributes excluding the current type being evaluated
                                     const otherAttributes = Object.entries(selectedAttributes)
                                         .filter(([key]) => key.toLowerCase() !== type.toLowerCase())
@@ -55,7 +61,7 @@ const VariantSelector = ({
                                     ) && getAttrValue(v.variantAttributes, type) === option
                                 })
 
-                                const isSelected = selectedAttributes[type.toLowerCase()] === option
+                                const isSelected = selectedAttributes?.[type.toLowerCase()] === option
 
                                 return (
                                     <Button

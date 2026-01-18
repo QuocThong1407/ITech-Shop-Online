@@ -1,0 +1,30 @@
+.footer {
+    background-color: white;
+    /* display: flex;
+    flex-direction: row;
+    gap: 30px; */
+    display: grid;
+    grid-template-columns: auto auto auto auto auto;
+}
+
+.media {
+    display: flex;
+    gap: 10px;
+}
+
+.media .media__icon {
+    background-color: whitesmoke;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+}
+
+.footer__col ul{
+    list-style: none;
+    margin-left: 0;
+    padding-left: 0;
+}
+
+

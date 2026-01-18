@@ -6,10 +6,20 @@ const { Title, Text } = Typography;
 const { Option } = Select;
 
 const ProductFilters = ({ onFilterChange, initialFilters = {} }) => {
-    const [priceRange, setPriceRange] = useState(initialFilters.priceRange || [0, 5000]);
+    const [priceRange, setPriceRange] = useState(initialFilters.priceRange || [0, 100000000]);
     const [minRating, setMinRating] = useState(initialFilters.minRating || 0);
     const [sortBy, setSortBy] = useState(initialFilters.sortBy || 'name');
     const [sortOrder, setSortOrder] = useState(initialFilters.sortOrder || 'asc');
+
+    // Format price to VND
+    const formatVND = (price) => {
+        if (price >= 1000000) {
+            return `${(price / 1000000).toFixed(0)}M`;
+        } else if (price >= 1000) {
+            return `${(price / 1000).toFixed(0)}K`;
+        }
+        return price.toString();
+    };
 
     // Sync with initialFilters if they change
     useEffect(() => {
@@ -22,12 +32,12 @@ const ProductFilters = ({ onFilterChange, initialFilters = {} }) => {
     const handleReset = () => {
         const defaultFilters = {
             minPrice: 0,
-            maxPrice: 5000,
+            maxPrice: 100000000,
             minRating: 0,
             sortBy: 'name',
             sortOrder: 'asc'
         };
-        setPriceRange([0, 5000]);
+        setPriceRange([0, 100000000]);
         setMinRating(0);
         setSortBy('name');
         setSortOrder('asc');
@@ -78,24 +88,24 @@ const ProductFilters = ({ onFilterChange, initialFilters = {} }) => {
                 <Divider style={{ margin: '12px 0' }} />
 
                 <div>
-                    <Text strong>Price Range ($)</Text>
+                    <Text strong>Price Range</Text>
                     <Slider
                         range
                         value={priceRange}
                         min={0}
-                        max={5000}
-                        step={10}
-                        tooltip={{ formatter: val => `$${val}` }}
+                        max={100000000}
+                        step={1000000}
+                        tooltip={{ formatter: val => formatVND(val) }}
                         onChange={(val) => setPriceRange(val)}
-                        onAfterChange={(val) => {
+                        onChangeComplete={(val) => {
                             onFilterChange('minPrice', val[0]);
                             onFilterChange('maxPrice', val[1]);
                         }}
                         style={{ marginTop: '16px' }}
                     />
                     <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                        <Text type="secondary">${priceRange[0]}</Text>
-                        <Text type="secondary">${priceRange[1]}</Text>
+                        <Text type="secondary">{formatVND(priceRange[0])}</Text>
+                        <Text type="secondary">{formatVND(priceRange[1])}</Text>
                     </div>
                 </div>
 
