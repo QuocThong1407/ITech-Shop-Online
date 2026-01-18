@@ -1,0 +1,38 @@
+{
+    "id": "14537d38-564f-4b30-bf87-d074b2a8816c",
+    "name": "Iphone 17 Pro Max",
+    "description": "\u003Ch2 data-start=\"215\" data-end=\"278\"\u003EiPhone 17 Pro Max &ndash; Đỉnh cao c&ocirc;ng nghệ, n&acirc;ng tầm trải nghiệm\u003C/h2\u003E\r\n\u003Cp data-start=\"280\" data-end=\"529\"\u003E\u003Cstrong data-start=\"280\" data-end=\"301\"\u003EiPhone 17 Pro Max\u003C/strong\u003E l&agrave; phi&ecirc;n bản cao cấp nhất trong d&ograve;ng iPhone 17 series, mang đến sự kết hợp ho&agrave;n hảo giữa \u003Cstrong data-start=\"391\" data-end=\"414\"\u003Ethiết kế sang trọng\u003C/strong\u003E, \u003Cstrong data-start=\"416\" data-end=\"439\"\u003Ehiệu năng vượt trội\u003C/strong\u003E v&agrave; \u003Cstrong data-start=\"443\" data-end=\"473\"\u003Ec&ocirc;ng nghệ camera ti&ecirc;n tiến\u003C/strong\u003E, đ&aacute;p ứng mọi nhu cầu từ c&ocirc;ng việc đến giải tr&iacute; cao cấp.\u003C/p\u003E",
+    "price": 34990000,
+    "stockQuantity": 17,
+    "images": [
+        "https://gekzkbhdnuusmiqapwqt.supabase.co/storage/v1/object/public/products/14537d38-564f-4b30-bf87-d074b2a8816c/7bc4c141-40e8-4c9b-9cfa-e8f3d15f5efe.webp"
+    ],
+    "variantTypes": [
+        "COLOR"
+    ],
+    "variantOptions": {
+        "COLOR": [
+            "Silver"
+        ]
+    },
+    "is_deleted": false,
+    "createdAt": "2026-01-18T11:36:05.076",
+    "updatedAt": "2026-01-18T11:36:05.076",
+    "createdBy": "b7f5c028-501d-4721-a29d-4a7433a3ecc1",
+    "categoryId": "4e10eb74-59fd-4cbe-9174-46c04b7b47da",
+    "Category": {
+        "id": "4e10eb74-59fd-4cbe-9174-46c04b7b47da",
+        "name": "Smartphone",
+        "description": "Các loại điện thoại"
+    },
+    "Seller": {
+        "id": "b7f5c028-501d-4721-a29d-4a7433a3ecc1",
+        "User": {
+            "id": "fcadd742-8d30-45f6-a654-9f4a92ae007d",
+            "email": "testseller@example.com",
+            "username": "testseller"
+        },
+        "email": "testseller@example.com",
+        "image": null
+    }
+}
