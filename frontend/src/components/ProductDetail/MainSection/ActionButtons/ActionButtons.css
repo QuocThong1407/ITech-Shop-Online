@@ -1,0 +1,37 @@
+.info__actions {
+    display: flex;
+    gap: 12px;
+}
+
+.action__add-cart {
+    border-color: #1677ff !important;
+    color: #1677ff !important;
+    background: transparent !important;
+    transition: all 0.3s ease;
+}
+
+.action__add-cart:hover {
+    background-color: #e6f0ff !important;
+}
+
+.action__add-cart--success {
+    background-color: #52c41a !important;
+    border-color: #52c41a !important;
+    color: #fff !important;
+}
+
+.action__add-cart--success:hover {
+    background-color: #73d13d !important;
+    border-color: #73d13d !important;
+}
+
+.action__buy-now {
+    background-color: #ff4d4f !important;
+    border-color: #ff4d4f !important;
+    color: #fff !important;
+}
+
+.action__buy-now:hover {
+    background-color: #ff7875 !important;
+    border-color: #ff7875 !important;
+}
