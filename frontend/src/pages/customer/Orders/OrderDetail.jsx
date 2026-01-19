@@ -22,7 +22,6 @@ import {
     CarOutlined,
 } from '@ant-design/icons';
 import orderService from '../../../services/orderService';
-import paymentService from '../../../services/paymentService';
 
 const { Title, Text } = Typography;
 
@@ -32,7 +31,6 @@ const OrderDetail = () => {
     const { isAuthenticated } = useSelector((state) => state.authReducer || { isAuthenticated: false });
     const [loading, setLoading] = useState(true);
     const [order, setOrder] = useState(null);
-    const [retryPaymentLoading, setRetryPaymentLoading] = useState(false);
 
     useEffect(() => {
         if (!isAuthenticated) {
@@ -42,13 +40,15 @@ const OrderDetail = () => {
         }
 
         fetchOrderDetails();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [orderId, isAuthenticated, navigate]);
 
     const fetchOrderDetails = async () => {
         try {
             setLoading(true);
             const response = await orderService.getOrderById(orderId);
-            const orderData = response?.data?.order || response?.order || null;
+            console.log('Order detail response:', response);
+            const orderData = response?.data || null;
             if (orderData) {
                 setOrder(orderData);
             } else {
@@ -61,29 +61,6 @@ const OrderDetail = () => {
             navigate('/orders');
         } finally {
             setLoading(false);
-        }
-    };
-
-    const handleRetryPayment = async () => {
-        try {
-            setRetryPaymentLoading(true);
-            const response = await paymentService.retryPayment(orderId);
-            console.log('Retry payment response:', response);
-
-            if (response?.data?.sessionUrl) {
-                message.success('Redirecting to Stripe checkout...');
-                window.location.href = response.data.sessionUrl;
-            } else if (response?.sessionUrl) {
-                message.success('Redirecting to Stripe checkout...');
-                window.location.href = response.sessionUrl;
-            } else {
-                throw new Error('Failed to get checkout URL');
-            }
-        } catch (error) {
-            message.error(error.message || 'Failed to retry payment');
-            console.error('Error retrying payment:', error);
-        } finally {
-            setRetryPaymentLoading(false);
         }
     };
 
@@ -107,31 +84,29 @@ const OrderDetail = () => {
         }
     };
 
-    const getPaymentStatusColor = (status) => {
-        switch (status) {
-            case 'SUCCESS': return 'green';
-            case 'PENDING': return 'orange';
-            default: return 'default';
-        }
-    };
-
-    const formatDate = (dateString) => {
-        return new Date(dateString).toLocaleDateString('vi-VN', {
-            year: 'numeric', month: 'long', day: 'numeric',
-            hour: '2-digit', minute: '2-digit'
-        });
-    };
-
     const getItemPrice = (item) => {
         if (item.price !== undefined) return item.price;
-        const basePrice = item.productVariant?.product?.price || 0;
-        const priceAdjustment = item.productVariant?.priceAdjustment || 0;
+        // Handle PascalCase from Supabase
+        const productVariant = item.ProductVariant || item.productVariant;
+        const product = productVariant?.Product || productVariant?.product;
+        const basePrice = product?.price || 0;
+        const priceAdjustment = productVariant?.priceAdjustment || 0;
         return basePrice + priceAdjustment;
     };
 
+    const formatCurrency = (amount) => {
+        return new Intl.NumberFormat('vi-VN', {
+            style: 'currency',
+            currency: 'VND'
+        }).format(amount);
+    };
+
     const calculateOrderTotal = (order) => {
-        if (!order?.orderItems) return 0;
-        return order.orderItems.reduce((total, item) => {
+        // Use payment amount if available
+        if (order?.Payment?.[0]?.amount !== undefined) return order.Payment[0].amount;
+        const orderItems = order?.OrderItem || order?.orderItems || [];
+        if (orderItems.length === 0) return 0;
+        return orderItems.reduce((total, item) => {
             const itemPrice = getItemPrice(item);
             return total + (itemPrice * item.quantity);
         }, 0);
@@ -178,16 +153,16 @@ const OrderDetail = () => {
                             hour: '2-digit', minute: '2-digit'
                         })}
                     </Descriptions.Item>
-                    {order.payment && (
+                    {order.Payment && (
                         <>
                             <Descriptions.Item label="Payment Method">
-                                <Tag color={order.payment.method === 'COD' ? 'gold' : 'blue'}>
-                                    {order.payment.method}
+                                <Tag color={order.Payment[0].method === 'COD' ? 'gold' : 'blue'}>
+                                    {order.Payment[0].method}
                                 </Tag>
                             </Descriptions.Item>
                             <Descriptions.Item label="Payment Status">
-                                <Tag color={order.payment.status === 'SUCCESS' ? 'green' : order.payment.status === 'PENDING' ? 'orange' : 'red'}>
-                                    {order.payment.status}
+                                <Tag color={order.Payment[0].status === 'SUCCESS' ? 'green' : order.Payment[0].status === 'PENDING' ? 'orange' : 'red'}>
+                                    {order.Payment[0].status}
                                 </Tag>
                             </Descriptions.Item>
                         </>
@@ -196,18 +171,18 @@ const OrderDetail = () => {
             </Card>
 
             {/* Delivery Address */}
-            {order.address && (
+            {order.Address && (
                 <Card title="Delivery Address" style={{ marginBottom: '16px' }}>
                     <Descriptions bordered column={1}>
                         <Descriptions.Item label="Recipient">
-                            {order.address.recipientName}
+                            {order.Address.recipientName}
                         </Descriptions.Item>
                         <Descriptions.Item label="Phone">
-                            {order.address.phoneNumber || order.address.phone}
+                            {order.Address.phoneNumber || order.Address.phone}
                         </Descriptions.Item>
                         <Descriptions.Item label="Address">
-                            {order.address.address ||
-                                `${order.address.street}, ${order.address.ward}, ${order.address.district}, ${order.address.province}`}
+                            {order.Address.address ||
+                                `${order.Address.street}, ${order.Address.ward}, ${order.Address.district}, ${order.Address.province}`}
                         </Descriptions.Item>
                     </Descriptions>
                 </Card>
@@ -217,7 +192,7 @@ const OrderDetail = () => {
             <Card title="Order Items">
                 <List
                     itemLayout="horizontal"
-                    dataSource={order.orderItems || []}
+                    dataSource={order.OrderItem || []}
                     renderItem={(item) => (
                         <List.Item>
                             <List.Item.Meta
@@ -225,8 +200,8 @@ const OrderDetail = () => {
                                     <Image
                                         width={80}
                                         src={
-                                            item.productVariant?.images?.[0] ||
-                                            item.productVariant?.product?.images?.[0] ||
+                                            item.ProductVariant?.images?.[0] ||
+                                            item.ProductVariant?.Product?.images?.[0] ||
                                             'https://via.placeholder.com/80'
                                         }
                                         style={{ objectFit: 'cover', borderRadius: '4px' }}
@@ -234,14 +209,14 @@ const OrderDetail = () => {
                                 }
                                 title={
                                     <Text strong>
-                                        {item.productVariant?.product?.name || 'Product'}
+                                        {item.ProductVariant?.Product?.name || 'Product'}
                                     </Text>
                                 }
                                 description={
                                     <Space direction="vertical" size="small">
-                                        {item.productVariant?.variantAttributes && (
+                                        {item.ProductVariant?.variantAttributes && (
                                             <Text type="secondary">
-                                                {Object.entries(item.productVariant.variantAttributes)
+                                                {Object.entries(item.ProductVariant.variantAttributes)
                                                     .map(([key, value]) => `${key}: ${value}`)
                                                     .join(', ')}
                                             </Text>
@@ -252,11 +227,11 @@ const OrderDetail = () => {
                             />
                             <div style={{ textAlign: 'right' }}>
                                 <Text strong style={{ fontSize: '16px' }}>
-                                    ${(getItemPrice(item) * item.quantity).toFixed(2)}
+                                    {formatCurrency(getItemPrice(item) * item.quantity)}
                                 </Text>
                                 <br />
                                 <Text type="secondary">
-                                    ${getItemPrice(item).toFixed(2)} each
+                                    {formatCurrency(getItemPrice(item))} each
                                 </Text>
                             </div>
                         </List.Item>
@@ -269,7 +244,7 @@ const OrderDetail = () => {
                     <Space direction="vertical" align="end">
                         <div>
                             <Text>Subtotal: </Text>
-                            <Text strong>${calculateOrderTotal(order).toFixed(2)}</Text>
+                            <Text strong>{formatCurrency(calculateOrderTotal(order))}</Text>
                         </div>
                         <div style={{
                             padding: '12px 24px',
@@ -279,7 +254,7 @@ const OrderDetail = () => {
                         }}>
                             <Text strong style={{ fontSize: '20px' }}>Total Amount: </Text>
                             <Text strong style={{ fontSize: '24px', color: '#ff4d4f' }}>
-                                ${order.payment?.amount?.toFixed(2) || calculateOrderTotal(order).toFixed(2)}
+                                {formatCurrency(order.Payment?.[0]?.amount || calculateOrderTotal(order))}
                             </Text>
                         </div>
                     </Space>
