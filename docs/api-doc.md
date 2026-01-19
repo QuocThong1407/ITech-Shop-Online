@@ -1068,6 +1068,325 @@ fetch("http://localhost:5000/api/users/me", {
 
 ---
 
+## Cancellations
+
+### Create Cancellation Request
+
+- **Method:** POST
+- **URL:** `/orders/:id/cancel/request`
+- **Auth:** Required (Customer)
+- **Body:** JSON
+
+  ```json
+  {
+    "reason": "string"
+  }
+  ```
+
+- **Response:** 201
+
+  ```json
+  {
+    "success": true,
+    "message": "Cancellation request created successfully",
+    "data": {}
+  }
+  ```
+
+- **Notes:**
+  - Customer can only cancel their own orders
+  - Order status must be one of: `PENDING`, `CONFIRMED`, `SHIPPED`
+  - An order can only have **one** cancellation request
+  - Maximum reason length is 500 characters
+
+- **Errors:** 400, 401, 403, 404, 500
+
+---
+
+### Get My Cancellations
+
+- **Method:** GET
+- **URL:** `/cancellations/me`
+- **Auth:** Required (Customer)
+- **Query Params:**
+  - `page` (number, default: 1)
+  - `limit` (number, default: 10)
+  - `status` (string, optional)
+
+- **Response:** 200
+
+  ```json
+  {
+    "success": true,
+    "data": {
+      "cancellations": [],
+      "pagination": {
+        "page": 1,
+        "limit": 10,
+        "total": 0,
+        "totalPages": 0
+      }
+    }
+  }
+  ```
+
+- **Errors:** 401, 500
+
+---
+
+### Get All Cancellations
+
+- **Method:** GET
+- **URL:** `/cancellations`
+- **Auth:** Required (Admin, Seller)
+- **Query Params:**
+  - `page` (number, default: 1)
+  - `limit` (number, default: 10)
+  - `status` (string, optional)
+  - `search` (string, optional – customer username or email)
+
+- **Response:** 200
+
+  ```json
+  {
+    "success": true,
+    "data": {
+      "cancellations": [],
+      "pagination": {
+        "page": 1,
+        "limit": 10,
+        "total": 0,
+        "totalPages": 0
+      }
+    }
+  }
+  ```
+
+- **Notes:**
+  - Seller only sees cancellations for orders containing their products
+
+- **Errors:** 401, 403, 500
+
+---
+
+### Get Cancellation By ID
+
+- **Method:** GET
+- **URL:** `/cancellations/:id`
+- **Auth:** Required
+- **Response:** 200
+
+  ```json
+  {
+    "success": true,
+    "data": {}
+  }
+  ```
+
+- **Notes:**
+  - Customer can only access their own cancellation requests
+  - Seller can only access cancellations related to their products
+
+- **Errors:** 401, 403, 404, 500
+
+---
+
+### Update Cancellation Status
+
+- **Method:** PATCH
+- **URL:** `/cancellations/:id/status`
+- **Auth:** Required (Admin, Seller)
+- **Body:** JSON
+
+  ```json
+  {
+    "status": "APPROVED | REJECTED | COMPLETED"
+  }
+  ```
+
+- **Response:** 200
+
+  ```json
+  {
+    "success": true,
+    "message": "Cancellation status updated successfully",
+    "data": {}
+  }
+  ```
+
+- **Notes:**
+  - Valid status transitions:
+    - `REQUESTED` → `APPROVED`, `REJECTED`
+    - `APPROVED` → `COMPLETED`
+
+  - When status becomes `COMPLETED`:
+    - Order status is updated to `CANCELLED`
+    - Payment status is updated to `FAILED`
+    - Product stock is restored
+
+- **Errors:** 400, 401, 403, 404, 409, 500
+
+---
+
+## Returns
+
+### Create Return Request
+
+- **Method:** POST
+- **URL:** `/orders/:id/return/request`
+- **Auth:** Required (Customer)
+- **Body:** JSON
+
+  ```json
+  {
+    "reason": "string"
+  }
+  ```
+
+- **Response:** 201
+
+  ```json
+  {
+    "success": true,
+    "message": "Return request created successfully",
+    "data": {}
+  }
+  ```
+
+- **Notes:**
+  - Customer can only return their own orders
+  - Order status must be `DELIVERED`
+  - An order can only have **one** return request
+  - Maximum reason length is 500 characters
+
+- **Errors:** 400, 401, 403, 404, 500
+
+---
+
+### Get My Returns
+
+- **Method:** GET
+- **URL:** `/returns/me`
+- **Auth:** Required (Customer)
+- **Query Params:**
+  - `page` (number, default: 1)
+  - `limit` (number, default: 10)
+  - `status` (string, optional)
+
+- **Response:** 200
+
+  ```json
+  {
+    "success": true,
+    "data": {
+      "returns": [],
+      "pagination": {
+        "page": 1,
+        "limit": 10,
+        "total": 0,
+        "totalPages": 0
+      }
+    }
+  }
+  ```
+
+- **Errors:** 401, 500
+
+---
+
+### Get All Returns
+
+- **Method:** GET
+- **URL:** `/returns`
+- **Auth:** Required (Admin, Seller)
+- **Query Params:**
+  - `page` (number, default: 1)
+  - `limit` (number, default: 10)
+  - `status` (string, optional)
+  - `search` (string, optional – customer username or email)
+
+- **Response:** 200
+
+  ```json
+  {
+    "success": true,
+    "data": {
+      "returns": [],
+      "pagination": {
+        "page": 1,
+        "limit": 10,
+        "total": 0,
+        "totalPages": 0
+      }
+    }
+  }
+  ```
+
+- **Notes:**
+  - Seller only sees returns for orders containing their products
+
+- **Errors:** 401, 403, 500
+
+---
+
+### Get Return By ID
+
+- **Method:** GET
+- **URL:** `/returns/:id`
+- **Auth:** Required
+- **Response:** 200
+
+  ```json
+  {
+    "success": true,
+    "data": {}
+  }
+  ```
+
+- **Notes:**
+  - Customer can only access their own return requests
+  - Seller can only access returns related to their products
+
+- **Errors:** 401, 403, 404, 500
+
+---
+
+### Update Return Status
+
+- **Method:** PATCH
+- **URL:** `/returns/:id/status`
+- **Auth:** Required (Admin, Seller)
+- **Body:** JSON
+
+  ```json
+  {
+    "status": "APPROVED | REJECTED | COMPLETED"
+  }
+  ```
+
+- **Response:** 200
+
+  ```json
+  {
+    "success": true,
+    "message": "Return status updated successfully",
+    "data": {}
+  }
+  ```
+
+- **Notes:**
+  - Valid status transitions:
+    - `REQUESTED` → `APPROVED`, `REJECTED`
+    - `APPROVED` → `COMPLETED`
+
+  - When status becomes `COMPLETED`:
+    - Product stock is restored
+    - Payment status is updated to `REFUNDED`
+
+- **Errors:** 400, 401, 403, 404, 409, 500
+
+---
+
 ## Notes for Frontend Implementation
 
 - Always use `Authorization: Bearer <token>` header for authenticated requests
