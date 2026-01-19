@@ -1,4 +1,4 @@
-import { get, post, put } from "../utils/request.js";
+import { get, post, patch } from "../utils/request.js";
 
 /**
  * Create a return request for an order
@@ -7,7 +7,24 @@ import { get, post, put } from "../utils/request.js";
  * @returns {Promise} Created return request
  */
 const createReturnRequest = (orderId, reason) => {
-    return post('/returns', { orderId, reason });
+    return post(`/orders/${orderId}/return/request`, { reason });
+};
+
+/**
+ * Get my return requests (Customer)
+ * @param {Object} params - Query parameters
+ * @param {number} [params.page=1] - Page number
+ * @param {number} [params.limit=10] - Items per page
+ * @param {string} [params.status] - Filter by status (REQUESTED/APPROVED/REJECTED/COMPLETED)
+ * @returns {Promise} { returns: [...], pagination: {...} }
+ */
+const getMyReturns = (params = {}) => {
+    const { page = 1, limit = 10, status } = params;
+    const searchParams = new URLSearchParams();
+    searchParams.append('page', page);
+    searchParams.append('limit', limit);
+    if (status) searchParams.append('status', status);
+    return get(`/returns/me?${searchParams.toString()}`);
 };
 
 /**
@@ -15,15 +32,17 @@ const createReturnRequest = (orderId, reason) => {
  * @param {Object} params - Query parameters
  * @param {number} [params.page=1] - Page number
  * @param {number} [params.limit=10] - Items per page
- * @param {string} [params.status] - Filter by status (REQUESTED/APPROVED/REJECTED)
+ * @param {string} [params.status] - Filter by status (REQUESTED/APPROVED/REJECTED/COMPLETED)
+ * @param {string} [params.search] - Search query
  * @returns {Promise} { returns: [...], pagination: {...} }
  */
 const getAllReturns = (params = {}) => {
-    const { page = 1, limit = 10, status } = params;
+    const { page = 1, limit = 10, status, search } = params;
     const searchParams = new URLSearchParams();
     searchParams.append('page', page);
     searchParams.append('limit', limit);
     if (status) searchParams.append('status', status);
+    if (search) searchParams.append('search', search);
     return get(`/returns?${searchParams.toString()}`);
 };
 
@@ -37,40 +56,21 @@ const getReturnById = (id) => {
 };
 
 /**
- * Approve a return request (Admin/Seller)
+ * Update return status (Admin/Seller)
  * @param {string} id - Return request ID
+ * @param {string} status - New status (APPROVED/REJECTED/COMPLETED)
  * @returns {Promise} Updated return request
  */
-const approveReturn = (id) => {
-    return put(`/returns/${id}/approve`);
-};
-
-/**
- * Reject a return request (Admin/Seller)
- * @param {string} id - Return request ID
- * @param {string} reason - Reason for rejection
- * @returns {Promise} Updated return request
- */
-const rejectReturn = (id, reason) => {
-    return put(`/returns/${id}/reject`, { reason });
-};
-
-/**
- * Withdraw a return request (Customer)
- * @param {string} orderId - Order ID
- * @returns {Promise} Success message
- */
-const withdrawReturnRequest = (orderId) => {
-    return post(`/returns/${orderId}/withdraw`);
+const updateReturnStatus = (id, status) => {
+    return patch(`/returns/${id}/status`, { status });
 };
 
 const returnService = {
     createReturnRequest,
+    getMyReturns,
     getAllReturns,
     getReturnById,
-    approveReturn,
-    rejectReturn,
-    withdrawReturnRequest,
+    updateReturnStatus,
 };
 
 export default returnService;

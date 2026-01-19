@@ -1,4 +1,4 @@
-import { get, post, put } from "../utils/request.js";
+import { get, post, patch } from "../utils/request.js";
 
 /**
  * Create a cancellation request for an order
@@ -7,7 +7,24 @@ import { get, post, put } from "../utils/request.js";
  * @returns {Promise} Created cancellation request
  */
 const createCancellationRequest = (orderId, reason) => {
-    return post('/cancellations', { orderId, reason });
+    return post(`/orders/${orderId}/cancel/request`, { reason });
+};
+
+/**
+ * Get my cancellation requests (Customer)
+ * @param {Object} params - Query parameters
+ * @param {number} [params.page=1] - Page number
+ * @param {number} [params.limit=10] - Items per page
+ * @param {string} [params.status] - Filter by status (REQUESTED/APPROVED/REJECTED/COMPLETED)
+ * @returns {Promise} { cancellations: [...], pagination: {...} }
+ */
+const getMyCancellations = (params = {}) => {
+    const { page = 1, limit = 10, status } = params;
+    const searchParams = new URLSearchParams();
+    searchParams.append('page', page);
+    searchParams.append('limit', limit);
+    if (status) searchParams.append('status', status);
+    return get(`/cancellations/me?${searchParams.toString()}`);
 };
 
 /**
@@ -15,15 +32,17 @@ const createCancellationRequest = (orderId, reason) => {
  * @param {Object} params - Query parameters
  * @param {number} [params.page=1] - Page number
  * @param {number} [params.limit=10] - Items per page
- * @param {string} [params.status] - Filter by status (REQUESTED/APPROVED/REJECTED)
+ * @param {string} [params.status] - Filter by status (REQUESTED/APPROVED/REJECTED/COMPLETED)
+ * @param {string} [params.search] - Search query
  * @returns {Promise} { cancellations: [...], pagination: {...} }
  */
 const getAllCancellations = (params = {}) => {
-    const { page = 1, limit = 10, status } = params;
+    const { page = 1, limit = 10, status, search } = params;
     const searchParams = new URLSearchParams();
     searchParams.append('page', page);
     searchParams.append('limit', limit);
     if (status) searchParams.append('status', status);
+    if (search) searchParams.append('search', search);
     return get(`/cancellations?${searchParams.toString()}`);
 };
 
@@ -37,40 +56,21 @@ const getCancellationById = (id) => {
 };
 
 /**
- * Approve a cancellation request (Admin/Seller)
+ * Update cancellation status (Admin/Seller)
  * @param {string} id - Cancellation request ID
+ * @param {string} status - New status (APPROVED/REJECTED/COMPLETED)
  * @returns {Promise} Updated cancellation request
  */
-const approveCancellation = (id) => {
-    return put(`/cancellations/${id}/approve`);
-};
-
-/**
- * Reject a cancellation request (Admin/Seller)
- * @param {string} id - Cancellation request ID
- * @param {string} reason - Reason for rejection
- * @returns {Promise} Updated cancellation request
- */
-const rejectCancellation = (id, reason) => {
-    return put(`/cancellations/${id}/reject`, { reason });
-};
-
-/**
- * Withdraw a cancellation request (Customer)
- * @param {string} orderId - Order ID
- * @returns {Promise} Success message
- */
-const withdrawCancellationRequest = (orderId) => {
-    return post(`/cancellations/${orderId}/withdraw`);
+const updateCancellationStatus = (id, status) => {
+    return patch(`/cancellations/${id}/status`, { status });
 };
 
 const cancellationService = {
     createCancellationRequest,
+    getMyCancellations,
     getAllCancellations,
     getCancellationById,
-    approveCancellation,
-    rejectCancellation,
-    withdrawCancellationRequest,
+    updateCancellationStatus,
 };
 
 export default cancellationService;
