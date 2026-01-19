@@ -53,7 +53,7 @@ const LeaveReview = () => {
             </div>
 
             <List
-                dataSource={order.orderItems}
+                dataSource={order.OrderItem || order.orderItems || []}
                 renderItem={(item) => (
                     <ReviewItem
                         key={item.id}
@@ -142,7 +142,7 @@ const ReviewItem = ({ item, orderId, onSuccess }) => {
             <Space align="start" size="large" style={{ width: '100%' }}>
                 <div style={{ padding: '4px', background: '#f5f5f5', borderRadius: '8px' }}>
                     <Image
-                        src={item.productVariant?.images?.[0] || item.productVariant?.product?.images?.[0] || 'https://via.placeholder.com/100'}
+                        src={item.ProductVariant?.images?.[0] || item.ProductVariant?.Product?.images?.[0] || item.productVariant?.images?.[0] || item.productVariant?.product?.images?.[0] || 'https://via.placeholder.com/100'}
                         width={100}
                         height={100}
                         style={{ objectFit: 'cover', borderRadius: '4px' }}
@@ -152,10 +152,12 @@ const ReviewItem = ({ item, orderId, onSuccess }) => {
                 <div style={{ flex: 1 }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                         <div>
-                            <Title level={4} style={{ margin: '0 0 4px 0' }}>{item.productVariant?.product?.name}</Title>
+                            <Title level={4} style={{ margin: '0 0 4px 0' }}>
+                                {item.ProductVariant?.Product?.name || item.productVariant?.product?.name || 'Product'}
+                            </Title>
                             <Text type="secondary">
-                                {item.productVariant?.variantAttributes &&
-                                    Object.entries(item.productVariant.variantAttributes)
+                                {(item.ProductVariant?.variantAttributes || item.productVariant?.variantAttributes) &&
+                                    Object.entries(item.ProductVariant?.variantAttributes || item.productVariant?.variantAttributes)
                                         .map(([key, value]) => `${key}: ${value}`)
                                         .join(' | ')
                                 }

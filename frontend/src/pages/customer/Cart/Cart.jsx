@@ -65,7 +65,7 @@ const Cart = () => {
             return;
         }
 
-        if (!user?.customer?.id) {
+        if (!user?.user?.id) {
             console.error('User customer ID not found:', user);
             message.error('Customer information not available');
             setLoading(false);
