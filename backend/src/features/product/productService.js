@@ -94,16 +94,14 @@ const createProduct = async ({
   }
 
   const productId = uuidv4();
-  let imageUrls = [];
+  let productImages = [];
 
-  if (files && files.length > 0) {
-    for (const file of files) {
-      const url = await uploadImageToSupabase(
-        file,
-        "products",
-        `${productId}/`,
-      );
-      imageUrls.push(url);
+  const mainFiles = files ? files.filter(f => f.fieldname === 'images') : [];
+
+  if (mainFiles.length > 0) {
+    for (const file of mainFiles) {
+      const url = await uploadImageToSupabase(file, "products", `${productId}/`);
+      productImages.push(url);
     }
   }
 
@@ -116,6 +114,8 @@ const createProduct = async ({
       throw { status: 400, message: "Invalid variants format" };
     }
   }
+
+  const safeParsedVariants = Array.isArray(parsedVariants) ? parsedVariants : [];
 
   const { variantTypes, variantOptions } =
     extractVariantMetadata(parsedVariants);
@@ -134,7 +134,7 @@ const createProduct = async ({
       price,
       stockQuantity: finalStockQuantity,
       categoryId,
-      images: imageUrls,
+      images: productImages,
       variantTypes,
       variantOptions,
       createdBy: seller.id,
@@ -146,52 +146,44 @@ const createProduct = async ({
     .single();
 
   if (error) {
-    if (imageUrls.length > 0) {
-      for (const img of imageUrls) {
-        await deleteImageFromSupabase(img, "products").catch(() => {});
-      }
-    }
+    for (const img of productImages) await deleteImageFromSupabase(img, "products").catch(() => {});
     throw error;
   }
 
-  if (parsedVariants.length > 0) {
-    const variantRecords = parsedVariants.map((v) => ({
-      id: uuidv4(),
-      productId,
-      quantity: v.quantity || 0,
-      variantAttributes: v.variantAttributes || {},
-      images: v.images || [],
-      priceAdjustment: v.priceAdjustment || 0,
-      createdAt: now,
-      updatedAt: now,
-    }));
+  if (safeParsedVariants.length > 0) {
+    const variantRecords = [];
 
-    const { error: variantError } = await supabase
-      .from("ProductVariant")
-      .insert(variantRecords);
+    for (let i = 0; i < safeParsedVariants.length; i++) {
+      const v = safeParsedVariants[i];
+      let variantImageUrls = [];
+
+      const variantFileKey = `variant_image_${i}`;
+      const specificFile = files ? files.find(f => f.fieldname === variantFileKey) : null;
+
+      if (specificFile) {
+        const vId = uuidv4();
+        const url = await uploadImageToSupabase(specificFile, "products", `variant-images/${productId}/${vId}/`);
+        variantImageUrls.push(url);
+      }
+
+      variantRecords.push({
+        id: uuidv4(),
+        productId,
+        quantity: v.quantity || 0,
+        variantAttributes: v.variantAttributes || v.attributes || {},
+        images: variantImageUrls,
+        priceAdjustment: v.priceAdjustment || 0,
+        createdAt: now,
+        updatedAt: now,
+      });
+    }
+
+    const { error: variantError } = await supabase.from("ProductVariant").insert(variantRecords);
 
     if (variantError) {
       await supabase.from("Product").delete().eq("id", productId);
-      if (imageUrls.length > 0) {
-        for (const img of imageUrls) {
-          await deleteImageFromSupabase(img, "products").catch(() => {});
-        }
-      }
       throw variantError;
     }
-
-    const { data: productWithVariants } = await supabase
-      .from("Product")
-      .select(
-        `
-        *,
-        ProductVariant(*)
-      `,
-      )
-      .eq("id", productId)
-      .single();
-
-    return productWithVariants;
   }
 
   return product;

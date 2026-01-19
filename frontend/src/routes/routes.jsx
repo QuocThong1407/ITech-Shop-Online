@@ -20,11 +20,12 @@ import Membership from "../pages/customer/Membership/Membership.jsx";
 import AllProducts from "../pages/customer/AllProducts/AllProducts.jsx";
 import SearchProduct from "../pages/customer/SearchProduct/SearchProduct.jsx";
 import PromotionProducts from "../pages/customer/PromotionProducts/PromotionProducts.jsx";
-import Orders from "../pages/customer/Orders/Orders.jsx";
-import OrderDetail from "../pages/customer/Orders/OrderDetail.jsx";
-import LeaveReview from "../pages/customer/Orders/LeaveReview.jsx";
+// import Orders from "../pages/customer/Orders/Orders.jsx";
+// import OrderDetail from "../pages/customer/Orders/OrderDetail.jsx";
+// import LeaveReview from "../pages/customer/Orders/LeaveReview.jsx";
 import AccountInfo from "../pages/customer/AccountInfo/AccountInfo.jsx";
 import ProductDetail from "../components/ProductDetail/ProductDetail.jsx";
+import Products from "../pages/seller/Products/Products.jsx";
 
 export const routes = [
     {
@@ -95,18 +96,18 @@ export const routes = [
                 path: "/promotion/:id",
                 element: <PromotionProducts/>
             },
-            {
-                path: "/orders",
-                element: <Orders/>
-            },
-            {
-                path: "/orders/:orderId",
-                element: <OrderDetail/>
-            },
-            {
-                path: "/orders/:orderId/review",
-                element: <LeaveReview/>
-            },
+            // {
+            //     path: "/orders",
+            //     element: <Orders/>
+            // },
+            // {
+            //     path: "/orders/:orderId",
+            //     element: <OrderDetail/>
+            // },
+            // {
+            //     path: "/orders/:orderId/review",
+            //     element: <LeaveReview/>
+            // },
             {
                 path: "/profile/account-info",
                 element: <AccountInfo/>
@@ -147,6 +148,10 @@ export const routes = [
                 path: "categories/:id",
                 element: <EditCategory />
             },
+            {
+                path: "products",
+                element: <Products/>
+            }
         ]
     }
 ]
