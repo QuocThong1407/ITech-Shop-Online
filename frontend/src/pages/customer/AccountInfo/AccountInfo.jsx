@@ -5,7 +5,7 @@ import userService from '../../../services/userService';
 const AccountInfo = () => {
     const [form] = Form.useForm();
     const [loading, setLoading] = useState(true);
-    const [editing, setEditing] = useState({ username: false, email: false });
+    const [editing, setEditing] = useState({ username: false });
 
     const [initialValues, setInitialValues] = useState({});
 
@@ -17,8 +17,8 @@ const AccountInfo = () => {
         setLoading(true);
         try {
             const res = await userService.getUserInfo();
-            if (res && res.data && res.data.user) {
-                const { username, email } = res.data.user;
+            if (res && res.data) {
+                const { username, email } = res.data;
                 const data = { username, email };
                 setInitialValues(data);
                 form.setFieldsValue(data);
@@ -117,8 +117,7 @@ const AccountInfo = () => {
                 >
                     <Input
                         size="large"
-                        disabled={!editing.email}
-                        suffix={renderSuffixButton('email')}
+                        disabled={true}
                     />
                 </Form.Item>
             </Form>

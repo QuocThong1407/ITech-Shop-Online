@@ -24,8 +24,8 @@ const AddressEdit = () => {
         setInitialLoading(true);
         try {
             const res = await addressService.getAddress(id);
-            if (res && res.data && res.data.address) {
-                form.setFieldsValue(res.data.address);
+            if (res && res.data) {
+                form.setFieldsValue(res.data);
             } else {
                 message.error("Address not found");
                 navigate('/profile/my-address');

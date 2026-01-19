@@ -24,7 +24,12 @@ import Orders from "../pages/customer/Orders/Orders.jsx";
 import OrderDetail from "../pages/customer/Orders/OrderDetail.jsx";
 import LeaveReview from "../pages/customer/Orders/LeaveReview.jsx";
 import AccountInfo from "../pages/customer/AccountInfo/AccountInfo.jsx";
-import ProductDetail from "../components/ProductDetail/ProductDetail.jsx";
+import CustomerProductDetail from "../components/ProductDetail/ProductDetail.jsx";
+import Profile from "../components/layouts/Profile/Profile.jsx";
+import VerifyEmail from "../pages/public/VerifyEmail/VerifyEmail.jsx";
+import AccessRestricted from "../pages/public/AccessRestricted/AccessRestricted.jsx";
+import Confirmation from "../pages/customer/Confirmation/Confirmation.jsx";
+import Loading from '../pages/customer/Loading/Loading.jsx';
 
 export const routes = [
     {
@@ -32,85 +37,107 @@ export const routes = [
         element: <CustomerLayout/>,
         children: [
             {
-                index: true,
+                path: '/',
                 element: <Home/>
             },
             {
-                path: '/category/:categoryId',
-                element: <FilteredProducts />
+                path: '/login',
+                element: <Login/>,
             },
             {
-                path: "/login",
-                element: <Login/>
+                path: '/register',
+                element: <Register/>,
             },
             {
-                path: "/register",
-                element: <Register/>
+                path: '/auth/verify',
+                element: <VerifyEmail/>,
             },
             {
-                path: "/forgot-password",
-                element: <ForgotPassword/>
-            },
-            {
-                path: "/reset-password",
-                element: <ResetPassword/>
-            },
-            {
-                path: "/profile/my-address",
-                element: <Address/>
-            },
-            {
-                path: "/profile/my-address/new",
-                element: <AddressEdit/>
-            },
-            {
-                path: "/profile/my-address/edit/:id",
-                element: <AddressEdit/>
-            },
-            {
-                path: "/profile/change-password",
-                element: <ChangePassword/>
-            },
-            {
-                path: "/cart",
-                element: <Cart/>
-            },
-            {
-                path: "/profile/membership",
-                element: <Membership/>
-            },
-            {
-                path: "/products",
+                path: '/products',
                 element: <AllProducts/>
             },
             {
-                path: "/product/:productId",
-                element: <ProductDetail/>
-            },
-            {
-                path: "/search",
+                path: '/search',
                 element: <SearchProduct/>
             },
             {
-                path: "/promotion/:id",
+                path: '/product/:productId',
+                element: <CustomerProductDetail/>
+            },
+            {
+                path: '/category/:categoryId',
+                element: <FilteredProducts/>
+            },
+            {
+                path: '/access-restricted',
+                element: <AccessRestricted/>,
+            },
+            {
+                path: '/confirmation',
+                element: <Confirmation/>,
+            },
+            {
+                path: '/forgot-password',
+                element: <ForgotPassword/>,
+            },
+            {
+                path: '/reset-password',
+                element: <ResetPassword/>,
+            },
+            {
+                path: '/cart',
+                element: <Cart/>,
+            },
+            {
+                path: '/loading',
+                element: <Loading/>,
+            },
+            {
+                path: '/profile',
+                element: <Profile/>,
+                children: [
+                    {
+                        index: true,
+                        element: <AccountInfo/>
+                    },
+                    {
+                        path: 'my-address',
+                        element: <Address/>,
+                    },
+                    {
+                        path: 'membership',
+                        element: <Membership/>,
+                    },
+                    {
+                        path: 'my-address/new',
+                        element: <AddressEdit/>,
+                    },
+                    {
+                        path: 'my-address/edit/:id',
+                        element: <AddressEdit/>,
+                    },
+                    {
+                        path: 'change-password',
+                        element: <ChangePassword/>,
+                    }
+                ]
+            },
+            {
+                path: '/orders',
+                element: <Orders/>,
+            },
+            {
+                path: '/orders/:orderId',
+                element: <OrderDetail/>,
+            },
+            {
+                path: '/orders/:orderId/review',
+                element: <LeaveReview/>,
+            },
+            {
+                path: '/promotion/:id',
                 element: <PromotionProducts/>
-            },
-            {
-                path: "/orders",
-                element: <Orders/>
-            },
-            {
-                path: "/orders/:orderId",
-                element: <OrderDetail/>
-            },
-            {
-                path: "/orders/:orderId/review",
-                element: <LeaveReview/>
-            },
-            {
-                path: "/profile/account-info",
-                element: <AccountInfo/>
-            },
+            }
         ]
     },
     {
@@ -137,15 +164,15 @@ export const routes = [
             },
             {
                 path: "categories",
-                element: <Category />
+                element: <Category/>
             },
             {
                 path: "categories/new",
-                element: <AddCategory />
+                element: <AddCategory/>
             },
             {
                 path: "categories/:id",
-                element: <EditCategory />
+                element: <EditCategory/>
             },
         ]
     }

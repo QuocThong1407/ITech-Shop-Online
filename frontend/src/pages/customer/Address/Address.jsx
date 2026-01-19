@@ -17,8 +17,8 @@ const Address = () => {
         setLoading(true);
         try {
             const res = await addressService.getAddresses();
-            if (res && res.data && res.data.addresses) {
-                setAddresses(res.data.addresses);
+            if (res && res.data) {
+                setAddresses(res.data);
             }
         } catch (error) {
             console.error(error);

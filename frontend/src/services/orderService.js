@@ -8,6 +8,10 @@ const getAllOrders = () => {
     return get('/orders');
 };
 
+const getMyOrders = () => {
+    return get('/orders/me');
+}
+
 /**
  * Get a specific order by ID
  * @param {string} orderId - Order ID
@@ -68,6 +72,7 @@ const createDirectOrder = (addressId, productVariantId, quantity, paymentMethod)
 
 const orderService = {
     getAllOrders,
+    getMyOrders,
     getOrderById,
     createOrder,
     updateOrderStatus,

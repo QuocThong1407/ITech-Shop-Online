@@ -109,6 +109,23 @@ const updateUserInfo = (data) => {
     return patch('/users/me', data);
 };
 
+/**
+ * Get current user's profile picture
+ * @returns {Promise} { image: string } Profile picture URL
+ */
+const getPfp = () => {
+    return get('/users/me/pfp');
+};
+
+/**
+ * Upload/update current user's profile picture
+ * @param {FormData} formData - Form data containing the image file
+ * @returns {Promise} { image: string } Updated profile picture URL
+ */
+const uploadPfp = (formData) => {
+    return post('/users/me/pfp', formData);
+};
+
 const userService = {
     getAllUsers,
     getUserStatistics,
@@ -120,6 +137,8 @@ const userService = {
     updateCurrentUser,
     getUserInfo,
     updateUserInfo,
+    getPfp,
+    uploadPfp,
 };
 
 export default userService;
