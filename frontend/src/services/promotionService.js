@@ -93,9 +93,14 @@ const applyToCategories = (id, categoryIds) => {
     return post(`/promotions/${id}/apply-categories`, { categoryIds });
 };
 
+const getPromotionStats = () => {
+    return get('/promotions/stats');
+};
+
 const promotionService = {
     getAllPromotions,
     getPromotionById,
+    getPromotionStats,
     createPromotion,
     updatePromotion,
     updatePromotionStatus,
