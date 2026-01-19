@@ -11,8 +11,8 @@ router.get("/:id", productController.getProductById); // GET /api/products/:id
 // seller only
 router.use(authenticate, checkRole("SELLER"));
 
-router.post("/", upload.array("images", 10), productController.createProduct); // POST /api/products
-router.put("/:id", upload.array("images", 10), productController.updateProduct); // PUT /api/products/:id
+router.post("/", upload.any(), productController.createProduct); // POST /api/products
+router.put("/:id", upload.any(), productController.updateProduct); // PUT /api/products/:id
 router.delete("/:id", productController.deleteProduct); // DELETE /api/products/:id
 
 module.exports = router;

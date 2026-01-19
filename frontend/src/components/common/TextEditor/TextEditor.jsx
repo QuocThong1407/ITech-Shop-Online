@@ -191,6 +191,14 @@ export default function TinyMCEEditor({ value, onChange, onUploadedImages }) {
             margin: 0;
             max-width: 100%;
           }
+          .mce-content-body[data-mce-placeholder]:not(.mce-visualblocks)::before {
+            left: 1rem !important;
+            right: 1rem;
+            pointer-events: none;
+            cursor: text;
+            color: #9ca3af;
+            font-style: italic;
+          }
           p { margin: 0 0 1rem 0; }
           h1, h2, h3, h4, h5, h6 { margin: 1.5rem 0 1rem 0; }
         `,

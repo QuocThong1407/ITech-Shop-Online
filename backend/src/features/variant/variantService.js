@@ -2,6 +2,7 @@
 const { supabase } = require("../../configs/supabase");
 const { v4: uuidv4 } = require("uuid");
 const { syncVariantMetadata } = require("../product/productService");
+const { uploadImageToSupabase, deleteImageFromSupabase } = require("../../utils/uploadHelper");
 
 /**
  * TỐI ƯU: Tự động sync metadata sau mỗi thao tác
@@ -10,7 +11,7 @@ const createVariant = async ({
   productId,
   quantity,
   variantAttributes,
-  images,
+  files,
   priceAdjustment,
   userId,
 }) => {
@@ -43,6 +44,14 @@ const createVariant = async ({
     throw { status: 403, message: "Not your product" };
   }
 
+  let imageUrls = [];
+  if (files && files.length > 0) {
+    for (const file of files) {
+      const url = await uploadImageToSupabase(file, "products", `variant-images/${uuidv4()}/`);
+      imageUrls.push(url);
+    }
+  }
+
   // TỐI ƯU: KHÔNG cần kiểm tra variantTypes
   // Chỉ cần variantAttributes hợp lệ
 
@@ -54,7 +63,7 @@ const createVariant = async ({
       productId,
       quantity: quantity || 0,
       variantAttributes: variantAttributes || {},
-      images: images || [],
+      images: imageUrls || [],
       priceAdjustment: priceAdjustment || 0,
       createdAt: now,
       updatedAt: now,
@@ -120,6 +129,21 @@ const updateVariant = async (variantId, updates, userId) => {
   }
   if (updates.variantAttributes !== undefined) {
     updateData.variantAttributes = updates.variantAttributes;
+  }
+
+  if (updates.files && updates.files.length > 0) {
+    if (variant.images && variant.images.length > 0) {
+      for (const img of variant.images) {
+        await deleteImageFromSupabase(img, "products").catch(() => {});
+      }
+    }
+
+    let newImageUrls = [];
+    for (const file of updates.files) {
+      const url = await uploadImageToSupabase(file, "products", `variant-images/${uuidv4()}/`);
+      newImageUrls.push(url);
+    }
+    updateData.images = newImageUrls;
   }
 
   const { data, error } = await supabase
