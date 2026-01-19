@@ -1,4 +1,4 @@
-const { supabase } = require("../configs/supabase");
+const { supabase, supabaseAdmin} = require("../configs/supabase");
 const { v4: uuidv4 } = require("uuid");
 
 const uploadImageToSupabase = async (file, bucket, folder = "") => {
@@ -6,7 +6,7 @@ const uploadImageToSupabase = async (file, bucket, folder = "") => {
     const fileExt = file.originalname.split(".").pop();
     const fileName = `${folder}${uuidv4()}.${fileExt}`;
 
-    const { data, error } = await supabase.storage
+    const { data, error } = await supabaseAdmin.storage
       .from(bucket)
       .upload(fileName, file.buffer, {
         contentType: file.mimetype,
