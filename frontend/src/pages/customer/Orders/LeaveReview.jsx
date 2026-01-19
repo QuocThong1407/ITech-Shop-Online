@@ -4,7 +4,6 @@ import { Card, Typography, Space, Rate, Input, Button, List, Image, message, Spi
 import { ArrowLeftOutlined, StarFilled, EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import orderService from '../../../services/orderService';
 import reviewService from '../../../services/reviewService';
-import uploadService from '../../../services/uploadService';
 import { PlusOutlined } from '@ant-design/icons';
 
 const { Title, Text } = Typography;
@@ -83,6 +82,13 @@ const ReviewItem = ({ item, orderId, onSuccess }) => {
     );
     const hasExistingReview = !!item.review;
 
+    // Extract actual file objects from fileList for upload
+    const getImageFiles = () => {
+        return fileList
+            .filter(file => file.originFileObj) // Only new files that need to be uploaded
+            .map(file => file.originFileObj);
+    };
+
     const handleSubmit = async () => {
         if (rating === 0) {
             message.warning('Please provide a star rating');
@@ -92,19 +98,27 @@ const ReviewItem = ({ item, orderId, onSuccess }) => {
         try {
             setSubmitting(true);
 
-            // Pseudo-edit: delete then create
+            const imageFiles = getImageFiles();
+
             if (hasExistingReview) {
-                await reviewService.deleteReview(item.review.id);
+                // Update existing review
+                await reviewService.updateReview(item.review.id, {
+                    rating,
+                    comment,
+                    images: imageFiles,
+                });
+                message.success('Review updated successfully');
+            } else {
+                // Create new review
+                await reviewService.createReview({
+                    rating,
+                    comment,
+                    orderItemId: item.id,
+                    images: imageFiles,
+                });
+                message.success('Review submitted successfully');
             }
 
-            await reviewService.createReview({
-                rating,
-                comment,
-                orderItemId: item.id,
-                images: fileList.map(file => file.url || file.response?.data?.url).filter(Boolean),
-            });
-
-            message.success(hasExistingReview ? 'Review updated successfully' : 'Review submitted successfully');
             setIsEditing(false);
             onSuccess();
         } catch (error) {
@@ -196,13 +210,20 @@ const ReviewItem = ({ item, orderId, onSuccess }) => {
                                         imgWindow?.document.write(`<img src="${src}" />`);
                                     }}
                                     onChange={({ fileList: newFileList }) => setFileList(newFileList)}
-                                    customRequest={async ({ file, onSuccess, onError }) => {
-                                        try {
-                                            const response = await uploadService.uploadFile(file);
-                                            onSuccess(response);
-                                        } catch (err) {
-                                            onError(err);
+                                    beforeUpload={(file) => {
+                                        // Validate file type
+                                        const isImage = file.type.startsWith('image/');
+                                        if (!isImage) {
+                                            message.error('You can only upload image files!');
+                                            return Upload.LIST_IGNORE;
                                         }
+                                        // Validate file size (max 5MB)
+                                        const isLt5M = file.size / 1024 / 1024 < 5;
+                                        if (!isLt5M) {
+                                            message.error('Image must be smaller than 5MB!');
+                                            return Upload.LIST_IGNORE;
+                                        }
+                                        return false; // Prevent auto upload, we'll handle it on submit
                                     }}
                                 >
                                     {fileList.length < 5 && (

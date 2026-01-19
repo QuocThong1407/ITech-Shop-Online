@@ -1,29 +1,20 @@
 import { get, post, put, del } from "../utils/request.js";
 
 /**
- * Create a new review for a product
- * @param {Object} data - Review data
- * @param {number} data.rating - Rating (1-5)
- * @param {string} data.comment - Review comment
- * @param {string} data.orderItemId - Order item ID being reviewed
- * @param {string[]} [data.images] - Optional array of image URLs
- * @returns {Promise} Created review object
- */
-const createReview = (data) => {
-    return post('/reviews', data);
-};
-
-/**
- * Get all reviews for a product
- * @param {string} productId - Product ID
+ * Get all reviews with optional filters
  * @param {Object} params - Query parameters
  * @param {number} [params.page=1] - Page number
  * @param {number} [params.limit=10] - Items per page
+ * @param {number} [params.rating] - Filter by rating
+ * @param {string} [params.productId] - Filter by product ID
  * @returns {Promise} { reviews: [...], pagination: {...} }
  */
-const getProductReviews = (productId, params = {}) => {
-    const { page = 1, limit = 10 } = params;
-    return get(`/reviews/product/${productId}?page=${page}&limit=${limit}`);
+const getAllReviews = (params = {}) => {
+    const { page = 1, limit = 10, rating, productId } = params;
+    let query = `?page=${page}&limit=${limit}`;
+    if (rating) query += `&rating=${rating}`;
+    if (productId) query += `&productId=${productId}`;
+    return get(`/reviews${query}`);
 };
 
 /**
@@ -36,42 +27,103 @@ const getReviewById = (id) => {
 };
 
 /**
- * Update a review
+ * Get all reviews for a product
+ * @param {string} productId - Product ID
+ * @param {Object} params - Query parameters
+ * @param {number} [params.page=1] - Page number
+ * @param {number} [params.limit=10] - Items per page
+ * @param {number} [params.rating] - Filter by rating
+ * @returns {Promise} { reviews: [...], pagination: {...} }
+ */
+const getProductReviews = (productId, params = {}) => {
+    const { page = 1, limit = 10, rating } = params;
+    let query = `?page=${page}&limit=${limit}`;
+    if (rating) query += `&rating=${rating}`;
+    return get(`/reviews/product/${productId}${query}`);
+};
+
+/**
+ * Get all reviews for a variant
+ * @param {string} variantId - Variant ID
+ * @param {Object} params - Query parameters
+ * @param {number} [params.page=1] - Page number
+ * @param {number} [params.limit=10] - Items per page
+ * @param {number} [params.rating] - Filter by rating
+ * @returns {Promise} { reviews: [...], pagination: {...} }
+ */
+const getVariantReviews = (variantId, params = {}) => {
+    const { page = 1, limit = 10, rating } = params;
+    let query = `?page=${page}&limit=${limit}`;
+    if (rating) query += `&rating=${rating}`;
+    return get(`/reviews/variant/${variantId}${query}`);
+};
+
+/**
+ * Create a new review for a product (uses FormData for file upload)
+ * @param {Object} data - Review data
+ * @param {number} data.rating - Rating (1-5)
+ * @param {string} [data.comment] - Review comment
+ * @param {string} data.orderItemId - Order item ID being reviewed
+ * @param {File[]} [data.images] - Optional array of image files (max 5)
+ * @returns {Promise} Created review object
+ */
+const createReview = (data) => {
+    const formData = new FormData();
+    formData.append('orderItemId', data.orderItemId);
+    formData.append('rating', data.rating);
+    if (data.comment) {
+        formData.append('comment', data.comment);
+    }
+    if (data.images && data.images.length > 0) {
+        data.images.forEach((file) => {
+            formData.append('images', file);
+        });
+    }
+    return post('/reviews', formData);
+};
+
+/**
+ * Update a review (uses FormData for file upload)
  * @param {string} id - Review ID
  * @param {Object} data - Review data to update
  * @param {number} [data.rating] - Rating (1-5)
  * @param {string} [data.comment] - Review comment
- * @param {string[]} [data.images] - Array of image URLs
+ * @param {File[]} [data.images] - Array of image files (max 5)
  * @returns {Promise} Updated review object
  */
 const updateReview = (id, data) => {
-    return put(`/reviews/${id}`, data);
+    const formData = new FormData();
+    if (data.rating !== undefined) {
+        formData.append('rating', data.rating);
+    }
+    if (data.comment !== undefined) {
+        formData.append('comment', data.comment);
+    }
+    if (data.images && data.images.length > 0) {
+        data.images.forEach((file) => {
+            formData.append('images', file);
+        });
+    }
+    return put(`/reviews/${id}`, formData);
 };
 
 /**
- * Delete a review
+ * Admin: Delete a review
  * @param {string} id - Review ID
  * @returns {Promise} Success message
  */
-const deleteReview = (id) => {
-    return del(`/reviews/${id}`);
-};
-
-/**
- * Get current user's reviews
- * @returns {Promise} Array of review objects
- */
-const getMyReviews = () => {
-    return get('/reviews/me');
+const adminDeleteReview = (id) => {
+    return del(`/reviews/admin/${id}`);
 };
 
 const reviewService = {
-    createReview,
-    getProductReviews,
+    getAllReviews,
     getReviewById,
+    getProductReviews,
+    getVariantReviews,
+    createReview,
     updateReview,
-    deleteReview,
-    getMyReviews,
+    adminDeleteReview,
 };
 
 export default reviewService;
