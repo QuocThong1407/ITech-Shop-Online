@@ -20,9 +20,9 @@ import Membership from "../pages/customer/Membership/Membership.jsx";
 import AllProducts from "../pages/customer/AllProducts/AllProducts.jsx";
 import SearchProduct from "../pages/customer/SearchProduct/SearchProduct.jsx";
 import PromotionProducts from "../pages/customer/PromotionProducts/PromotionProducts.jsx";
-import Orders from "../pages/customer/Orders/Orders.jsx";
-import OrderDetail from "../pages/customer/Orders/OrderDetail.jsx";
-import LeaveReview from "../pages/customer/Orders/LeaveReview.jsx";
+// import Orders from "../pages/customer/Orders/Orders.jsx";
+// import OrderDetail from "../pages/customer/Orders/OrderDetail.jsx";
+// import LeaveReview from "../pages/customer/Orders/LeaveReview.jsx";
 import AccountInfo from "../pages/customer/AccountInfo/AccountInfo.jsx";
 import CustomerProductDetail from "../components/ProductDetail/ProductDetail.jsx";
 import Profile from "../components/layouts/Profile/Profile.jsx";
@@ -30,6 +30,8 @@ import VerifyEmail from "../pages/public/VerifyEmail/VerifyEmail.jsx";
 import AccessRestricted from "../pages/public/AccessRestricted/AccessRestricted.jsx";
 import Confirmation from "../pages/customer/Confirmation/Confirmation.jsx";
 import Loading from '../pages/customer/Loading/Loading.jsx';
+import ProductDetail from "../components/ProductDetail/ProductDetail.jsx";
+import Products from "../pages/seller/Products/Products.jsx";
 
 export const routes = [
     {
@@ -174,6 +176,10 @@ export const routes = [
                 path: "categories/:id",
                 element: <EditCategory/>
             },
+            {
+                path: "products",
+                element: <Products/>
+            }
         ]
     }
 ]

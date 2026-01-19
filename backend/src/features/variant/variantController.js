@@ -1,4 +1,4 @@
-// backend/src/features/variant/variantController.js
+// backend/src/features/variant/variantController.js - FIXED VERSION
 const variantService = require("./variantService");
 const {
   successResponse,
@@ -7,18 +7,37 @@ const {
 
 const createVariant = async (req, res) => {
   try {
-    const { productId, quantity, variantAttributes, images, priceAdjustment } =
-      req.body;
+    let { productId, quantity, variantAttributes, priceAdjustment } =
+        req.body;
 
-    if (!productId || quantity === undefined || !variantAttributes) {
+    if (!productId) {
+      return errorResponse(res, 400, "Product ID is required");
+    }
+
+    if (typeof variantAttributes === "string") {
+      try {
+        variantAttributes = JSON.parse(variantAttributes);
+      } catch (e) {
+        return errorResponse(res, 400, "Invalid variantAttributes format");
+      }
+    }
+
+    if (!variantAttributes || typeof variantAttributes !== "object") {
       return errorResponse(
         res,
         400,
-        "Product ID, quantity and variant attributes are required",
+        "Variant attributes are required and must be an object",
       );
     }
 
-    if (quantity < 0) {
+    if (Object.keys(variantAttributes).length === 0) {
+      return errorResponse(res, 400, "Variant attributes cannot be empty");
+    }
+
+    quantity = Number(quantity);
+    priceAdjustment = Number(priceAdjustment);
+
+    if (quantity !== undefined && quantity < 0) {
       return errorResponse(res, 400, "Quantity must be a positive number");
     }
 
@@ -31,7 +50,7 @@ const createVariant = async (req, res) => {
       productId,
       quantity,
       variantAttributes,
-      images,
+      files: req.files,
       priceAdjustment,
       userId,
     });
@@ -46,18 +65,44 @@ const createVariant = async (req, res) => {
 const updateVariant = async (req, res) => {
   try {
     const { id } = req.params;
-    const updates = req.body;
+    let updates = { ...req.body };
     const userId = req.user.userId;
 
-    if (updates.quantity !== undefined && updates.quantity < 0) {
-      return errorResponse(res, 400, "Quantity must be a positive number");
+    if (updates.variantAttributes) {
+      if (typeof updates.variantAttributes === "string") {
+        try {
+          updates.variantAttributes = JSON.parse(updates.variantAttributes);
+        } catch (e) {
+          return errorResponse(res, 400, "Invalid variantAttributes JSON format");
+        }
+      }
     }
 
-    if (
-      updates.priceAdjustment !== undefined &&
-      typeof updates.priceAdjustment !== "number"
-    ) {
-      return errorResponse(res, 400, "Price adjustment must be a number");
+    if (updates.quantity !== undefined) {
+      updates.quantity = Number(updates.quantity);
+      if (isNaN(updates.quantity) || updates.quantity < 0) {
+        return errorResponse(res, 400, "Quantity must be a positive number");
+      }
+    }
+
+    if (updates.priceAdjustment !== undefined) {
+      updates.priceAdjustment = Number(updates.priceAdjustment);
+      if (isNaN(updates.priceAdjustment)) {
+        return errorResponse(res, 400, "Price adjustment must be a number");
+      }
+    }
+
+    if (updates.variantAttributes !== undefined) {
+      if (typeof updates.variantAttributes !== "object") {
+        return errorResponse(res, 400, "Variant attributes must be an object");
+      }
+      if (Object.keys(updates.variantAttributes).length === 0) {
+        return errorResponse(res, 400, "Variant attributes cannot be empty");
+      }
+    }
+
+    if (req.files && req.files.length > 0) {
+      updates.files = req.files;
     }
 
     const result = await variantService.updateVariant(id, updates, userId);
@@ -81,8 +126,20 @@ const deleteVariant = async (req, res) => {
   }
 };
 
+const getVariantsByProductId = async (req, res) => {
+  try {
+    const { productId } = req.params;
+    const variants = await variantService.getVariantsByProductId(productId);
+    successResponse(res, 200, variants);
+  } catch (error) {
+    console.error("Get variants error:", error);
+    errorResponse(res, 400, error.message || "Failed to get variants");
+  }
+};
+
 module.exports = {
   createVariant,
   updateVariant,
   deleteVariant,
+  getVariantsByProductId,
 };

@@ -9,12 +9,13 @@ const authRoutes = require("./features/auth/authRoutes");
 const userRoutes = require("./features/user/userRoutes");
 const categoryRoutes = require("./features/category/categoryRoutes");
 const addressRoutes = require("./features/address/addressRoutes");
-//const reviewRoutes = require("./features/review/reviewRoutes");
+const reviewRoutes = require("./features/review/reviewRoutes");
 const promotionRoutes = require("./features/promotion/promotionRoutes");
 const couponRoutes = require("./features/coupon/couponRoutes");
 const productRoutes = require("./features/product/productRoutes");
 const cartRoutes = require("./features/cart/cartRoutes");
 const variantRoutes = require("./features/variant/variantRoutes");
+const orderRoutes = require("./features/order/orderRoutes");
 const { errorHandler, notFoundHandler } = require("./middleware/index");
 const app = express();
 app.use(helmet());
@@ -22,7 +23,7 @@ app.use(
   cors({
     origin: process.env.FRONTEND_URL || "http://localhost:3000",
     credentials: true,
-  })
+  }),
 );
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -37,12 +38,13 @@ app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/categories", categoryRoutes);
 app.use("/api/addresses", addressRoutes);
-//app.use("/api/reviews", reviewRoutes);
+app.use("/api/reviews", reviewRoutes);
 app.use("/api/promotions", promotionRoutes);
 app.use("/api/coupons", couponRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/cart", cartRoutes);
 app.use("/api/variants", variantRoutes);
+app.use("/api/orders", orderRoutes);
 app.use(notFoundHandler);
 app.use(errorHandler);
 

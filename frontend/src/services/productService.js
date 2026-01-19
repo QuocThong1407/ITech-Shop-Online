@@ -49,7 +49,7 @@ const getProductsByCategoryId = (categoryId) => {
 
 /**
  * Create a new product (Seller only)
- * @param {Object} productData - Product data
+ * @param {FormData} productData - Product data
  * @param {string} productData.name - Product name
  * @param {string} productData.description - Product description
  * @param {number} productData.price - Product price (>= 0)

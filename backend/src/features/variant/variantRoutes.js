@@ -2,12 +2,13 @@
 const express = require("express");
 const router = express.Router();
 const variantController = require("./variantController");
-const { authenticate, checkRole } = require("../../middleware/index");
+const { authenticate, checkRole, upload } = require("../../middleware/index");
 
 router.use(authenticate, checkRole("SELLER"));
 
-router.post("/", variantController.createVariant); // POST /api/variants
-router.put("/:id", variantController.updateVariant); // PUT /api/variants/:id
+router.get("/product/:productId", variantController.getVariantsByProductId); // GET /api/variants/product/:productId
+router.post("/", upload.array("images"), variantController.createVariant); // POST /api/variants
+router.put("/:id", upload.array("images"), variantController.updateVariant); // PUT /api/variants/:id
 router.delete("/:id", variantController.deleteVariant); // DELETE /api/variants/:id
 
 module.exports = router;
