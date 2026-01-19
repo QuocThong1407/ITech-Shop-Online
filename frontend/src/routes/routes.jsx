@@ -26,6 +26,7 @@ import PromotionProducts from "../pages/customer/PromotionProducts/PromotionProd
 import AccountInfo from "../pages/customer/AccountInfo/AccountInfo.jsx";
 import ProductDetail from "../components/ProductDetail/ProductDetail.jsx";
 import Products from "../pages/seller/Products/Products.jsx";
+import Promotions from "../pages/admin/Promotions/Promotions.jsx";
 
 export const routes = [
     {
@@ -125,6 +126,10 @@ export const routes = [
             {
                 path: 'users',
                 element: <Users/>
+            },
+            {
+                path: 'promotions',
+                element: <Promotions/>
             }
         ]
     },
