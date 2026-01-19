@@ -800,6 +800,274 @@ fetch("http://localhost:5000/api/users/me", {
 
 ---
 
+## Reviews
+
+### Get All Reviews
+
+- **Method:** GET
+- **URL:** `/reviews`
+- **Query Params:**
+  - `page` (int, default 1)
+  - `limit` (int, default 10)
+  - `rating` (int, 1–5)
+  - `productId` (string)
+
+- **Response (200):**
+
+  ```json
+  {
+    "reviews": [...],
+    "pagination": {
+      "page": 1,
+      "limit": 10,
+      "total": 100,
+      "totalPages": 10
+    }
+  }
+  ```
+
+- **Notes:**
+  - Nếu có `productId`, chỉ trả về review của sản phẩm đó
+  - Sắp xếp theo `reviewDate` (mới nhất trước)
+
+- **Errors:** 500
+
+---
+
+## Reviews
+
+### Get All Reviews
+
+- **Method:** GET
+- **URL:** `/reviews`
+- **Auth:** Not required
+- **Query Params:**
+  - `page` (number, default: 1)
+  - `limit` (number, default: 10)
+  - `rating` (number, 1–5, optional)
+  - `productId` (string, optional)
+
+- **Response:** 200
+
+  ```json
+  {
+    "success": true,
+    "data": {
+      "reviews": [],
+      "pagination": {
+        "page": 1,
+        "limit": 10,
+        "total": 0,
+        "totalPages": 0
+      }
+    }
+  }
+  ```
+
+- **Notes:**
+  - If `productId` is provided, only reviews of that product are returned
+  - Sorted by `reviewDate` (newest first)
+
+- **Errors:** 500
+
+---
+
+### Get Review By ID
+
+- **Method:** GET
+- **URL:** `/reviews/:id`
+- **Auth:** Not required
+- **Response:** 200
+
+  ```json
+  {
+    "success": true,
+    "data": {
+      "id": "string",
+      "rating": 5,
+      "comment": "string",
+      "images": [],
+      "reviewDate": "timestamp",
+      "customer": {},
+      "orderItem": {}
+    }
+  }
+  ```
+
+- **Errors:** 404, 500
+
+---
+
+### Get Reviews By Product
+
+- **Method:** GET
+- **URL:** `/reviews/product/:productId`
+- **Auth:** Not required
+- **Query Params:**
+  - `page` (number, default: 1)
+  - `limit` (number, default: 10)
+  - `rating` (number, 1–5, optional)
+
+- **Response:** 200
+
+  ```json
+  {
+    "success": true,
+    "data": {
+      "reviews": [],
+      "pagination": {
+        "page": 1,
+        "limit": 10,
+        "total": 0,
+        "totalPages": 0
+      },
+      "averageRating": 0,
+      "ratingDistribution": {
+        "1": 0,
+        "2": 0,
+        "3": 0,
+        "4": 0,
+        "5": 0
+      }
+    }
+  }
+  ```
+
+- **Notes:**
+  - Reviews are aggregated from all variants of the product
+
+- **Errors:** 500
+
+---
+
+### Get Reviews By Variant
+
+- **Method:** GET
+- **URL:** `/reviews/variant/:variantId`
+- **Auth:** Not required
+- **Query Params:**
+  - `page` (number, default: 1)
+  - `limit` (number, default: 10)
+  - `rating` (number, 1–5, optional)
+
+- **Response:** 200
+
+  ```json
+  {
+    "success": true,
+    "data": {
+      "reviews": [],
+      "pagination": {
+        "page": 1,
+        "limit": 10,
+        "total": 0,
+        "totalPages": 0
+      },
+      "averageRating": 0,
+      "ratingDistribution": {
+        "1": 0,
+        "2": 0,
+        "3": 0,
+        "4": 0,
+        "5": 0
+      },
+      "variant": {
+        "id": "string",
+        "productId": "string"
+      }
+    }
+  }
+  ```
+
+- **Errors:** 404, 500
+
+---
+
+### Create Review
+
+- **Method:** POST
+- **URL:** `/reviews`
+- **Auth:** Required (Customer)
+- **Body:** `multipart/form-data`
+
+  ```json
+  {
+    "orderItemId": "string",
+    "rating": 5,
+    "comment": "string",
+    "images": []
+  }
+  ```
+
+- **Response:** 201
+
+  ```json
+  {
+    "success": true,
+    "data": {}
+  }
+  ```
+
+- **Notes:**
+  - Customer can only review their own order items
+  - Order must be in `DELIVERED` status
+  - Each order item can only be reviewed once
+  - Maximum 5 images per review
+
+- **Errors:** 400, 401, 403, 404, 500
+
+---
+
+### Update Review
+
+- **Method:** PUT
+- **URL:** `/reviews/:id`
+- **Auth:** Required (Customer)
+- **Body:** `multipart/form-data`
+
+  ```json
+  {
+    "rating": 4,
+    "comment": "string",
+    "images": []
+  }
+  ```
+
+- **Response:** 200
+
+  ```json
+  {
+    "success": true,
+    "data": {}
+  }
+  ```
+
+- **Notes:**
+  - Customer can only update their own review
+  - Uploaded images will replace existing images
+
+- **Errors:** 400, 401, 403, 404, 500
+
+---
+
+### Delete Review (Admin)
+
+- **Method:** DELETE
+- **URL:** `/reviews/admin/:id`
+- **Auth:** Required (Admin)
+- **Response:** 200
+
+  ```json
+  {
+    "success": true,
+    "message": "Review deleted successfully"
+  }
+  ```
+
+- **Errors:** 401, 403, 404, 500
+
+---
+
 ## Notes for Frontend Implementation
 
 - Always use `Authorization: Bearer <token>` header for authenticated requests
