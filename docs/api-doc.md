@@ -708,6 +708,98 @@ fetch("http://localhost:5000/api/users/me", {
 
 ---
 
+## Orders
+
+### Create Order (Customer Only)
+
+- **Method:** POST
+- **URL:** `/orders`
+- **Auth:** Required (Customer)
+- **Body:** JSON
+  ```json
+  {
+    "addressId": "string",
+    "paymentMethod": "COD | VNPAY (default: COD)"
+  }
+  ```
+- **Response (201):** Order object with items, payment, address details
+- **Note:**
+  - Creates order from current cart items
+  - Auto-deducts stock from variants
+  - Clears cart after successful order
+  - Validates stock availability and product status
+  - Transaction with rollback on failure
+- **Errors:** 400 (empty cart, insufficient stock, invalid payment method, deleted product), 401, 403, 404 (address/cart not found), 500
+
+### Get My Orders (Customer Only)
+
+- **Method:** GET
+- **URL:** `/orders/me`
+- **Auth:** Required (Customer)
+- **Query Params:** `page` (int, default 1), `limit` (int, default 10), `status` (PENDING/CONFIRMED/SHIPPED/DELIVERED/CANCELLED)
+- **Response (200):** `{ orders: [...], pagination: {...} }`
+- **Errors:** 401, 403, 404, 500
+
+### Get All Orders (Admin/Seller Only)
+
+- **Method:** GET
+- **URL:** `/orders`
+- **Auth:** Required (Admin/Seller)
+- **Query Params:** `page` (int, default 1), `limit` (int, default 10), `status` (order status), `search` (customer username/email)
+- **Response (200):** `{ orders: [...], pagination: {...} }`
+- **Note:** Seller only sees orders containing their products
+- **Errors:** 401, 403, 500
+
+### Get Order by ID
+
+- **Method:** GET
+- **URL:** `/orders/:id`
+- **Auth:** Required
+- **Response (200):** Order object with full details
+- **Note:**
+  - Customer: only their own orders
+  - Seller: only orders with their products
+  - Admin: all orders
+- **Errors:** 401, 403 (not your order), 404, 500
+
+### Update Order Status (Admin/Seller Only)
+
+- **Method:** PATCH
+- **URL:** `/orders/:id/status`
+- **Auth:** Required (Admin/Seller)
+- **Body:** JSON
+  ```json
+  {
+    "status": "PENDING | CONFIRMED | SHIPPED | DELIVERED | CANCELLED"
+  }
+  ```
+- **Response (200):** Success message
+- **Note:**
+  - Valid transitions:
+    - PENDING → CONFIRMED, SHIPPED, CANCELLED
+    - CONFIRMED → SHIPPED, CANCELLED
+    - SHIPPED → DELIVERED, CANCELLED
+    - DELIVERED/CANCELLED → (no transitions)
+  - Auto-updates payment status (DELIVERED→COMPLETED, CANCELLED→FAILED)
+  - Auto-restores stock when CANCELLED
+  - Seller can only update orders with their products
+- **Errors:** 400 (invalid transition), 401, 403, 404, 409 (concurrent update), 500
+
+### Delete Order
+
+- **Method:** DELETE
+- **URL:** `/orders/:id`
+- **Auth:** Required
+- **Response (200):** Success message
+- **Note:**
+  - Only PENDING orders can be deleted
+  - Customer: can delete own orders
+  - Seller: cannot delete orders (use status update instead)
+  - Auto-restores stock when deleted
+- **Errors:** 400 (not PENDING status), 401, 403 (seller cannot delete, not your order), 404, 500
+
+---
+
 ## Notes for Frontend Implementation
 
 - Always use `Authorization: Bearer <token>` header for authenticated requests
