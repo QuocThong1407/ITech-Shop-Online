@@ -530,6 +530,21 @@ fetch("http://localhost:5000/api/users/me", {
 
 ## Coupons
 
+### Get All Coupons
+
+- **Method:** GET
+- **URL:** `/coupons`
+- **Query Params:** `page` (int, default 1), `limit` (int, default 10), `promotionId` (string), `search` (string, search by code)
+- **Response (200):** `{ coupons: [...], pagination: {...} }`
+- **Errors:** 500
+
+### Get Coupon by ID
+
+- **Method:** GET
+- **URL:** `/coupons/:id`
+- **Response (200):** Coupon object with promotion details
+- **Errors:** 404, 500
+
 ### Create Coupon (Admin Only)
 
 - **Method:** POST
@@ -539,13 +554,14 @@ fetch("http://localhost:5000/api/users/me", {
   ```json
   {
     "promotionId": "string",
-    "code": "string",
+    "code": "string (auto-uppercase)",
     "discountPercentage": "number (0-100)",
     "maxUsage": "integer (>= 1)"
   }
   ```
 - **Response (201):** Coupon object
-- **Errors:** 400, 401, 403, 500
+- **Note:** Promotion must be ACTIVE, code must be unique
+- **Errors:** 400 (promotion not active, code exists, validation), 401, 403, 404 (promotion not found), 500
 
 ### Validate Coupon
 
@@ -559,16 +575,29 @@ fetch("http://localhost:5000/api/users/me", {
     "orderAmount": "number (> 0)"
   }
   ```
-- **Response (200):** `{ valid: true/false, discount: number, finalAmount: number }`
-- **Errors:** 400, 401, 500
+- **Response (200):**
+  ```json
+  {
+    "valid": true,
+    "coupon": { "id", "code", "discountPercentage", "promotionName" },
+    "calculation": { "originalAmount", "discountPercentage", "discountAmount", "finalAmount" },
+    "remainingUsage": "number"
+  }
+  ```
+- **Note:**
+  - Validates promotion status (must be ACTIVE)
+  - Validates promotion dates (must be within range)
+  - Validates usage limit (must not exceed maxUsage)
+  - Returns discount calculation
+- **Errors:** 400 (promotion inactive/expired/not started, usage limit reached), 401, 404 (coupon not found), 500
 
 ### Get Coupons by Promotion (Admin Only)
 
 - **Method:** GET
 - **URL:** `/coupons/promotion/:id`
 - **Auth:** Required (Admin)
-- **Response (200):** Array of coupon objects
-- **Errors:** 401, 403, 404, 500
+- **Response (200):** `{ promotion: {...}, coupons: [...], totalCoupons: number }`
+- **Errors:** 401, 403, 404 (promotion not found), 500
 
 ### Update Coupon (Admin Only)
 
@@ -578,13 +607,23 @@ fetch("http://localhost:5000/api/users/me", {
 - **Body:** JSON (optional fields)
   ```json
   {
-    "code": "string",
+    "code": "string (auto-uppercase)",
     "discountPercentage": "number (0-100)",
-    "maxUsage": "integer (>= 1)"
+    "maxUsage": "integer (>= 1)",
+    "usageCount": "integer"
   }
   ```
 - **Response (200):** Updated coupon object
-- **Errors:** 400, 401, 403, 404, 500
+- **Note:** Code must be unique if changed
+- **Errors:** 400 (code exists, validation), 401, 403, 404 (coupon not found), 500
+
+### Delete Coupon (Admin Only)
+
+- **Method:** DELETE
+- **URL:** `/coupons/:id`
+- **Auth:** Required (Admin)
+- **Response (200):** Success message
+- **Errors:** 401, 403, 404 (coupon not found), 500
 
 ---
 
