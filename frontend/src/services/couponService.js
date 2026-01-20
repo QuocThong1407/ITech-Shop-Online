@@ -1,4 +1,35 @@
-import { get, post, put } from "../utils/request.js";
+import {del, get, post, put} from "../utils/request.js";
+
+/**
+ * Get all coupons (Admin only)
+ * @param {Object} params - Query parameters
+ * @param {number} [params.page=1] - Page number
+ * @param {number} [params.limit=10] - Items per page
+ * @param {string} [params.promotionId] - ID of promotion
+ * @param {string} [params.search] - Search string
+ * @returns {Promise} { coupons: [...], pagination: {...} }
+ */
+const getAllCoupons = (params = {}) => {
+    const { page = 1, limit = 10, promotionId, search } = params;
+    const searchParams = new URLSearchParams();
+
+    searchParams.append('page', page);
+    searchParams.append('limit', limit);
+    if (promotionId) searchParams.append('promotionId', promotionId);
+    if (search) searchParams.append('search', search);
+
+    const queryString = searchParams.toString();
+    return get(`/coupons?${queryString}`);
+}
+
+/**
+ * Get a specific coupon by ID
+ * @param {string} couponId - Coupon ID
+ * @returns {Promise} Coupon object
+ */
+const getCouponById = (couponId) => {
+    return get(`/coupons/${couponId}`);
+}
 
 /**
  * Create a new coupon (Admin only)
@@ -45,11 +76,23 @@ const updateCoupon = (id, data) => {
     return put(`/coupons/${id}`, data);
 };
 
+/**
+ * Delete a coupon (Admin only)
+ * @param {string} id - Coupon ID
+ * @returns {Promise} Success message
+ */
+const deleteCoupon = (id) => {
+    return del(`/coupons/${id}`);
+}
+
 const couponService = {
+    getAllCoupons,
+    getCouponById,
     createCoupon,
     validateCoupon,
     getCouponsByPromotion,
     updateCoupon,
+    deleteCoupon
 };
 
 export default couponService;

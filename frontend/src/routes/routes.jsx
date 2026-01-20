@@ -33,6 +33,7 @@ import Loading from '../pages/customer/Loading/Loading.jsx';
 import ProductDetail from "../components/ProductDetail/ProductDetail.jsx";
 import Products from "../pages/seller/Products/Products.jsx";
 import Promotions from "../pages/admin/Promotions/Promotions.jsx";
+import Coupons from "../pages/admin/Coupons/Coupons.jsx";
 
 export const routes = [
     {
@@ -158,6 +159,10 @@ export const routes = [
             {
                 path: 'promotions',
                 element: <Promotions/>
+            },
+            {
+                path: 'coupons',
+                element: <Coupons/>
             }
         ]
     },
