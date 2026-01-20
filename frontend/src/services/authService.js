@@ -24,8 +24,8 @@ const login = async ({ email, password }) => {
  * @param {string} data.password - Password
  * @returns {Promise} User data + auto-login
  */
-const register = ({ username, email, password }) => {
-    return post('/auth/register', { username, email, password });
+const register = ({ username, email, password, password_confirmation }) => {
+    return post('/auth/register', { username, email, password, password_confirmation });
 };
 
 /**

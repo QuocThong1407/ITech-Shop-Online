@@ -57,7 +57,7 @@ const ProductDetail = () => {
             return foundKey ? attrs[foundKey] : undefined
         }
 
-        const matchedVariant = productData.productVariants?.find((v) =>
+        const matchedVariant = productData.ProductVariant?.find((v) =>
             Object.entries(selectedAttributes).every(
                 ([key, val]) => getAttrValue(v.variantAttributes, key) === val
             )

@@ -33,7 +33,7 @@ const register = async ({ username, email, password, password_confirmation }) =>
   const { data, error } = await supabaseAdmin.auth.admin.createUser({
     email,
     password,
-    email_confirm: true, // tự động xác nhận email
+    email_confirm: false, // tự động xác nhận email
     user_metadata: { display_name: username },
   });
 
