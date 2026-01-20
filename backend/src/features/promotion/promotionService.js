@@ -41,7 +41,7 @@ const getAllPromotions = async ({ page = 1, limit = 10, status, search }) => {
         )
       )
     `,
-    { count: "exact" }
+    { count: "exact" },
   );
 
   if (status) {
@@ -105,7 +105,7 @@ const getPromotionById = async (promotionId) => {
         id,
         clearanceLevel
       )
-    `
+    `,
     )
     .eq("id", promotionId)
     .single();
@@ -123,7 +123,7 @@ const getPromotionById = async (promotionId) => {
         price,
         images
       )
-    `
+    `,
     )
     .eq("B", promotionId);
 
@@ -136,7 +136,7 @@ const getPromotionById = async (promotionId) => {
         name,
         description
       )
-    `
+    `,
     )
     .eq("B", promotionId);
 
@@ -163,7 +163,7 @@ const createPromotion = async ({
     imageUrl = await uploadImageToSupabase(
       file,
       "promotions",
-      `${promotionId}/`
+      `${promotionId}/`,
     );
   }
 
@@ -219,7 +219,7 @@ const updatePromotion = async (promotionId, updates, file) => {
     updates.image = await uploadImageToSupabase(
       file,
       "promotions",
-      `${promotionId}/`
+      `${promotionId}/`,
     );
   }
   if (updates.startDate || updates.endDate) {
