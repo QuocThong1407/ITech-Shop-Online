@@ -10,22 +10,19 @@ http://localhost:5000/api
 
 ## Authentication
 
-The API uses **JWT (JSON Web Token)**.
-
-1. Obtain a token via `/auth/login` or `/auth/register`.
-2. Include the token in the `Authorization` header for protected endpoints.
-
-**Example Request:**
+The API uses JWT token-based authentication. After login, include the access token in the `Authorization` header:
 
 ```javascript
 fetch("http://localhost:5000/api/users/me", {
-  method: "GET",
   headers: {
-    "Content-Type": "application/json",
-    Authorization: "Bearer <YOUR_ACCESS_TOKEN>",
+    Authorization: "Bearer YOUR_ACCESS_TOKEN",
   },
 });
 ```
+
+---
+
+## Authentication
 
 ### Register User
 
@@ -35,12 +32,17 @@ fetch("http://localhost:5000/api/users/me", {
   ```json
   {
     "username": "string",
-    "email": "string",
-    "password": "string"
+    "email": "string (valid email format)",
+    "password": "string (min 8 characters)",
+    "password_confirmation": "string (must match password)"
   }
   ```
-- **Response (200):** User data + auto-login
-- **Errors:** 400 (validation, username/email exists), 500
+- **Response (201):** `{ message: "Please verify your email to complete registration" }`
+- **Note:**
+  - Sends verification email to user
+  - User must verify email before login
+  - Profile auto-created on first login after verification
+- **Errors:** 400 (validation, passwords don't match, email already registered), 500
 
 ### Login User
 
@@ -53,8 +55,24 @@ fetch("http://localhost:5000/api/users/me", {
     "password": "string"
   }
   ```
-- **Response (200):** User data + access token
-- **Errors:** 401 (invalid credentials), 404, 500
+- **Response (200):** `{ accessToken: "string", user: { id, username, email, role } }`
+- **Note:**
+  - Email must be verified
+  - Auto-creates profile (User, Customer, Cart, Membership) if not exists
+  - Returns JWT access token for subsequent requests
+- **Errors:** 401 (invalid credentials), 403 (email not verified), 500
+
+### Complete Profile
+
+- **Method:** POST
+- **URL:** `/auth/complete-profile`
+- **Auth:** Required
+- **Response (201):** Success message
+- **Note:**
+  - Manual endpoint to trigger profile creation
+  - Auto-creates User, Customer, Cart, and Membership records
+  - Usually called automatically during login
+- **Errors:** 401, 500
 
 ### Logout User
 
@@ -62,7 +80,7 @@ fetch("http://localhost:5000/api/users/me", {
 - **URL:** `/auth/logout`
 - **Auth:** Required
 - **Response (200):** Success message
-- **Errors:** 401, 500
+- **Errors:** 401 (no token), 500
 
 ### Forgot Password
 
@@ -74,8 +92,9 @@ fetch("http://localhost:5000/api/users/me", {
     "email": "string"
   }
   ```
-- **Response (200):** Email sent confirmation
-- **Errors:** 400, 404, 500
+- **Response (200):** `{ message: "If the email exists, a reset link has been sent" }`
+- **Note:** Always returns success for security (prevents email enumeration)
+- **Errors:** 400, 500
 
 ### Reset Password
 
@@ -84,12 +103,12 @@ fetch("http://localhost:5000/api/users/me", {
 - **Body:** JSON
   ```json
   {
-    "token": "string",
-    "newPassword": "string"
+    "token": "string (from email link)",
+    "newPassword": "string (min 8 characters)"
   }
   ```
 - **Response (200):** Success message
-- **Errors:** 400 (invalid token), 500
+- **Errors:** 400 (invalid/expired token, validation), 500
 
 ---
 

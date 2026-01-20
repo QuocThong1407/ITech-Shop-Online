@@ -20,13 +20,37 @@ const register = async (req, res) => {
       return errorResponse(res, 400, "Password must be at least 8 characters");
     }
 
-    const result = await authService.register({ username, email, password, password_confirmation });
-    successResponse(res, 201, result, "Registration successful");
+    const result = await authService.register({
+      username,
+      email,
+      password,
+      password_confirmation,
+    });
+    successResponse(
+      res,
+      201,
+      result,
+      "Registration successful. Please verify your email.",
+    );
   } catch (err) {
     errorResponse(res, err.status || 500, err.message || "Registration failed");
   }
 };
+const completeProfile = async (req, res) => {
+  try {
+    const authUser = req.user;
 
+    const result = await authService.completeProfile(authUser);
+
+    successResponse(res, 201, result, "Profile created successfully");
+  } catch (err) {
+    errorResponse(
+      res,
+      err.status || 500,
+      err.message || "Failed to complete profile",
+    );
+  }
+};
 const login = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -69,7 +93,7 @@ const forgotPassword = async (req, res) => {
       res,
       200,
       null,
-      "If the email exists, a reset link has been sent"
+      "If the email exists, a reset link has been sent",
     );
   } catch {
     errorResponse(res, 500, "Failed to process password reset");
@@ -85,7 +109,7 @@ const resetPassword = async (req, res) => {
     errorResponse(
       res,
       err.status || 500,
-      err.message || "Failed to reset password"
+      err.message || "Failed to reset password",
     );
   }
 };
@@ -96,4 +120,5 @@ module.exports = {
   logout,
   forgotPassword,
   resetPassword,
+  completeProfile,
 };
