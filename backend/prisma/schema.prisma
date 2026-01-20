@@ -194,6 +194,7 @@ model Promotion {
   id                String           @id @default(cuid())
   name              String
   description       String?
+  image             String?
   startDate         DateTime
   endDate           DateTime
   createdBy         String

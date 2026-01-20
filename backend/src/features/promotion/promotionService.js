@@ -26,6 +26,7 @@ const getAllPromotions = async ({ page = 1, limit = 10, status, search }) => {
       id,
       name,
       description,
+      image,
       startDate,
       endDate,
       status,
