@@ -18,9 +18,9 @@ const ActionButtons = ({ selectedProductVariant, amount, productData, isAuthenti
     const navigate = useNavigate()
 
     // Debug logging
-    console.log("ActionButtons props:", { selectedProductVariant, amount, productData })
-    console.log("selectedProductVariant:", selectedProductVariant)
-    console.log("selectedProductVariant quantity:", selectedProductVariant?.quantity)
+    // console.log("ActionButtons props:", { selectedProductVariant, amount, productData })
+    // console.log("selectedProductVariant:", selectedProductVariant)
+    // console.log("selectedProductVariant quantity:", selectedProductVariant?.quantity)
 
     // Check if product has variants
     const hasVariants = productData?.variantTypes?.length > 0
@@ -31,15 +31,15 @@ const ActionButtons = ({ selectedProductVariant, amount, productData, isAuthenti
     // effectiveVariant is the selected variant, or default variant for no-variant products
     const effectiveVariant = selectedProductVariant || defaultVariant
 
-    console.log("hasVariants:", hasVariants)
-    console.log("defaultVariant:", defaultVariant)
-    console.log("effectiveVariant:", effectiveVariant)
+    // console.log("hasVariants:", hasVariants)
+    // console.log("defaultVariant:", defaultVariant)
+    // console.log("effectiveVariant:", effectiveVariant)
 
     const isVariantRequired = hasVariants && !selectedProductVariant
     const isOutOfStock = effectiveVariant && effectiveVariant.quantity <= 0
 
-    console.log("isVariantRequired:", isVariantRequired)
-    console.log("isOutOfStock:", isOutOfStock)
+    // console.log("isVariantRequired:", isVariantRequired)
+    // console.log("isOutOfStock:", isOutOfStock)
 
     const handleAddToCart = async () => {
         // Validation checks
@@ -84,11 +84,11 @@ const ActionButtons = ({ selectedProductVariant, amount, productData, isAuthenti
             setLoading(true)
 
             // Get or create cart for the user
-            console.log("User from Redux:", user)
-            console.log("User ID for cart creation:", user.id)
-            console.log("Customer data:", user.customer)
+            // console.log("User from Redux:", user)
+            // console.log("User ID for cart creation:", user.id)
+            // console.log("Customer data:", user.customer)
 
-            if (!user.customer) {
+            if (!user.user) {
                 throw new Error("Customer information not found")
             }
 
@@ -98,7 +98,7 @@ const ActionButtons = ({ selectedProductVariant, amount, productData, isAuthenti
             if (!variantId) {
                 throw new Error("Product variant not found. Please refresh the page and try again.")
             }
-            console.log("Adding to cart - variantId:", variantId, "quantity:", amount)
+            // console.log("Adding to cart - variantId:", variantId, "quantity:", amount)
             
             await cartService.addToCart({
                 productVariantId: variantId,

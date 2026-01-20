@@ -75,7 +75,7 @@ const ProductInfo = ({
     // Determine stock quantity - use variant quantity if variant exists, otherwise calculate from all variants
     const stockQuantity = selectedProductVariant
         ? selectedProductVariant.quantity
-        : productData.productVariants?.reduce((sum, v) => sum + (v.quantity || 0), 0) || 0
+        : productData.ProductVariant?.reduce((sum, v) => sum + (v.quantity || 0), 0) || 0
 
     const handleLoginRedirect = () => {
         navigate('/login')
@@ -112,7 +112,7 @@ const ProductInfo = ({
                 <VariantSelector
                     variantTypes={productData.variantTypes}
                     variantOptions={productData.variantOptions}
-                    productVariants={productData.productVariants}
+                    productVariants={productData.ProductVariant}
                     selectedAttributes={selectedAttributes}
                     setSelectedAttributes={setSelectedAttributes}
                 />
@@ -150,7 +150,7 @@ const ProductInfo = ({
                 </div>
             ) : (
                 <>
-                    <QuantitySelector amount={amount} setAmount={setAmount} />
+                    <QuantitySelector amount={amount} setAmount={setAmount} stockQuantity={stockQuantity} />
                     <ActionButtons
                         selectedProductVariant={selectedProductVariant}
                         amount={amount}

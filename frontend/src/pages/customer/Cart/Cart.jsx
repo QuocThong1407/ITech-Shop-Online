@@ -24,6 +24,7 @@ import cartService from '../../../services/cartService';
 import addressService from '../../../services/addressService';
 import couponService from '../../../services/couponService';
 import membershipService from '../../../services/membershipService';
+import { formatVND } from '../../../utils/converter';
 
 const { Title, Text } = Typography;
 
@@ -450,7 +451,7 @@ const Cart = () => {
                                         </Text>
                                         <br />
                                         <Text strong style={{ fontSize: '16px', color: '#ff4d4f' }}>
-                                            ${finalPrice.toFixed(2)}
+                                            {formatVND(finalPrice)}
                                         </Text>
                                     </div>
 
@@ -465,7 +466,7 @@ const Cart = () => {
                                         />
 
                                         <Text strong style={{ minWidth: '80px', textAlign: 'right' }}>
-                                            ${(finalPrice * item.quantity).toFixed(2)}
+                                            {formatVND(finalPrice * item.quantity)}
                                         </Text>
 
                                         <Popconfirm
@@ -579,7 +580,7 @@ const Cart = () => {
                     <Space direction="vertical" align="end">
                         <div>
                             <Text style={{ fontSize: '14px' }}>Subtotal ({selectedItems.length} items): </Text>
-                            <Text style={{ fontSize: '14px' }}>${calculateTotal().toFixed(2)}</Text>
+                            <Text style={{ fontSize: '14px' }}>{formatVND(calculateTotal())}</Text>
                         </div>
                         {appliedCoupon && (
                             <div>
@@ -587,7 +588,7 @@ const Cart = () => {
                                     Coupon Discount ({appliedCoupon.discountPercentage}%):
                                 </Text>
                                 <Text style={{ fontSize: '14px', color: '#52c41a' }}>
-                                    -${calculateDiscount().toFixed(2)}
+                                    -{formatVND(calculateDiscount())}
                                 </Text>
                             </div>
                         )}
@@ -597,14 +598,14 @@ const Cart = () => {
                                     {membership.membership} Member Discount ({getMembershipDiscountPercent()}%):
                                 </Text>
                                 <Text style={{ fontSize: '14px', color: '#ffc107' }}>
-                                    -${calculateMembershipDiscount().toFixed(2)}
+                                    -{formatVND(calculateMembershipDiscount())}
                                 </Text>
                             </div>
                         )}
                         <div>
                             <Text strong style={{ fontSize: '18px' }}>Total: </Text>
                             <Text strong style={{ fontSize: '24px', color: '#ff4d4f' }}>
-                                ${calculateFinalTotal().toFixed(2)}
+                                {formatVND(calculateFinalTotal())}
                             </Text>
                         </div>
                         <Button
@@ -674,26 +675,26 @@ const Cart = () => {
                     <Space direction="vertical" align="end" size="small">
                         <div>
                             <Text style={{ fontSize: '14px' }}>Subtotal: </Text>
-                            <Text style={{ fontSize: '14px' }}>${calculateTotal().toFixed(2)}</Text>
+                            <Text style={{ fontSize: '14px' }}>{formatVND(calculateTotal())}</Text>
                         </div>
                         {appliedCoupon && (
                             <div>
                                 <Text style={{ fontSize: '14px', color: '#52c41a' }}>
-                                    Coupon ({appliedCoupon.discountPercentage}%): -${calculateDiscount().toFixed(2)}
+                                    Coupon ({appliedCoupon.discountPercentage}%): -{formatVND(calculateDiscount())}
                                 </Text>
                             </div>
                         )}
                         {membership && getMembershipDiscountPercent() > 0 && (
                             <div>
                                 <Text style={{ fontSize: '14px', color: '#ffc107' }}>
-                                    {membership.membership} ({getMembershipDiscountPercent()}%): -${calculateMembershipDiscount().toFixed(2)}
+                                    {membership.membership} ({getMembershipDiscountPercent()}%): -{formatVND(calculateMembershipDiscount())}
                                 </Text>
                             </div>
                         )}
                         <div>
                             <Text strong style={{ fontSize: '18px' }}>Total Amount: </Text>
                             <Text strong style={{ fontSize: '24px', color: '#ff4d4f' }}>
-                                ${calculateFinalTotal().toFixed(2)}
+                                {formatVND(calculateFinalTotal())}
                             </Text>
                         </div>
                     </Space>

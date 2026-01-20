@@ -2,7 +2,7 @@ import React from "react"
 import { Button } from "antd"
 import './QuantitySelector.css'
 
-const QuantitySelector = ({ amount, setAmount }) => {
+const QuantitySelector = ({ amount, setAmount, stockQuantity }) => {
     return (
         <div className="info__quantity">
             <Button
@@ -11,7 +11,7 @@ const QuantitySelector = ({ amount, setAmount }) => {
                 disabled={amount === 1}
             >-</Button>
             <div className="quantity__value">{amount}</div>
-            <Button shape="circle" onClick={() => setAmount(prev => prev + 1)}>+</Button>
+            <Button shape="circle" onClick={() => setAmount(prev => prev + 1)} disabled={amount === stockQuantity}>+</Button>
         </div>
     )
 }

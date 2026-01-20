@@ -13,12 +13,14 @@ const Register = () => {
     const navigate = useNavigate();
 
     const onFinish = async (values) => {
+        console.log(values);
         setLoading(true);
         try {
             const response = await authServices.register({
                 username: values.username,
                 email: values.email,
-                password: values.password
+                password: values.password,
+                password_confirmation: values.password_confirmation
             })
 
             if (response.success) {
