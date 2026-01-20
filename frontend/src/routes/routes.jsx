@@ -34,7 +34,8 @@ import ProductDetail from "../components/ProductDetail/ProductDetail.jsx";
 import Products from "../pages/seller/Products/Products.jsx";
 import Promotions from "../pages/admin/Promotions/Promotions.jsx";
 import Coupons from "../pages/admin/Coupons/Coupons.jsx";
-import Returns from "../pages/admin/Returns/Returns.jsx";
+import Returns from "../pages/seller/Returns/Returns.jsx";
+import Cancellations from "../pages/seller/Cancellations/Cancellations.jsx";
 
 export const routes = [
     {
@@ -194,6 +195,10 @@ export const routes = [
             {
                 path: 'returns',
                 element: <Returns/>
+            },
+            {
+                path: 'cancellations',
+                element: <Cancellations/>
             }
         ]
     }
