@@ -3,56 +3,68 @@ const { v4: uuidv4 } = require("uuid");
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
-  process.env.SUPABASE_ANON_KEY
+  process.env.SUPABASE_ANON_KEY,
 );
 
 const supabaseAdmin = createClient(
   process.env.SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY
+  process.env.SUPABASE_SERVICE_ROLE_KEY,
 );
 
-const register = async ({ username, email, password, password_confirmation }) => {
+const register = async ({
+  username,
+  email,
+  password,
+  password_confirmation,
+}) => {
   if (password !== password_confirmation) {
-    throw {
-      status: 400,
-      message: "Passwords do not match",
-    }
+    throw { status: 400, message: "Passwords do not match" };
   }
 
-  const now = new Date().toISOString();
-
-  const { data: existing } = await supabaseAdmin
-    .from("User")
-    .select("id")
-    .or(`email.eq.${email},username.eq.${username}`);
-
-  if (existing?.length) {
-    throw { status: 400, message: "Email or username already exists" };
-  }
-
-  const { data, error } = await supabaseAdmin.auth.admin.createUser({
+  const { data, error } = await supabase.auth.signUp({
     email,
     password,
-    email_confirm: false, // tự động xác nhận email
-    user_metadata: { display_name: username },
+    options: {
+      emailRedirectTo: `${process.env.FRONTEND_URL}/auth/verify`,
+      data: { username },
+    },
   });
 
-  if (error) {
-    throw { status: 400, message: error.message };
+  if (error || !data?.user) {
+    throw {
+      status: 400,
+      message: "Email already registered or invalid",
+    };
   }
 
-  const authUser = data.user;
+  return {
+    message: "Please verify your email to complete registration",
+  };
+};
+
+const completeProfile = async (authUser) => {
+  const now = new Date().toISOString();
+
+  const { data: existing, error } = await supabaseAdmin
+    .from("User")
+    .select("id")
+    .eq("id", authUser.id)
+    .maybeSingle();
+
+  if (existing) return existing;
+
+  const username = authUser.user_metadata?.username;
 
   const { error: userError } = await supabaseAdmin.from("User").insert({
     id: authUser.id,
     username,
-    email,
+    email: authUser.email,
     role: "CUSTOMER",
     createdAt: now,
     updatedAt: now,
   });
 
-  if (userError) throw { status: 500, message: userError.message };
+  if (userError) throw userError;
 
   const customerId = uuidv4();
 
@@ -79,11 +91,7 @@ const register = async ({ username, email, password, password_confirmation }) =>
     updatedAt: now,
   });
 
-  return {
-    userId: authUser.id,
-    email: authUser.email,
-    role: "CUSTOMER",
-  };
+  return { success: true };
 };
 
 const login = async ({ email, password }) => {
@@ -99,16 +107,29 @@ const login = async ({ email, password }) => {
   const authUser = data.user;
   const session = data.session;
 
-  const { data: user } = await supabase
+  if (!authUser.email_confirmed_at) {
+    throw {
+      status: 403,
+      message: "Please verify your email before logging in",
+    };
+  }
+  let { data: user } = await supabase
     .from("User")
     .select("*")
     .eq("id", authUser.id)
-    .single();
+    .maybeSingle();
 
   if (!user) {
-    throw { status: 404, message: "User profile not found" };
-  }
+    await completeProfile(authUser);
 
+    const res = await supabase
+      .from("User")
+      .select("*")
+      .eq("id", authUser.id)
+      .single();
+
+    user = res.data;
+  }
   return {
     accessToken: session.access_token,
     user: {
@@ -154,4 +175,5 @@ module.exports = {
   logout,
   forgotPassword,
   resetPassword,
+  completeProfile,
 };

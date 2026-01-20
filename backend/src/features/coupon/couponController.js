@@ -13,7 +13,7 @@ const createCoupon = async (req, res) => {
       return errorResponse(
         res,
         400,
-        "Promotion ID, code, discount percentage and max usage are required"
+        "Promotion ID, code, discount percentage and max usage are required",
       );
     }
 
@@ -21,7 +21,7 @@ const createCoupon = async (req, res) => {
       return errorResponse(
         res,
         400,
-        "Discount percentage must be between 0 and 100"
+        "Discount percentage must be between 0 and 100",
       );
     }
 
@@ -73,7 +73,7 @@ const updateCoupon = async (req, res) => {
         return errorResponse(
           res,
           400,
-          "Discount percentage must be between 0 and 100"
+          "Discount percentage must be between 0 and 100",
         );
       }
     }
@@ -100,14 +100,52 @@ const getCouponsByPromotion = async (req, res) => {
     errorResponse(
       res,
       404,
-      error.message || "Failed to get coupons for promotion"
+      error.message || "Failed to get coupons for promotion",
     );
   }
 };
+const getCouponById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const coupon = await couponService.getCouponById(id);
+    successResponse(res, 200, coupon);
+  } catch (error) {
+    console.error("Get coupon error:", error);
+    errorResponse(res, 404, error.message || "Coupon not found");
+  }
+};
 
+const deleteCoupon = async (req, res) => {
+  try {
+    const { id } = req.params;
+    await couponService.deleteCoupon(id);
+    successResponse(res, 200, null, "Coupon deleted successfully");
+  } catch (error) {
+    console.error("Delete coupon error:", error);
+    errorResponse(res, 400, error.message || "Failed to delete coupon");
+  }
+};
+const getAllCoupons = async (req, res) => {
+  try {
+    const { page, limit, promotionId, search } = req.query;
+    const result = await couponService.getAllCoupons({
+      page,
+      limit,
+      promotionId,
+      search,
+    });
+    successResponse(res, 200, result);
+  } catch (error) {
+    console.error("Get all coupons error:", error);
+    errorResponse(res, 500, error.message || "Failed to get coupons");
+  }
+};
 module.exports = {
   createCoupon,
   validateCoupon,
   updateCoupon,
   getCouponsByPromotion,
+  getCouponById,
+  deleteCoupon,
+  getAllCoupons,
 };

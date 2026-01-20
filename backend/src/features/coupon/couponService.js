@@ -18,10 +18,6 @@ const createCoupon = async ({
     throw { status: 404, message: "Promotion not found" };
   }
 
-  if (promotion.status !== "ACTIVE") {
-    throw { status: 400, message: "Promotion is not active" };
-  }
-
   const { data: existingCoupon } = await supabase
     .from("Coupon")
     .select("id")
@@ -68,7 +64,7 @@ const validateCoupon = async (code, orderAmount) => {
         startDate,
         endDate
       )
-    `
+    `,
     )
     .eq("code", code.toUpperCase())
     .single();
@@ -127,7 +123,7 @@ const validateCoupon = async (code, orderAmount) => {
 
 const updateCoupon = async (
   couponId,
-  { code, discountPercentage, maxUsage, usageCount }
+  { code, discountPercentage, maxUsage, usageCount },
 ) => {
   const { data: existing } = await supabase
     .from("Coupon")
@@ -201,7 +197,7 @@ const getCouponsByPromotion = async (promotionId) => {
       maxUsage,
       usageCount,
       promotionId
-    `
+    `,
     )
     .eq("promotionId", promotionId)
     .order("code", { ascending: true });
@@ -217,10 +213,108 @@ const getCouponsByPromotion = async (promotionId) => {
     totalCoupons: coupons ? coupons.length : 0,
   };
 };
+const getCouponById = async (couponId) => {
+  const { data: coupon, error } = await supabase
+    .from("Coupon")
+    .select(
+      `
+      id,
+      code,
+      discountPercentage,
+      maxUsage,
+      usageCount,
+      promotionId,
+      Promotion!Coupon_promotionId_fkey(
+        id,
+        name,
+        description,
+        status,
+        startDate,
+        endDate
+      )
+    `,
+    )
+    .eq("id", couponId)
+    .single();
+
+  if (error || !coupon) {
+    throw { status: 404, message: "Coupon not found" };
+  }
+
+  return coupon;
+};
+
+const deleteCoupon = async (couponId) => {
+  const { data: existing } = await supabase
+    .from("Coupon")
+    .select("id")
+    .eq("id", couponId)
+    .single();
+
+  if (!existing) {
+    throw { status: 404, message: "Coupon not found" };
+  }
+
+  const { error } = await supabase.from("Coupon").delete().eq("id", couponId);
+
+  if (error) throw error;
+
+  return true;
+};
+
+const getAllCoupons = async ({ page = 1, limit = 10, promotionId, search }) => {
+  let query = supabase.from("Coupon").select(
+    `
+      id,
+      code,
+      discountPercentage,
+      maxUsage,
+      usageCount,
+      promotionId,
+      Promotion!Coupon_promotionId_fkey(
+        id,
+        name,
+        status,
+        startDate,
+        endDate
+      )
+    `,
+    { count: "exact" },
+  );
+
+  if (promotionId) {
+    query = query.eq("promotionId", promotionId);
+  }
+
+  if (search) {
+    query = query.ilike("code", `%${search}%`);
+  }
+
+  const from = (page - 1) * limit;
+  const to = from + limit - 1;
+  query = query.range(from, to).order("code", { ascending: true });
+
+  const { data, error, count } = await query;
+
+  if (error) throw error;
+
+  return {
+    coupons: data || [],
+    pagination: {
+      page: parseInt(page),
+      limit: parseInt(limit),
+      total: count,
+      totalPages: Math.ceil(count / limit),
+    },
+  };
+};
 
 module.exports = {
   createCoupon,
   validateCoupon,
   updateCoupon,
   getCouponsByPromotion,
+  getCouponById,
+  deleteCoupon,
+  getAllCoupons,
 };

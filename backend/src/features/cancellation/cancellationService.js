@@ -548,42 +548,13 @@ const getAllCancellations = async (
   }
 
   if (search) {
-    const { data: customers } = await supabase
-      .from("Customer")
-      .select(
-        `
-        id,
-        User!Customer_userId_fkey(
-          username,
-          email
-        )
-      `,
-      )
-      .or(`User.username.ilike.%${search}%,User.email.ilike.%${search}%`);
+    // Tìm users theo username hoặc email
+    const { data: users } = await supabase
+      .from("User")
+      .select("id")
+      .or(`username.ilike.%${search}%,email.ilike.%${search}%`);
 
-    if (customers && customers.length > 0) {
-      const customerIds = customers.map((c) => c.id);
-
-      const { data: orders } = await supabase
-        .from("Order")
-        .select("id")
-        .in("customerId", customerIds);
-
-      if (orders && orders.length > 0) {
-        const orderIds = orders.map((o) => o.id);
-        query = query.in("orderId", orderIds);
-      } else {
-        return {
-          cancellations: [],
-          pagination: {
-            page: parseInt(page),
-            limit: parseInt(limit),
-            total: 0,
-            totalPages: 0,
-          },
-        };
-      }
-    } else {
+    if (!users || users.length === 0) {
       return {
         cancellations: [],
         pagination: {
@@ -594,6 +565,49 @@ const getAllCancellations = async (
         },
       };
     }
+
+    const userIds = users.map((u) => u.id);
+
+    // Tìm customers từ userIds
+    const { data: customers } = await supabase
+      .from("Customer")
+      .select("id")
+      .in("userId", userIds);
+
+    if (!customers || customers.length === 0) {
+      return {
+        cancellations: [],
+        pagination: {
+          page: parseInt(page),
+          limit: parseInt(limit),
+          total: 0,
+          totalPages: 0,
+        },
+      };
+    }
+
+    const customerIds = customers.map((c) => c.id);
+
+    // Tìm orders từ customerIds
+    const { data: orders } = await supabase
+      .from("Order")
+      .select("id")
+      .in("customerId", customerIds);
+
+    if (!orders || orders.length === 0) {
+      return {
+        cancellations: [],
+        pagination: {
+          page: parseInt(page),
+          limit: parseInt(limit),
+          total: 0,
+          totalPages: 0,
+        },
+      };
+    }
+
+    const orderIds = orders.map((o) => o.id);
+    query = query.in("orderId", orderIds);
   }
 
   const from = (page - 1) * limit;
