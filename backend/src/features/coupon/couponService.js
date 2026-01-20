@@ -18,10 +18,6 @@ const createCoupon = async ({
     throw { status: 404, message: "Promotion not found" };
   }
 
-  if (promotion.status !== "ACTIVE") {
-    throw { status: 400, message: "Promotion is not active" };
-  }
-
   const { data: existingCoupon } = await supabase
     .from("Coupon")
     .select("id")
