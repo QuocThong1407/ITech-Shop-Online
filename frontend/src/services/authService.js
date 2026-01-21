@@ -75,6 +75,14 @@ const updateMe = (data) => {
     return patch('/users/me', data);
 };
 
+/**
+ * Complete user profile after OAuth registration
+ * @returns {Promise} Success message
+ */
+const completeProfile = () => {
+    return post('/auth/complete-profile');
+};
+
 const authServices = {
     login,
     register,
@@ -83,6 +91,7 @@ const authServices = {
     forgotPassword,
     resetPassword,
     updateMe,
+    completeProfile,
 };
 
 export default authServices;

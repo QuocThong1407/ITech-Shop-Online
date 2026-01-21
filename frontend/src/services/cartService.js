@@ -46,12 +46,25 @@ const clearCart = () => {
     return del("/cart/clear");
 };
 
+const checkout = (customerId, cartItemIds, addressId, paymentMethod, discountInfo = {}) => {
+    return post(`/carts/${customerId}/checkout`, {
+        cartItemIds,
+        addressId,
+        paymentMethod,
+        couponCode: discountInfo.couponCode,
+        couponDiscount: discountInfo.couponDiscount,
+        membershipDiscount: discountInfo.membershipDiscount,
+        membershipTier: discountInfo.membershipTier,
+    });
+};
+
 const cartService = {
     getMyCart,
     addToCart,
     updateCartItem,
     deleteCartItem,
     clearCart,
+    checkout,
 };
 
 export default cartService;
