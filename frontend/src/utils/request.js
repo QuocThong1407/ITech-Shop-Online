@@ -41,7 +41,7 @@ const request = async (path, options = {}) => {
         const data = await response.json();
         return data;
     } catch (e) {
-        return null;
+        console.error(e.message)
     }
 };
 

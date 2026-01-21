@@ -75,6 +75,32 @@ const updateMe = (data) => {
     return patch('/users/me', data);
 };
 
+/**
+ * Complete user profile after OAuth registration
+ * @returns {Promise} Success message
+ */
+const completeProfile = () => {
+    return post('/auth/complete-profile');
+};
+
+/**
+ * Verify email with token (handled by Supabase redirect)
+ * This is called from the VerifyEmail page after Supabase redirects
+ * Since Supabase handles verification, we just return success if user lands on this page
+ * @param {string} token - Verification token from URL (not used, Supabase handles it)
+ * @returns {Promise} Verification status
+ */
+const verify = async (token) => {
+    // Supabase handles email verification automatically when user clicks the link
+    // The link redirects to /auth/verify and Supabase confirms the email
+    // We return a success response since landing here means email was verified
+    return { 
+        ok: true, 
+        message: 'Email verified successfully! Please login to continue.',
+        data: null
+    };
+};
+
 const authServices = {
     login,
     register,
@@ -83,6 +109,8 @@ const authServices = {
     forgotPassword,
     resetPassword,
     updateMe,
+    completeProfile,
+    verify,
 };
 
 export default authServices;

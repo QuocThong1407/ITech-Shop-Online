@@ -186,6 +186,7 @@ const getReviewsByProduct = async (
       images,
       reviewDate,
       createdAt,
+      orderItemId,
       customer:Customer!Review_customerId_fkey(
         id,
         user:User!Customer_userId_fkey(
@@ -290,6 +291,7 @@ const getReviewsByVariant = async (
       images,
       reviewDate,
       createdAt,
+      orderItemId,
       customer:Customer!Review_customerId_fkey(
         id,
         user:User!Customer_userId_fkey(
@@ -440,7 +442,7 @@ const createReview = async ({
 const updateReview = async (
   reviewId,
   customerId,
-  { rating, comment, files },
+  { rating, comment, files, existingImages },
 ) => {
   const { data: existingReview, error: getError } = await supabase
     .from("Review")
@@ -463,22 +465,33 @@ const updateReview = async (
   if (rating !== undefined) updateData.rating = parseInt(rating);
   if (comment !== undefined) updateData.comment = comment;
 
-  // Xử lý upload images mới
-  if (files && files.length > 0) {
-    // Xóa images cũ
-    if (existingReview.images && existingReview.images.length > 0) {
-      for (const img of existingReview.images) {
-        await deleteImageFromSupabase(img, "reviews").catch(() => {});
+  // Handle image updates
+  const hasNewFiles = files && files.length > 0;
+  const hasExistingImages = existingImages && existingImages.length > 0;
+  
+  // Only process images if there are changes (new files or explicit existing images list)
+  if (hasNewFiles || hasExistingImages) {
+    // Determine which old images to delete (images not in existingImages list)
+    const oldImages = existingReview.images || [];
+    const imagesToKeep = existingImages || [];
+    const imagesToDelete = oldImages.filter(img => !imagesToKeep.includes(img));
+    
+    // Delete removed images from storage
+    for (const img of imagesToDelete) {
+      await deleteImageFromSupabase(img, "reviews").catch(() => {});
+    }
+
+    // Upload new images
+    let newImageUrls = [];
+    if (hasNewFiles) {
+      for (const file of files) {
+        const url = await uploadImageToSupabase(file, "reviews", `${reviewId}/`);
+        newImageUrls.push(url);
       }
     }
 
-    // Upload images mới
-    let newImageUrls = [];
-    for (const file of files) {
-      const url = await uploadImageToSupabase(file, "reviews", `${reviewId}/`);
-      newImageUrls.push(url);
-    }
-    updateData.images = newImageUrls;
+    // Combine existing images to keep with newly uploaded images
+    updateData.images = [...imagesToKeep, ...newImageUrls];
   }
 
   const { data, error } = await supabase

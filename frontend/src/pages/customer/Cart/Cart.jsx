@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -21,6 +21,7 @@ import {
 } from 'antd';
 import { DeleteOutlined, ShoppingCartOutlined, TagOutlined, GiftOutlined } from '@ant-design/icons';
 import cartService from '../../../services/cartService';
+import orderService from '../../../services/orderService';
 import addressService from '../../../services/addressService';
 import couponService from '../../../services/couponService';
 import membershipService from '../../../services/membershipService';
@@ -57,9 +58,6 @@ const Cart = () => {
     };
 
     useEffect(() => {
-        console.log('Cart - User:', user);
-        console.log('Cart - isAuthenticated:', isAuthenticated);
-
         if (!isAuthenticated) {
             message.error('Please login to view your cart');
             navigate('/login');
@@ -91,9 +89,7 @@ const Cart = () => {
     const fetchCart = async () => {
         try {
             setLoading(true);
-            console.log('Fetching cart...');
             const response = await cartService.getMyCart();
-            console.log('Cart response:', response);
 
             // Handle response structure: response.data contains cart with items
             if (response && response.data) {
@@ -123,7 +119,6 @@ const Cart = () => {
                     cartItems: transformedItems
                 };
                 setCart(cartData);
-                console.log('Cart loaded:', cartData);
             } else {
                 console.log('No cart found');
                 setCart(null);
@@ -138,16 +133,13 @@ const Cart = () => {
 
     const fetchAddresses = async () => {
         try {
-            console.log('Fetching addresses...');
             const response = await addressService.getAddresses();
-            console.log('Addresses response:', response);
 
             // Handle response structure
-            const addressData = response?.data?.addresses || response?.addresses || [];
+            const addressData = response?.data || [];
             if (addressData.length > 0) {
                 setAddresses(addressData);
                 setSelectedAddress(addressData[0].id);
-                console.log('Addresses loaded:', addressData);
             } else {
                 setAddresses([]);
                 console.log('No addresses found');
@@ -175,29 +167,106 @@ const Cart = () => {
         }
     };
 
-    const handleUpdateQuantity = async (itemId, quantity) => {
+    // Debounce refs for quantity updates
+    const debounceTimers = useRef({});
+    const pendingUpdates = useRef({});
+
+    const handleUpdateQuantity = useCallback((itemId, quantity) => {
         if (quantity < 1) return;
-        try {
-            console.log('Updating quantity:', { itemId, quantity });
-            await cartService.updateCartItem(itemId, quantity);
-            message.success('Quantity updated');
-            fetchCart();
-        } catch (error) {
-            message.error('Failed to update quantity');
-            console.error('Error updating quantity:', error);
+        
+        // Optimistic update - update UI immediately
+        setCart(prevCart => {
+            if (!prevCart || !prevCart.cartItems) return prevCart;
+            return {
+                ...prevCart,
+                cartItems: prevCart.cartItems.map(item => 
+                    item.id === itemId ? { ...item, quantity } : item
+                )
+            };
+        });
+
+        // Clear existing timer for this item
+        if (debounceTimers.current[itemId]) {
+            clearTimeout(debounceTimers.current[itemId]);
         }
-    };
+
+        // Store the pending quantity
+        pendingUpdates.current[itemId] = quantity;
+
+        // Debounce the API call
+        debounceTimers.current[itemId] = setTimeout(async () => {
+            const finalQuantity = pendingUpdates.current[itemId];
+            delete pendingUpdates.current[itemId];
+            delete debounceTimers.current[itemId];
+
+            try {
+                await cartService.updateCartItem(itemId, finalQuantity);
+                message.success('Quantity updated');
+            } catch (error) {
+                message.error('Failed to update quantity');
+                console.error('Error updating quantity:', error);
+                // Revert on error by fetching cart
+                fetchCart();
+            }
+        }, 500);
+    }, []);
+
+    // Cleanup debounce timers on unmount
+    useEffect(() => {
+        const timers = debounceTimers.current;
+        return () => {
+            Object.values(timers).forEach(timer => clearTimeout(timer));
+        };
+    }, []);
 
     const handleDeleteItem = async (itemId) => {
+        // Optimistic update - remove from UI immediately
+        setCart(prevCart => {
+            if (!prevCart || !prevCart.cartItems) return prevCart;
+            return {
+                ...prevCart,
+                cartItems: prevCart.cartItems.filter(item => item.id !== itemId)
+            };
+        });
+        setSelectedItems(prev => prev.filter(id => id !== itemId));
+
         try {
-            console.log('Deleting cart item:', { itemId });
             await cartService.deleteCartItem(itemId);
             message.success('Item removed from cart');
-            setSelectedItems(selectedItems.filter((id) => id !== itemId));
-            fetchCart();
         } catch (error) {
             message.error('Failed to remove item');
             console.error('Error deleting item:', error);
+            // Revert on error by fetching cart
+            fetchCart();
+        }
+    };
+
+    const handleDeleteSelectedItems = async () => {
+        if (selectedItems.length === 0) {
+            message.warning('Please select items to delete');
+            return;
+        }
+
+        // Optimistic update - remove selected items from UI immediately
+        const itemsToDelete = [...selectedItems];
+        setCart(prevCart => {
+            if (!prevCart || !prevCart.cartItems) return prevCart;
+            return {
+                ...prevCart,
+                cartItems: prevCart.cartItems.filter(item => !itemsToDelete.includes(item.id))
+            };
+        });
+        setSelectedItems([]);
+
+        try {
+            // Delete all selected items
+            await Promise.all(itemsToDelete.map(itemId => cartService.deleteCartItem(itemId)));
+            message.success(`${itemsToDelete.length} item(s) removed from cart`);
+        } catch (error) {
+            message.error('Failed to remove some items');
+            console.error('Error deleting items:', error);
+            // Revert on error by fetching cart
+            fetchCart();
         }
     };
 
@@ -247,8 +316,9 @@ const Cart = () => {
                 .filter((item) => selectedItems.includes(item.id))
                 .map((item) => item.productVariant.id);
 
-            const response = await couponService.getAvailableCoupons(productVariantIds);
-            setAvailableCoupons(response?.data?.coupons || []);
+            const response = await couponService.getAllCoupons();
+            console.log('Available coupons response:', response);
+            setAvailableCoupons(response?.data.coupons || []);
         } catch (error) {
             console.error('Error fetching available coupons:', error);
             setAvailableCoupons([]);
@@ -309,7 +379,7 @@ const Cart = () => {
             message.warning('Please select a delivery address');
             return;
         }
-
+        console.log(selectedAddress)
         try {
             setCheckingOut(true);
 
@@ -322,20 +392,25 @@ const Cart = () => {
             };
 
             console.log('Processing checkout:', {
-                customerId: user.customer.id,
+                customerId: user.user.id,
                 selectedItems,
                 selectedAddress,
                 paymentMethod,
                 discountInfo
             });
 
-            const response = await cartService.checkout(
-                user.customer.id,
-                selectedItems,
-                selectedAddress,
-                paymentMethod,
-                discountInfo
-            );
+            const response = await orderService.createOrder({
+                // user.user.id,
+                // selectedItems,
+                // selectedAddress,
+                // paymentMethod,
+                // discountInfo
+                userId: user.user.id,
+                addressId: selectedAddress,
+                paymentMethod: paymentMethod,
+                // cartItemIds: selectedItems,
+                // discountInfo: discountInfo
+            });
 
             console.log('Checkout response:', response);
 
@@ -392,17 +467,35 @@ const Cart = () => {
     return (
         <div style={{ padding: '24px', maxWidth: '1200px', margin: '0 auto' }}>
             <Card>
-                <Checkbox
-                    checked={selectedItems.length === cart.cartItems.length}
-                    indeterminate={
-                        selectedItems.length > 0 &&
-                        selectedItems.length < cart.cartItems.length
-                    }
-                    onChange={(e) => handleSelectAll(e.target.checked)}
-                    style={{ marginBottom: '16px' }}
-                >
-                    Select All ({cart.cartItems.length} items)
-                </Checkbox>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                    <Checkbox
+                        checked={selectedItems.length === cart.cartItems.length}
+                        indeterminate={
+                            selectedItems.length > 0 &&
+                            selectedItems.length < cart.cartItems.length
+                        }
+                        onChange={(e) => handleSelectAll(e.target.checked)}
+                    >
+                        Select All ({cart.cartItems.length} items)
+                    </Checkbox>
+                    
+                    {selectedItems.length > 0 && (
+                        <Popconfirm
+                            title="Delete selected items?"
+                            description={`Are you sure you want to delete ${selectedItems.length} item(s)?`}
+                            onConfirm={handleDeleteSelectedItems}
+                            okText="Yes"
+                            cancelText="No"
+                        >
+                            <Button
+                                danger
+                                icon={<DeleteOutlined />}
+                            >
+                                Delete Selected ({selectedItems.length})
+                            </Button>
+                        </Popconfirm>
+                    )}
+                </div>
 
                 <List
                     dataSource={cart.cartItems}
