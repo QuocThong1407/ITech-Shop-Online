@@ -3,11 +3,12 @@ import { Typography, Card, Progress, Row, Col, Spin, Empty, Tag } from 'antd';
 import { CrownOutlined, TrophyOutlined, RocketOutlined } from '@ant-design/icons';
 import membershipService from '../../../services/membershipService';
 import './Membership.scss';
+import { formatVND } from '../../../utils/converter';
 
 const { Title, Text } = Typography;
 
 const Membership = () => {
-    const [membership, setMembership] = useState(null);
+    const [data, setData] = useState(null);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -18,8 +19,8 @@ const Membership = () => {
         setLoading(true);
         try {
             const res = await membershipService.getMyMembership();
-            if (res && res.data && res.data.membership) {
-                setMembership(res.data.membership);
+            if (res && res.data) {
+                setData(res.data);
             }
         } catch (error) {
             console.error("Failed to fetch membership", error);
@@ -56,10 +57,6 @@ const Membership = () => {
         return { next: null, goal: 2000, remaining: 0 };
     };
 
-    const formatPrice = (amount) => {
-        return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
-    };
-
     if (loading) {
         return (
             <div className="membership-loading">
@@ -68,7 +65,7 @@ const Membership = () => {
         );
     }
 
-    if (!membership) {
+    if (!data || !data.membership) {
         return (
             <div className="membership-empty">
                 <Empty description="No membership data found. Start shopping to earn rewards!" />
@@ -76,7 +73,7 @@ const Membership = () => {
         );
     }
 
-    const { spent, membership: tier } = membership;
+    const { spent, membership } = data;
     const nextTier = getNextTierInfo(spent);
     const percent = nextTier.next ? Math.min(100, (spent / nextTier.goal) * 100) : 100;
 
@@ -89,11 +86,11 @@ const Membership = () => {
                     <Card className="membership__card tier-card">
                         <div className="membership__tier-info">
                             <div className="membership__tier-icon">
-                                {getTierIcon(tier)}
+                                {getTierIcon(membership)}
                             </div>
                             <div className="membership__tier-text">
                                 <Text type="secondary">Current Tier</Text>
-                                <Title level={3} style={{ margin: 0, color: getTierColor(tier) }}>{tier}</Title>
+                                <Title level={3} style={{ margin: 0, color: getTierColor(membership) }}>{membership}</Title>
                             </div>
                         </div>
                     </Card>
@@ -104,19 +101,19 @@ const Membership = () => {
                         <Title level={4}>Spending Progress</Title>
                         <div className="membership__spent">
                             <Text type="secondary">Total Spent: </Text>
-                            <Text strong style={{ fontSize: '18px', color: '#ff4d4f' }}>{formatPrice(spent)}</Text>
+                            <Text strong style={{ fontSize: '18px', color: '#ff4d4f' }}>{formatVND(spent)}</Text>
                         </div>
 
                         <div className="membership__progress">
                             <Progress
                                 percent={Math.round(percent)}
-                                strokeColor={getTierColor(tier)}
+                                strokeColor={getTierColor(membership)}
                                 status="active"
                             />
                             {nextTier.next && (
                                 <div className="membership__next-tier">
                                     <Text type="secondary">
-                                        Spend {formatPrice(nextTier.remaining)} more to reach <Tag color={getTierColor(nextTier.next)}>{nextTier.next}</Tag>
+                                        Spend {formatVND(nextTier.remaining)} more to reach <Tag color={getTierColor(nextTier.next)}>{nextTier.next}</Tag>
                                     </Text>
                                 </div>
                             )}
@@ -128,7 +125,7 @@ const Membership = () => {
                     <Card className="membership__card">
                         <Title level={4}>Membership Benefits</Title>
                         <ul className="membership__benefits">
-                            <li>Exclusive discounts for {tier} members</li>
+                            <li>Exclusive discounts for {membership} members</li>
                             <li>Priority customer support</li>
                         </ul>
                     </Card>
