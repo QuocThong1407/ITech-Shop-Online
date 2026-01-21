@@ -1,0 +1,137 @@
+.dashboard-page {
+    animation: fadeIn 0.4s ease-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.dashboard-header {
+    margin-bottom: 24px;
+}
+
+.dashboard-title {
+    font-size: 24px;
+    font-weight: 700;
+    color: #1f1f1f;
+    margin: 0;
+}
+
+.dashboard-subtitle {
+    color: #8c8c8c;
+    font-size: 14px;
+}
+
+.dashboard-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.stat-card-widget {
+    background: #fff;
+    border-radius: 8px;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    transition: transform 0.2s;
+}
+
+.stat-card-widget:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.stat-widget-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+}
+
+.stat-widget-content {
+    display: flex;
+    flex-direction: column;
+}
+
+.stat-widget-label {
+    font-size: 13px;
+    color: #8c8c8c;
+    font-weight: 500;
+}
+
+.stat-widget-value {
+    font-size: 26px;
+    font-weight: 700;
+    color: #262626;
+    line-height: 1.2;
+}
+
+.stat-widget-icon.blue {
+    background: #e6f7ff;
+    color: #1890ff;
+}
+
+.stat-widget-icon.green {
+    background: #f6ffed;
+    color: #52c41a;
+}
+
+.stat-widget-icon.gold {
+    background: #fff7e6;
+    color: #fa8c16;
+}
+
+.stat-widget-icon.purple {
+    background: #f9f0ff;
+    color: #722ed1;
+}
+
+.dashboard-row {
+    margin-bottom: 24px;
+}
+
+.dashboard-card {
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    height: 100%;
+}
+
+.dashboard-card .ant-card-head {
+    border-bottom: 1px solid #f0f0f0;
+    min-height: 50px;
+    padding: 0 24px;
+}
+
+.dashboard-card .ant-card-head-title {
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.dashboard-card-title {
+    font-size: 16px;
+    font-weight: 600;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+@media (max-width: 1200px) {
+    .dashboard-stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .dashboard-stats-grid {
+        grid-template-columns: 1fr;
+    }
+}

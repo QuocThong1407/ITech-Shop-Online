@@ -29,10 +29,20 @@ const getAllMemberships = (params = {}) => {
     return get(`/memberships?page=${page}&limit=${limit}`);
 };
 
+/**
+ * Get top spent members (Admin only)
+ * @param {number} limit - Number of members to retrieve
+ * @returns {Promise} List of top spent members
+ */
+const getTopSpent = (limit = 10) => {
+    return get(`/memberships/top-spent?limit=${limit}`);
+};
+
 const membershipService = {
     getMyMembership,
     getMembershipByCustomerId,
     getAllMemberships,
+    getTopSpent
 };
 
 export default membershipService;

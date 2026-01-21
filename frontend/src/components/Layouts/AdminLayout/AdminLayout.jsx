@@ -3,7 +3,7 @@ import AdminHeader from "../../Headers/AppHeader/AppHeader.jsx";
 import {Layout} from "antd";
 import AdminSider from "../../Siders/AppSider/AppSider.jsx";
 import {useState} from "react";
-import {BarChartOutlined, GiftOutlined, ProductOutlined, TagsOutlined, UserOutlined} from "@ant-design/icons";
+import {BarChartOutlined, GiftOutlined, ProductOutlined, TagsOutlined, UserOutlined, DashboardOutlined} from "@ant-design/icons";
 
 const { Content} = Layout;
 
@@ -16,6 +16,11 @@ const AdminLayout = () => {
     };
 
     const menuItems = [
+        {
+            key: "/admin/dashboard",
+            icon: <DashboardOutlined />,
+            label: <Link to="/admin/dashboard">Dashboard</Link>,
+        },
         {
             key: "/admin/users",
             icon: <UserOutlined />,
@@ -50,9 +55,16 @@ const AdminLayout = () => {
                            homePath="/admin"
                            username="Adminstrator"
                            onLogout={() => console.log("Admin logout")}/>
-                <Layout>
-                    <AdminSider onCollapse={handleCollapse} menuItems={menuItems} location={location} />
-                    <Content style={{ padding: '32px' }}>
+                <Layout style={{flex: 1}}>
+                    <AdminSider collapsed={collapsed} onCollapse={handleCollapse} menuItems={menuItems} location={location} />
+
+                    <Content style={{
+                        padding: '32px',
+                        marginLeft: collapsed ? 70 : 230,
+                        marginTop: 64,
+                        transition: 'all 0.2s',
+                        minHeight: '100vh',
+                    }}>
                         <Outlet/>
                     </Content>
                 </Layout>
