@@ -14,7 +14,6 @@ import {
     Collapse,
     Divider,
     message,
-    Popconfirm,
     Modal,
     Input,
     Tabs,
@@ -112,16 +111,6 @@ const Orders = () => {
         }
     };
 
-    const handleCancelOrder = async (orderId) => {
-        try {
-            await orderService.updateOrderStatus(orderId, 'CANCELLED');
-            message.success('Order cancelled successfully');
-            fetchAllData();
-        } catch {
-            message.error('Failed to cancel order');
-        }
-    };
-
     const handleRetryPayment = async (orderId) => {
         try {
             const response = await paymentService.retryPayment(orderId);
@@ -149,7 +138,8 @@ const Orders = () => {
             message.success('Cancellation request submitted');
             setCancellationModalVisible(false);
             setRequestReason('');
-            fetchAllData();
+            await fetchAllData();
+            setActiveTab('cancellations'); // Switch to cancellations tab to show the new request
         } catch (error) {
             message.error(error.message || 'Failed to submit request');
         } finally {
@@ -168,7 +158,8 @@ const Orders = () => {
             message.success('Return request submitted');
             setReturnModalVisible(false);
             setRequestReason('');
-            fetchAllData();
+            await fetchAllData();
+            setActiveTab('returns'); // Switch to returns tab to show the new request
         } catch (error) {
             message.error(error.message || 'Failed to submit request');
         } finally {
@@ -295,8 +286,15 @@ const Orders = () => {
             );
         }
 
-        // Validation for PENDING orders (Direct Cancel)
+        // Validation for PENDING orders (Cancellation Request)
         if (order.status === 'PENDING') {
+            if (cancellationRequest) {
+                return (
+                    <Tag icon={getStatusIcon(cancellationRequest.status)} color={getStatusColor(cancellationRequest.status)}>
+                        Cancellation: {cancellationRequest.status}
+                    </Tag>
+                );
+            }
             return (
                 <Space>
                     {/* Retry Payment for pending Stripe orders */}
@@ -308,17 +306,15 @@ const Orders = () => {
                             Retry Payment
                         </Button>
                     )}
-                    <Popconfirm
-                        title="Cancel Order"
-                        description="Are you sure you want to cancel this order?"
-                        onConfirm={() => handleCancelOrder(order.id)}
-                        okText="Yes"
-                        cancelText="No"
+                    <Button
+                        danger
+                        onClick={() => {
+                            setSelectedOrder(order);
+                            setCancellationModalVisible(true);
+                        }}
                     >
-                        <Button type="default" danger>
-                            Cancel Order
-                        </Button>
-                    </Popconfirm>
+                        Cancel Order
+                    </Button>
                 </Space>
             );
         }

@@ -94,17 +94,28 @@ const createReview = async (req, res) => {
 const updateReview = async (req, res) => {
   try {
     const { id } = req.params;
-    const { rating, comment } = req.body;
+    const { rating, comment, existingImages } = req.body;
     const customerId = req.user.customerId;
 
     if (rating && (rating < 1 || rating > 5)) {
       return errorResponse(res, 400, "Rating must be between 1 and 5");
     }
 
+    // Parse existingImages - it can be a string or array from FormData
+    let parsedExistingImages = [];
+    if (existingImages) {
+      if (Array.isArray(existingImages)) {
+        parsedExistingImages = existingImages;
+      } else if (typeof existingImages === 'string') {
+        parsedExistingImages = [existingImages];
+      }
+    }
+
     const result = await reviewService.updateReview(id, customerId, {
       rating,
       comment,
       files: req.files, // Upload files
+      existingImages: parsedExistingImages, // Existing image URLs to keep
     });
     successResponse(res, 200, result, "Review updated successfully");
   } catch (error) {
