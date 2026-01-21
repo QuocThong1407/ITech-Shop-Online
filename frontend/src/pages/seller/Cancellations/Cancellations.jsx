@@ -211,21 +211,6 @@ const Cancellations = () => {
             render: (_, record) => {
                 const status = record.status ? record.status.toUpperCase() : 'UNKNOWN';
 
-                if (status === 'APPROVED' || status === 'REJECTED') {
-                    return (
-                        <Select
-                            defaultValue={status}
-                            style={{ width: '100%' }}
-                            onChange={(val) => handleStatusChange(record.id, val)}
-                            status="warning"
-                        >
-                            <Option value="APPROVED">Approve</Option>
-                            <Option value="COMPLETED">Completed</Option>
-                            <Option value="REJECTED">Reject</Option>
-                        </Select>
-                    );
-                }
-
                 return (
                     <Tag color={getStatusTagColor(status)} style={{width: '100%', textAlign: 'center'}}>
                         {status}
@@ -251,9 +236,9 @@ const Cancellations = () => {
                         {(status === 'REQUESTED') && (
                             <>
                                 <Button size="small"
-                                        type="primary"
+                                        type="default"
                                         icon={<CheckOutlined/>}
-                                        style={{backgroundColor: '#52c41a', borderColor: '#52c41a'}}
+                                        style={{borderColor: '#52c41a', color: '#52c41a'}}
                                         onClick={() => handleStatusChange(record.id, 'APPROVED')}>
                                     Approve
                                 </Button>
@@ -263,6 +248,18 @@ const Cancellations = () => {
                                         icon={<CloseOutlined/>}
                                         onClick={() => handleStatusChange(record.id, 'REJECTED')}>
                                     Reject
+                                </Button>
+                            </>
+                        )}
+
+                        {status === 'APPROVED' && (
+                            <>
+                                <Button size="small"
+                                        type="primary"
+                                        icon={<CheckCircleOutlined />}
+                                        style={{backgroundColor: '#52c41a', borderColor: '#52c41a'}}
+                                        onClick={() => handleStatusChange(record.id, 'COMPLETED')}>
+                                    Complete
                                 </Button>
                             </>
                         )}

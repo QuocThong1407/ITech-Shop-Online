@@ -1,11 +1,20 @@
-import { get, post, patch, del } from "../utils/request.js";
+import {get, post, put, del, patch} from "../utils/request.js";
 
 /**
  * Get all orders for the current user
  * @returns {Promise} { orders: [...] }
  */
-const getAllOrders = () => {
-    return get('/orders');
+const getAllOrders = (params = {}) => {
+    const { page = 1, limit = 10, status, search } = params;
+    const searchParams = new URLSearchParams();
+
+    searchParams.append('page', page);
+    searchParams.append('limit', limit);
+
+    if (status) searchParams.append('status', status);
+    if (search) searchParams.append('search', search);
+
+    return get(`/orders?${searchParams.toString()}`);
 };
 
 const getMyOrders = (params = {}) => {
