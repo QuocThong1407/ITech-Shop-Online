@@ -348,91 +348,238 @@ fetch("http://localhost:5000/api/users/me", {
 
 - **Method:** GET
 - **URL:** `/products`
-- **Query Params:** `page` (int, default 1), `limit` (int, default 10), `categoryId` (string), `search` (string), `minPrice` (number), `maxPrice` (number), `sellerId` (string)
-- **Response (200):** `{ products: [...], pagination: {...} }`
+- **Query Params:**
+  - `page` (int, default 1)
+  - `limit` (int, default 10)
+  - `categoryId` (string)
+  - `sellerId` (string)
+  - `search` (string – search by name or description)
+  - `minPrice` (number)
+  - `maxPrice` (number)
+
+- **Response (200):**
+
+  ```json
+  {
+    "products": [
+      {
+        "id": "string",
+        "name": "string",
+        "description": "string",
+        "price": 100000,
+        "stockQuantity": 50,
+        "images": ["string"],
+        "variantTypes": ["color", "size"],
+        "variantOptions": {
+          "color": ["red", "blue"],
+          "size": ["M", "L"]
+        },
+        "categoryId": "string",
+        "Category": {
+          "id": "string",
+          "name": "string",
+          "description": "string"
+        },
+        "Seller": {
+          "id": "string",
+          "User": {
+            "id": "string",
+            "username": "string",
+            "email": "string"
+          }
+        },
+        "createdAt": "timestamp",
+        "updatedAt": "timestamp"
+      }
+    ],
+    "pagination": {
+      "page": 1,
+      "limit": 10,
+      "total": 100,
+      "totalPages": 10
+    }
+  }
+  ```
+
+- **Note:**
+  - Only non-deleted products are returned
+  - Results are sorted by `createdAt` (newest first)
+
 - **Errors:** 500
+
+---
 
 ### Get Product by ID
 
 - **Method:** GET
 - **URL:** `/products/:id`
-- **Response (200):** Product object with variants
-- **Errors:** 404, 500
+- **Response (200):**
 
-### Create Product (Seller Only)
+  ```json
+  {
+    "id": "string",
+    "name": "string",
+    "description": "string",
+    "price": 100000,
+    "stockQuantity": 50,
+    "images": ["string"],
+    "variantTypes": ["color", "size"],
+    "variantOptions": {
+      "color": ["red", "blue"],
+      "size": ["M", "L"]
+    },
+    "Category": {
+      "id": "string",
+      "name": "string",
+      "description": "string"
+    },
+    "Seller": {
+      "id": "string",
+      "User": {
+        "id": "string",
+        "username": "string",
+        "email": "string"
+      }
+    },
+    "ProductVariant": [
+      {
+        "id": "string",
+        "quantity": 10,
+        "variantAttributes": { "color": "red", "size": "M" },
+        "images": ["string"],
+        "priceAdjustment": 5000
+      }
+    ],
+    "createdAt": "timestamp",
+    "updatedAt": "timestamp"
+  }
+  ```
+
+- **Errors:** 404 (product not found), 500
+
+---
+
+### Create Product (Admin Only)
 
 - **Method:** POST
+
 - **URL:** `/products`
-- **Auth:** Required (Seller)
-- **Body:** FormData (multipart/form-data)
 
-  ```javascript
-  // Option 1: Product without variants
+- **Auth:** Required (Admin)
+
+- **Body:** `multipart/form-data`
+
+  **Product without variants**
+
+  ```json
   {
     "name": "string",
     "description": "string",
-    "price": "number (>= 0)",
-    "stockQuantity": "integer (>= 0)",
+    "price": 100000,
+    "stockQuantity": 50,
     "categoryId": "string",
-    "images": File[] // max 10 files
+    "sellerId": "string",
+    "images": File[]
   }
+  ```
 
-  // Option 2: Product with variants
+  **Product with variants**
+
+  ```json
   {
     "name": "string",
     "description": "string",
-    "price": "number (>= 0)",
+    "price": 100000,
     "categoryId": "string",
-    "images": File[], // max 10 files
-    "variants": JSON string [
+    "sellerId": "string",
+    "images": File[],
+    "variants": [
       {
         "variantAttributes": { "color": "red", "size": "M" },
         "quantity": 10,
-        "priceAdjustment": 5,
-        "images": ["url1", "url2"]
+        "priceAdjustment": 5000
       }
     ]
   }
   ```
 
-- **Response (201):** Product object (with variants if provided)
-- **Note:**
-  - If variants provided, `stockQuantity` auto-calculated from variant quantities
-  - `variantTypes` and `variantOptions` auto-generated from variants
-  - All variant attributes must be non-empty objects
-  - No duplicate variants allowed
-- **Errors:** 400 (validation, empty variants, duplicate variants), 401, 403, 500
+- **Response (201):** Product object
 
-### Update Product (Seller Only)
+- **Note:**
+  - Only Admin can create products
+  - `sellerId` is required and cannot be changed later
+  - If variants are provided:
+    - `stockQuantity` is auto-calculated from variant quantities
+    - `variantTypes` and `variantOptions` are auto-generated
+
+  - Variant attributes must be non-empty objects
+  - Duplicate variants are not allowed
+
+- **Errors:** 400 (validation, duplicate variants, invalid seller/category), 401, 403, 500
+
+---
+
+### Update Product (Admin Only)
 
 - **Method:** PUT
 - **URL:** `/products/:id`
-- **Auth:** Required (Seller, owns product)
-- **Body:** FormData (multipart/form-data, optional fields)
-  ```javascript
+- **Auth:** Required (Admin)
+- **Body:** `multipart/form-data` (optional fields)
+
+  ```json
   {
     "name": "string",
     "description": "string",
-    "price": "number (>= 0)",
-    "stockQuantity": "integer (>= 0)", // Only for products without variants
+    "price": 120000,
+    "stockQuantity": 40,
     "categoryId": "string",
-    "images": File[] // max 10 files, replaces all existing images
+    "images": File[]
   }
   ```
+
 - **Response (200):** Updated product object
 - **Note:**
-  - Cannot update `variantTypes` or `variantOptions` directly
-  - Cannot manually update `stockQuantity` for products with variants (auto-calculated)
-  - Use variant endpoints to manage variants
-- **Errors:** 400 (updating stock of variant product), 401, 403, 404, 500
+  - `sellerId`, `variantTypes`, `variantOptions` cannot be updated
+  - Cannot manually update `stockQuantity` if product has variants
+  - Uploaded images replace all existing images
 
-### Delete Product (Seller Only)
+- **Errors:** 400 (invalid update), 401, 403, 404, 500
+
+---
+
+### Update Product Stock (Seller Only)
+
+- **Method:** PATCH
+- **URL:** `/products/:id/stock`
+- **Auth:** Required (Seller)
+- **Body:** JSON
+
+  ```json
+  {
+    "stockQuantity": 30
+  }
+  ```
+
+- **Response (200):** Updated product object
+- **Note:**
+  - Only applies to products **without variants**
+  - Seller can only update stock for their own products
+
+- **Errors:** 400 (product has variants, invalid quantity), 401, 403, 404, 500
+
+---
+
+### Delete Product (Admin Only)
 
 - **Method:** DELETE
 - **URL:** `/products/:id`
-- **Auth:** Required (Seller, owns product)
-- **Response (200):** Success message (soft delete - sets `is_deleted: true`)
-- **Errors:** 400, 401, 403, 404, 500
+- **Auth:** Required (Admin)
+- **Response (200):** Success message
+- **Note:**
+  - Soft delete (`is_deleted = true`)
+  - Deleted products are hidden from public queries
+
+- **Errors:** 401, 403, 404, 500
 
 ---
 
@@ -646,64 +793,178 @@ fetch("http://localhost:5000/api/users/me", {
 
 ---
 
-## Product Variants
+## Variants
 
-### Get Variants by Product ID
+### Get Variants by Product
 
 - **Method:** GET
 - **URL:** `/variants/product/:productId`
-- **Auth:** Required (Seller)
-- **Response (200):** Array of variant objects
-- **Errors:** 400, 401, 403, 500
+- **Auth:** Not required
+- **Response (200):**
 
-### Create Product Variant (Seller Only)
+  ```json
+  {
+    "success": true,
+    "data": [
+      {
+        "id": "string",
+        "productId": "string",
+        "quantity": 10,
+        "variantAttributes": {
+          "color": "red",
+          "size": "M"
+        },
+        "images": ["string"],
+        "priceAdjustment": 5000,
+        "createdAt": "timestamp",
+        "updatedAt": "timestamp"
+      }
+    ]
+  }
+  ```
+
+- **Note:**
+  - Only variants belonging to the given product are returned
+  - Results are sorted by `createdAt` (oldest first)
+
+- **Errors:** 400, 500
+
+---
+
+### Create Variant (Seller Only)
 
 - **Method:** POST
 - **URL:** `/variants`
-- **Auth:** Required (Seller, owns product)
-- **Body:** JSON
+- **Auth:** Required (Seller)
+- **Body:** `multipart/form-data`
+
   ```json
   {
     "productId": "string",
-    "quantity": "integer (>= 0, default 0)",
-    "variantAttributes": { "color": "red", "size": "M" },
-    "images": ["string"],
-    "priceAdjustment": "number (default 0)"
+    "quantity": 10,
+    "variantAttributes": {
+      "color": "red",
+      "size": "M"
+    },
+    "priceAdjustment": 5000,
+    "images": File[]
   }
   ```
-- **Response (201):** Variant object
-- **Note:**
-  - `variantAttributes` must be non-empty object
-  - Auto-syncs product's `variantTypes`, `variantOptions`, and `stockQuantity`
-- **Errors:** 400 (empty attributes), 401, 403 (not product owner), 404 (product not found), 500
 
-### Update Product Variant (Seller Only)
+- **Response (201):**
+
+  ```json
+  {
+    "success": true,
+    "message": "Product variant created successfully",
+    "data": {
+      "id": "string",
+      "productId": "string",
+      "quantity": 10,
+      "variantAttributes": {
+        "color": "red",
+        "size": "M"
+      },
+      "images": ["string"],
+      "priceAdjustment": 5000,
+      "createdAt": "timestamp",
+      "updatedAt": "timestamp"
+    }
+  }
+  ```
+
+- **Note:**
+  - Only sellers can create variants
+  - Seller can only create variants for products assigned to them
+  - `variantAttributes` must be a **non-empty object**
+  - Duplicate variant attributes for the same product are not allowed
+  - Images are optional
+  - If not provided:
+    - `quantity` defaults to `0`
+    - `priceAdjustment` defaults to `0`
+
+  - Product must not be deleted
+
+- **Errors:** 400 (validation, duplicate variant), 401, 403, 404, 500
+
+---
+
+### Update Variant (Seller Only)
 
 - **Method:** PUT
 - **URL:** `/variants/:id`
-- **Auth:** Required (Seller, owns product)
-- **Body:** JSON (optional fields)
+- **Auth:** Required (Seller)
+- **Body:** `multipart/form-data` (optional fields)
+
   ```json
   {
-    "quantity": "integer (>= 0)",
-    "variantAttributes": { "color": "blue", "size": "L" },
-    "images": ["string"],
-    "priceAdjustment": "number"
+    "quantity": 15,
+    "variantAttributes": {
+      "color": "blue",
+      "size": "L"
+    },
+    "priceAdjustment": 7000,
+    "images": File[]
   }
   ```
-- **Response (200):** Updated variant object
-- **Note:**
-  - If `variantAttributes` provided, must be non-empty object
-  - Auto-syncs product metadata after update
-- **Errors:** 400 (deleted product, empty attributes), 401, 403, 404, 500
 
-### Delete Product Variant (Seller Only)
+- **Response (200):**
+
+  ```json
+  {
+    "success": true,
+    "message": "Product variant updated successfully",
+    "data": {
+      "id": "string",
+      "productId": "string",
+      "quantity": 15,
+      "variantAttributes": {
+        "color": "blue",
+        "size": "L"
+      },
+      "images": ["string"],
+      "priceAdjustment": 7000,
+      "createdAt": "timestamp",
+      "updatedAt": "timestamp"
+    }
+  }
+  ```
+
+- **Note:**
+  - Only sellers can update variants
+  - Seller can only update variants of products assigned to them
+  - Cannot update variants of deleted products
+  - `variantAttributes`, if provided, must be a **non-empty object**
+  - Duplicate variant attributes are not allowed
+  - If images are uploaded:
+    - All existing images are deleted
+    - New images replace old ones
+
+- **Errors:** 400 (validation, duplicate variant), 401, 403, 404, 500
+
+---
+
+### Delete Variant (Seller Only)
 
 - **Method:** DELETE
 - **URL:** `/variants/:id`
-- **Auth:** Required (Seller, owns product)
-- **Response (200):** Success message
-- **Note:** Auto-syncs product metadata after deletion
+- **Auth:** Required (Seller)
+- **Response (200):**
+
+  ```json
+  {
+    "success": true,
+    "message": "Product variant deleted successfully",
+    "data": null
+  }
+  ```
+
+- **Note:**
+  - Only sellers can delete variants
+  - Seller can only delete variants of products assigned to them
+  - All variant images are deleted from storage
+  - Product variant metadata is automatically re-synced after deletion
+
 - **Errors:** 401, 403, 404, 500
 
 ---
@@ -1540,6 +1801,166 @@ fetch("http://localhost:5000/api/users/me", {
   ```
 - **Note:** Ordered by spent (descending), includes rank position
 - **Errors:** 400 (invalid limit), 401, 403, 500
+
+---
+
+## Reports
+
+> **Base path:** `/reports`
+> **Access:** Admin only
+
+---
+
+### Revenue Report
+
+- **Method:** GET
+- **URL:** `/reports/revenue`
+- **Auth:** Required (Admin)
+- **Query Params:**
+  - `startDate` (string, **required**, format: `YYYY-MM-DD`)
+  - `endDate` (string, **required**, format: `YYYY-MM-DD`)
+  - `groupBy` (string, optional, default: `day`)
+    - Allowed values: `day`, `month`, `year`
+
+  - `format` (string, optional, default: `json`)
+    - Allowed values: `json`, `excel`
+
+- **Response (200 – JSON):**
+
+  ```json
+  {
+    "success": true,
+    "message": "Revenue report generated",
+    "data": {
+      "summary": {
+        "totalIncome": 723000000,
+        "totalRefund": 0,
+        "netRevenue": 723000000
+      },
+      "rows": [
+        {
+          "period": "2026-01",
+          "income": 723000000,
+          "refund": 0,
+          "netRevenue": 723000000
+        }
+      ],
+      "details": {
+        "totalCompletedPayments": 5,
+        "totalApprovedReturns": 0,
+        "totalApprovedCancellations": 0
+      }
+    }
+  }
+  ```
+
+- **Response (200 – Excel):**
+  - `Content-Type:` `application/vnd.openxmlformats-officedocument.spreadsheetml.sheet`
+  - `Content-Disposition:` `attachment; filename="revenue_report.xlsx"`
+
+- **Note:**
+  - Revenue is calculated from:
+    - **Completed payments** (`Payment.status = SUCCESS`)
+    - **Approved returns** (`Return.status = APPROVED`)
+    - **Approved cancellations** (`Cancellation.status = APPROVED`)
+
+  - Refund amount is taken from the related order payment
+  - Net revenue = `income - refund`
+  - Date range is inclusive (`00:00:00` → `23:59:59.999`)
+
+- **Errors:** 400 (invalid params), 401, 403, 500
+
+---
+
+### Activity Report
+
+- **Method:** GET
+- **URL:** `/reports/activity`
+- **Auth:** Required (Admin)
+- **Query Params:**
+  - `startDate` (string, **required**, format: `YYYY-MM-DD`)
+  - `endDate` (string, **required**, format: `YYYY-MM-DD`)
+  - `format` (string, optional, default: `json`)
+    - Allowed values: `json`, `excel`
+
+- **Response (200 – JSON):**
+
+  ```json
+  {
+    "success": true,
+    "message": "Activity report generated",
+    "data": {
+      "summary": {
+        "totalActiveUsers": 10,
+        "newUsers": 3,
+        "newOrders": 5,
+        "newReviews": 2,
+        "newUsersByRole": {
+          "CUSTOMER": 2,
+          "SELLER": 1
+        }
+      },
+      "activities": {
+        "customers": [
+          {
+            "userId": "string",
+            "username": "string",
+            "email": "string",
+            "lastActive": "timestamp",
+            "accountCreated": "timestamp",
+            "customerId": "string",
+            "totalOrders": 3
+          }
+        ],
+        "sellers": [
+          {
+            "userId": "string",
+            "username": "string",
+            "email": "string",
+            "lastActive": "timestamp",
+            "accountCreated": "timestamp",
+            "sellerId": "string",
+            "totalProducts": 5
+          }
+        ],
+        "admins": [
+          {
+            "userId": "string",
+            "username": "string",
+            "email": "string",
+            "lastActive": "timestamp",
+            "accountCreated": "timestamp",
+            "adminId": "string",
+            "totalReportsGenerated": 2
+          }
+        ]
+      },
+      "statistics": {
+        "totalCustomers": 5,
+        "totalSellers": 3,
+        "totalAdmins": 2
+      }
+    }
+  }
+  ```
+
+- **Response (200 – Excel):**
+  - `Content-Type:` `application/vnd.openxmlformats-officedocument.spreadsheetml.sheet`
+  - `Content-Disposition:` `attachment; filename="activity_report.xlsx"`
+
+- **Note:**
+  - Active users are determined by `User.updatedAt` within the date range
+  - Includes activity details for:
+    - Customers (orders)
+    - Sellers (products)
+    - Admins (reports generated)
+
+  - Summary includes:
+    - New users
+    - New orders
+    - New reviews
+
+- **Errors:** 400 (invalid params), 401, 403, 500
 
 ---
 

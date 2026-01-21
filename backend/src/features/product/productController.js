@@ -1,4 +1,4 @@
-// backend/src/features/product/productController.js - FIXED VERSION
+// backend/src/features/product/productController.js
 const productService = require("./productService");
 const {
   successResponse,
@@ -38,14 +38,29 @@ const getProductById = async (req, res) => {
 
 const createProduct = async (req, res) => {
   try {
-    const { name, description, price, stockQuantity, categoryId, variants } =
-      req.body;
+    const {
+      name,
+      description,
+      price,
+      stockQuantity,
+      categoryId,
+      variants,
+      sellerId,
+    } = req.body;
 
     if (!name || !description || price === undefined || !categoryId) {
       return errorResponse(
         res,
         400,
         "Name, description, price, and category ID are required",
+      );
+    }
+
+    if (!sellerId) {
+      return errorResponse(
+        res,
+        400,
+        "Seller ID is required. Please assign a seller to this product.",
       );
     }
 
@@ -149,6 +164,14 @@ const updateProduct = async (req, res) => {
       );
     }
 
+    if (updates.sellerId !== undefined) {
+      return errorResponse(
+        res,
+        400,
+        "Cannot change seller assignment. Seller is set during product creation.",
+      );
+    }
+
     const result = await productService.updateProduct(
       id,
       updates,
@@ -175,10 +198,41 @@ const deleteProduct = async (req, res) => {
   }
 };
 
+const updateProductStock = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { stockQuantity } = req.body;
+    const userId = req.user.userId;
+
+    if (stockQuantity === undefined) {
+      return errorResponse(res, 400, "Stock quantity is required");
+    }
+
+    if (stockQuantity < 0) {
+      return errorResponse(
+        res,
+        400,
+        "Stock quantity must be a positive number",
+      );
+    }
+
+    const result = await productService.updateProductStock(
+      id,
+      stockQuantity,
+      userId,
+    );
+    successResponse(res, 200, result, "Stock updated successfully");
+  } catch (error) {
+    console.error("Update stock error:", error);
+    errorResponse(res, 400, error.message || "Failed to update stock");
+  }
+};
+
 module.exports = {
   getAllProducts,
   getProductById,
   createProduct,
   updateProduct,
   deleteProduct,
+  updateProductStock,
 };

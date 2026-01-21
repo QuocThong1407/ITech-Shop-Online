@@ -1,12 +1,13 @@
-// backend/src/features/variant/variantService.js - OPTIMIZED VERSION
+// backend/src/features/variant/variantService.js
 const { supabase } = require("../../configs/supabase");
 const { v4: uuidv4 } = require("uuid");
 const { syncVariantMetadata } = require("../product/productService");
-const { uploadImageToSupabase, deleteImageFromSupabase } = require("../../utils/uploadHelper");
+const {
+  uploadImageToSupabase,
+  deleteImageFromSupabase,
+} = require("../../utils/uploadHelper");
 
-/**
- * TỐI ƯU: Tự động sync metadata sau mỗi thao tác
- */
+//seller tạo mới variant cho sản phẩm của họ
 const createVariant = async ({
   productId,
   quantity,
@@ -17,7 +18,6 @@ const createVariant = async ({
 }) => {
   const now = new Date().toISOString();
 
-  // Verify seller
   const { data: seller } = await supabase
     .from("Seller")
     .select("id")
@@ -27,11 +27,10 @@ const createVariant = async ({
   if (!seller) {
     throw { status: 403, message: "Only sellers can create variants" };
   }
-
-  // Verify product ownership
+  // Lấy thông tin sản phẩm
   const { data: product } = await supabase
     .from("Product")
-    .select("id, createdBy, is_deleted")
+    .select("id, createdBy, is_deleted, name")
     .eq("id", productId)
     .eq("is_deleted", false)
     .single();
@@ -39,23 +38,46 @@ const createVariant = async ({
   if (!product) {
     throw { status: 404, message: "Product not found" };
   }
-
+  // Kiểm tra seller có được phân công cho sản phẩm này không
   if (product.createdBy !== seller.id) {
-    throw { status: 403, message: "Not your product" };
+    throw {
+      status: 403,
+      message: "You can only create variants for products assigned to you",
+    };
   }
+  // Kiểm tra trùng lặp variant attributes
+  const { data: existingVariants } = await supabase
+    .from("ProductVariant")
+    .select("variantAttributes")
+    .eq("productId", productId);
 
+  if (existingVariants && existingVariants.length > 0) {
+    const isDuplicate = existingVariants.some(
+      (v) =>
+        JSON.stringify(v.variantAttributes) ===
+        JSON.stringify(variantAttributes),
+    );
+    if (isDuplicate) {
+      throw {
+        status: 400,
+        message:
+          "A variant with these attributes already exists for this product",
+      };
+    }
+  }
+  // Upload images
   let imageUrls = [];
   if (files && files.length > 0) {
     for (const file of files) {
-      const url = await uploadImageToSupabase(file, "products", `variant-images/${uuidv4()}/`);
+      const url = await uploadImageToSupabase(
+        file,
+        "products",
+        `variant-images/${productId}/${uuidv4()}/`,
+      );
       imageUrls.push(url);
     }
   }
-
-  // TỐI ƯU: KHÔNG cần kiểm tra variantTypes
-  // Chỉ cần variantAttributes hợp lệ
-
-  // Insert variant
+  // Tạo variant mới
   const { data, error } = await supabase
     .from("ProductVariant")
     .insert({
@@ -72,7 +94,7 @@ const createVariant = async ({
     .single();
 
   if (error) throw error;
-
+  // Đồng bộ metadata variant lên sản phẩm
   await syncVariantMetadata(productId);
 
   return data;
@@ -89,12 +111,15 @@ const updateVariant = async (variantId, updates, userId) => {
     throw { status: 403, message: "Only sellers can update variants" };
   }
 
+  // Lấy variant với thông tin sản phẩm
   const { data: variant } = await supabase
     .from("ProductVariant")
     .select(
       `
       id,
       productId,
+      images,
+      variantAttributes,
       Product!ProductVariant_productId_fkey(
         id,
         createdBy,
@@ -112,38 +137,67 @@ const updateVariant = async (variantId, updates, userId) => {
   if (variant.Product.is_deleted) {
     throw { status: 400, message: "Cannot update variant of deleted product" };
   }
-
+  // Kiểm tra seller có được phân công cho sản phẩm này không
   if (variant.Product.createdBy !== seller.id) {
     throw {
       status: 403,
-      message: "You can only update variants of your own products",
+      message: "You can only update variants of products assigned to you",
     };
+  }
+  // Kiểm tra trùng lặp variant attributes nếu có cập nhật
+  if (updates.variantAttributes) {
+    const { data: existingVariants } = await supabase
+      .from("ProductVariant")
+      .select("id, variantAttributes")
+      .eq("productId", variant.productId)
+      .neq("id", variantId); // Exclude current variant
+
+    if (existingVariants && existingVariants.length > 0) {
+      const isDuplicate = existingVariants.some(
+        (v) =>
+          JSON.stringify(v.variantAttributes) ===
+          JSON.stringify(updates.variantAttributes),
+      );
+      if (isDuplicate) {
+        throw {
+          status: 400,
+          message:
+            "A variant with these attributes already exists for this product",
+        };
+      }
+    }
   }
 
   const updateData = { updatedAt: new Date().toISOString() };
 
   if (updates.quantity !== undefined) updateData.quantity = updates.quantity;
-  if (updates.images !== undefined) updateData.images = updates.images;
   if (updates.priceAdjustment !== undefined) {
     updateData.priceAdjustment = updates.priceAdjustment;
   }
   if (updates.variantAttributes !== undefined) {
     updateData.variantAttributes = updates.variantAttributes;
   }
-
+  // Xử lý hình ảnh
   if (updates.files && updates.files.length > 0) {
+    // xóa ảnh cũ
     if (variant.images && variant.images.length > 0) {
       for (const img of variant.images) {
         await deleteImageFromSupabase(img, "products").catch(() => {});
       }
     }
-
+    // upload ảnh mới
     let newImageUrls = [];
     for (const file of updates.files) {
-      const url = await uploadImageToSupabase(file, "products", `variant-images/${uuidv4()}/`);
+      const url = await uploadImageToSupabase(
+        file,
+        "products",
+        `variant-images/${variant.productId}/${uuidv4()}/`,
+      );
       newImageUrls.push(url);
     }
     updateData.images = newImageUrls;
+  } else if (updates.images !== undefined) {
+    updateData.images = updates.images;
   }
 
   const { data, error } = await supabase
@@ -154,7 +208,7 @@ const updateVariant = async (variantId, updates, userId) => {
     .single();
 
   if (error) throw error;
-
+  // Đồng bộ metadata variant lên sản phẩm
   await syncVariantMetadata(variant.productId);
 
   return data;
@@ -177,9 +231,11 @@ const deleteVariant = async (variantId, userId) => {
       `
       id,
       productId,
+      images,
       Product!ProductVariant_productId_fkey(
         id,
-        createdBy
+        createdBy,
+        is_deleted
       )
     `,
     )
@@ -189,14 +245,22 @@ const deleteVariant = async (variantId, userId) => {
   if (!variant) {
     throw { status: 404, message: "Product variant not found" };
   }
-
+  // Kiểm tra sản phẩm đã xóa chưa
   if (variant.Product.createdBy !== seller.id) {
     throw {
       status: 403,
-      message: "You can only delete variants of your own products",
+      message: "You can only delete variants of products assigned to you",
     };
   }
 
+  //xóa ảnh
+  if (variant.images && variant.images.length > 0) {
+    for (const img of variant.images) {
+      await deleteImageFromSupabase(img, "products").catch(() => {});
+    }
+  }
+
+  // xóa variant
   const { error } = await supabase
     .from("ProductVariant")
     .delete()

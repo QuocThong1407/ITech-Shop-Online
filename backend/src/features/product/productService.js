@@ -1,11 +1,12 @@
-// backend/src/features/product/productService.js - FIXED VERSION
+// backend/src/features/product/productService.js
 const { supabase } = require("../../configs/supabase");
 const { v4: uuidv4 } = require("uuid");
 const {
   uploadImageToSupabase,
   deleteImageFromSupabase,
 } = require("../../utils/uploadHelper");
-// thêm hàm extractVariantMetadata để tái sử dụng
+
+//trích xuất metadata từ danh sách variants
 const extractVariantMetadata = (variants) => {
   if (!variants || variants.length === 0) {
     return { variantTypes: [], variantOptions: {} };
@@ -35,6 +36,8 @@ const extractVariantMetadata = (variants) => {
     ),
   };
 };
+
+//Đồng bộ metadata variant cho product (variantTypes, variantOptions, stockQuantity)
 const syncVariantMetadata = async (productId) => {
   const { data: variants } = await supabase
     .from("ProductVariant")
@@ -45,6 +48,7 @@ const syncVariantMetadata = async (productId) => {
     variants || [],
   );
 
+  // tổng stock = tổng quantity của tất cả variants
   const totalStock = (variants || []).reduce(
     (sum, v) => sum + (v.quantity || 0),
     0,
@@ -61,28 +65,45 @@ const syncVariantMetadata = async (productId) => {
     .eq("id", productId);
 };
 
+// Admin tạo product
 const createProduct = async ({
   name,
   description,
   price,
   stockQuantity,
   categoryId,
+  sellerId,
   files,
   variants,
   createdBy,
 }) => {
   const now = new Date().toISOString();
 
-  const { data: seller } = await supabase
-    .from("Seller")
+  const { data: admin } = await supabase
+    .from("Admin")
     .select("id")
     .eq("userId", createdBy)
     .single();
 
-  if (!seller) {
-    throw { status: 403, message: "Only sellers can create products" };
+  if (!admin) {
+    throw { status: 403, message: "Only admins can create products" };
   }
 
+  // Kiểm tra seller
+  const { data: seller, error: sellerError } = await supabase
+    .from("Seller")
+    .select("id, userId, User!Seller_userId_fkey(username, email)")
+    .eq("id", sellerId)
+    .single();
+
+  if (sellerError || !seller) {
+    throw {
+      status: 400,
+      message: "Seller not found. Please provide a valid seller ID.",
+    };
+  }
+
+  // kt category
   const { data: category } = await supabase
     .from("Category")
     .select("id")
@@ -96,15 +117,21 @@ const createProduct = async ({
   const productId = uuidv4();
   let productImages = [];
 
-  const mainFiles = files ? files.filter(f => f.fieldname === 'images') : [];
+  // upload ảnh
+  const mainFiles = files ? files.filter((f) => f.fieldname === "images") : [];
 
   if (mainFiles.length > 0) {
     for (const file of mainFiles) {
-      const url = await uploadImageToSupabase(file, "products", `${productId}/`);
+      const url = await uploadImageToSupabase(
+        file,
+        "products",
+        `${productId}/`,
+      );
       productImages.push(url);
     }
   }
 
+  // xử lý variants
   let parsedVariants = [];
   if (variants) {
     try {
@@ -115,11 +142,16 @@ const createProduct = async ({
     }
   }
 
-  const safeParsedVariants = Array.isArray(parsedVariants) ? parsedVariants : [];
+  const safeParsedVariants = Array.isArray(parsedVariants)
+    ? parsedVariants
+    : [];
 
+  // tạo metadata variant
   const { variantTypes, variantOptions } =
     extractVariantMetadata(parsedVariants);
 
+  // Nếu có variant thì stock = tổng quantity variant
+  // Nếu không có variant thì dùng stockQuantity nhập vào
   const finalStockQuantity =
     parsedVariants.length > 0
       ? parsedVariants.reduce((sum, v) => sum + (v.quantity || 0), 0)
@@ -137,7 +169,7 @@ const createProduct = async ({
       images: productImages,
       variantTypes,
       variantOptions,
-      createdBy: seller.id,
+      createdBy: sellerId, // gán product cho seller
       is_deleted: false,
       createdAt: now,
       updatedAt: now,
@@ -146,7 +178,8 @@ const createProduct = async ({
     .single();
 
   if (error) {
-    for (const img of productImages) await deleteImageFromSupabase(img, "products").catch(() => {});
+    for (const img of productImages)
+      await deleteImageFromSupabase(img, "products").catch(() => {});
     throw error;
   }
 
@@ -157,12 +190,19 @@ const createProduct = async ({
       const v = safeParsedVariants[i];
       let variantImageUrls = [];
 
+      // upload ảnh variant nếu có
       const variantFileKey = `variant_image_${i}`;
-      const specificFile = files ? files.find(f => f.fieldname === variantFileKey) : null;
+      const specificFile = files
+        ? files.find((f) => f.fieldname === variantFileKey)
+        : null;
 
       if (specificFile) {
         const vId = uuidv4();
-        const url = await uploadImageToSupabase(specificFile, "products", `variant-images/${productId}/${vId}/`);
+        const url = await uploadImageToSupabase(
+          specificFile,
+          "products",
+          `variant-images/${productId}/${vId}/`,
+        );
         variantImageUrls.push(url);
       }
 
@@ -178,7 +218,9 @@ const createProduct = async ({
       });
     }
 
-    const { error: variantError } = await supabase.from("ProductVariant").insert(variantRecords);
+    const { error: variantError } = await supabase
+      .from("ProductVariant")
+      .insert(variantRecords);
 
     if (variantError) {
       await supabase.from("Product").delete().eq("id", productId);
@@ -189,15 +231,16 @@ const createProduct = async ({
   return product;
 };
 
+// Admin cập nhật product
 const updateProduct = async (productId, updates, userId, files) => {
-  const { data: seller } = await supabase
-    .from("Seller")
+  const { data: admin } = await supabase
+    .from("Admin")
     .select("id")
     .eq("userId", userId)
     .single();
 
-  if (!seller) {
-    throw { status: 403, message: "Only sellers can update products" };
+  if (!admin) {
+    throw { status: 403, message: "Only admins can update products" };
   }
 
   const { data: existing } = await supabase
@@ -210,23 +253,7 @@ const updateProduct = async (productId, updates, userId, files) => {
   if (!existing) {
     throw { status: 404, message: "Product not found" };
   }
-
-  if (existing.createdBy !== seller.id) {
-    throw { status: 403, message: "You can only update your own products" };
-  }
-
-  if (
-    updates.stockQuantity !== undefined &&
-    existing.variantTypes &&
-    existing.variantTypes.length > 0
-  ) {
-    throw {
-      status: 400,
-      message:
-        "Cannot manually update stockQuantity for products with variants. Stock is auto-calculated from variant quantities.",
-    };
-  }
-
+  // Cập nhật ảnh
   if (files && files.length > 0) {
     if (existing.images && existing.images.length > 0) {
       for (const img of existing.images) {
@@ -246,6 +273,7 @@ const updateProduct = async (productId, updates, userId, files) => {
     updates.images = newImages;
   }
 
+  // kt category nếu có cập nhật
   if (updates.categoryId) {
     const { data: category } = await supabase
       .from("Category")
@@ -259,7 +287,19 @@ const updateProduct = async (productId, updates, userId, files) => {
   }
 
   const updateData = { updatedAt: new Date().toISOString() };
-
+  //  k sửa stock nếu product có variant
+  if (
+    updates.stockQuantity !== undefined &&
+    existing.variantTypes &&
+    existing.variantTypes.length > 0
+  ) {
+    throw {
+      status: 400,
+      message:
+        "Cannot manually update stockQuantity for products with variants. Stock is auto-calculated from variant quantities.",
+    };
+  }
+  // các field admin được phép update
   const allowedFields = [
     "name",
     "description",
@@ -287,6 +327,62 @@ const updateProduct = async (productId, updates, userId, files) => {
   return data;
 };
 
+//seller chỉ cập nhật stock (ko có variant)
+const updateProductStock = async (productId, stockQuantity, userId) => {
+  const { data: seller } = await supabase
+    .from("Seller")
+    .select("id")
+    .eq("userId", userId)
+    .single();
+
+  if (!seller) {
+    throw { status: 403, message: "Only sellers can update stock" };
+  }
+
+  const { data: existing } = await supabase
+    .from("Product")
+    .select("id, createdBy, variantTypes")
+    .eq("id", productId)
+    .eq("is_deleted", false)
+    .single();
+
+  if (!existing) {
+    throw { status: 404, message: "Product not found" };
+  }
+
+  // có variant → không update ở đây
+  if (existing.variantTypes && existing.variantTypes.length > 0) {
+    throw {
+      status: 400,
+      message:
+        "This product has variants. Please update variant quantities instead.",
+    };
+  }
+
+  // chỉ sửa product của mình
+  if (existing.createdBy !== seller.id) {
+    throw {
+      status: 403,
+      message: "You can only update stock for products assigned to you",
+    };
+  }
+
+  const { data, error } = await supabase
+    .from("Product")
+    .update({
+      stockQuantity,
+      updatedAt: new Date().toISOString(),
+    })
+    .eq("id", productId)
+    .select()
+    .single();
+
+  if (error) throw error;
+
+  return data;
+};
+
+// Lấy danh sách product với phân trang và lọc
 const getAllProducts = async ({
   page = 1,
   limit = 10,
@@ -299,20 +395,7 @@ const getAllProducts = async ({
   let query = supabase
     .from("Product")
     .select(
-      `
-      id,
-      name,
-      description,
-      price,
-      stockQuantity,
-      images,
-      variantTypes,
-      variantOptions,
-      is_deleted,
-      createdAt,
-      updatedAt,
-      createdBy,
-      categoryId,
+      `id, name, description, price, stockQuantity, images, variantTypes, variantOptions, is_deleted, createdAt, updatedAt, createdBy, categoryId,
       Category!Product_categoryId_fkey(
         id,
         name,
@@ -359,24 +442,12 @@ const getAllProducts = async ({
   };
 };
 
+// Lấy chi tiết product theo ID
 const getProductById = async (productId) => {
   const { data: product, error } = await supabase
     .from("Product")
     .select(
-      `
-      id,
-      name,
-      description,
-      price,
-      stockQuantity,
-      images,
-      variantTypes,
-      variantOptions,
-      is_deleted,
-      createdAt,
-      updatedAt,
-      createdBy,
-      categoryId,
+      `id, name, description, price, stockQuantity, images, variantTypes, variantOptions, is_deleted, createdAt, updatedAt, createdBy, categoryId,
       Category!Product_categoryId_fkey(
         id,
         name,
@@ -413,15 +484,16 @@ const getProductById = async (productId) => {
   return product;
 };
 
+// admin xóa product (soft delete)
 const deleteProduct = async (productId, userId) => {
-  const { data: seller } = await supabase
-    .from("Seller")
+  const { data: admin } = await supabase
+    .from("Admin")
     .select("id")
     .eq("userId", userId)
     .single();
 
-  if (!seller) {
-    throw { status: 403, message: "Only sellers can delete products" };
+  if (!admin) {
+    throw { status: 403, message: "Only admins can delete products" };
   }
 
   const { data: product } = await supabase
@@ -435,10 +507,7 @@ const deleteProduct = async (productId, userId) => {
     throw { status: 404, message: "Product not found" };
   }
 
-  if (product.createdBy !== seller.id) {
-    throw { status: 403, message: "You can only delete your own products" };
-  }
-
+  // Soft delete
   const { error } = await supabase
     .from("Product")
     .update({
@@ -458,5 +527,6 @@ module.exports = {
   createProduct,
   updateProduct,
   deleteProduct,
+  updateProductStock,
   syncVariantMetadata,
 };
