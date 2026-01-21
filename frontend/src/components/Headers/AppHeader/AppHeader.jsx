@@ -2,15 +2,20 @@ import { LogoutOutlined, UserOutlined, DownOutlined } from '@ant-design/icons'
 import {Col, Dropdown, Row, Space} from "antd";
 import {Link} from "react-router-dom";
 import "./AppHeader.css"
+import authService from "../../../services/authService.js";
 
 const AppHeader = ({title, homePath, username = "User", onLogout}) => {
+    const handleLogout = async () => {
+        await authService.logout();
+    }
+
     const adminMenu = {
         items: [
             {
                 key: 'logout',
                 icon: <LogoutOutlined />,
                 label: 'Logout',
-                onClick: onLogout,
+                onClick: handleLogout,
             }
         ]
     }
