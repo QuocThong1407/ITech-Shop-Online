@@ -7,9 +7,16 @@ const { authenticate, checkRole, upload } = require("../../middleware/index");
 // public
 router.get("/", productController.getAllProducts); // GET /api/products
 router.get("/:id", productController.getProductById); // GET /api/products/:id
+// seller only update stock
+router.patch(
+  "/:id/stock",
+  authenticate,
+  checkRole("SELLER"),
+  productController.updateProductStock,
+); // PATCH /api/products/:id/stock
 
-// seller only
-router.use(authenticate, checkRole("SELLER"));
+// admin only
+router.use(authenticate, checkRole("ADMIN"));
 
 router.post("/", upload.any(), productController.createProduct); // POST /api/products
 router.put("/:id", upload.any(), productController.updateProduct); // PUT /api/products/:id
