@@ -20,6 +20,7 @@ const returnRoutes = require("./features/return/returnRoutes");
 const cancellationRoutes = require("./features/cancellation/cancellationRoutes");
 const orderReturnCancelRoutes = require("./features/order/orderReturnCancelRoutes");
 const membershipRoutes = require("./features/membership/membershipRoutes");
+const reportRoutes = require("./features/report/reportRoutes");
 const { errorHandler, notFoundHandler } = require("./middleware/index");
 const app = express();
 app.use(helmet());
@@ -53,6 +54,7 @@ app.use("/api/returns", returnRoutes);
 app.use("/api/cancellations", cancellationRoutes);
 app.use("/api/orders", orderReturnCancelRoutes);
 app.use("/api/memberships", membershipRoutes);
+app.use("/api/reports", reportRoutes);
 app.use(notFoundHandler);
 app.use(errorHandler);
 
