@@ -1,14 +1,15 @@
-import {Link, Outlet} from "react-router-dom";
+import {Link, Outlet, useLocation} from "react-router-dom";
 import SellerHeader from "../../Headers/AppHeader/AppHeader.jsx";
 import {Layout} from "antd";
 import SellerSider from "../../Siders/AppSider/AppSider.jsx";
 import {useState} from "react";
-import {ShoppingCartOutlined, AppstoreOutlined, TagsOutlined, FileSyncOutlined, ExceptionOutlined} from "@ant-design/icons";
+import {ShoppingCartOutlined, AppstoreOutlined, FileSyncOutlined, ExceptionOutlined} from "@ant-design/icons";
 
 const { Content} = Layout;
 
 const SellerLayout = () => {
     const [collapsed, setCollapsed] = useState(false);
+    const location = useLocation();
 
     const handleCollapse = (isCollapsed) => {
         setCollapsed(isCollapsed);
@@ -24,11 +25,6 @@ const SellerLayout = () => {
             key: "/seller/products",
             icon: <AppstoreOutlined />,
             label: <Link to="/seller/products">Products</Link>,
-        },
-        {
-            key: "/seller/categories",
-            icon: <TagsOutlined />,
-            label: <Link to="/seller/categories">Categories</Link>,
         },
         {
             key: "/seller/returns",
@@ -50,7 +46,7 @@ const SellerLayout = () => {
                              username="Seller"
                              onLogout={() => console.log("Seller logout")}/>
                 <Layout>
-                    <SellerSider onCollapse={handleCollapse} menuItems={menuItems} />
+                    <SellerSider onCollapse={handleCollapse} menuItems={menuItems} location={location} />
                     <Content style={{ padding: '32px' }}>
                         <Outlet/>
                     </Content>

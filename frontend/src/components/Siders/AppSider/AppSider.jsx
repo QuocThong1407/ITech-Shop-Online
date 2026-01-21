@@ -10,9 +10,7 @@ import "./AppSider.css"
 
 const { Sider, Content } = Layout;
 
-const AppSider = ({menuItems}) => {
-    const location = useLocation();
-
+const AppSider = ({menuItems, location = {}}) => {
     return (
         <Sider className="admin-sider"
                theme="light"

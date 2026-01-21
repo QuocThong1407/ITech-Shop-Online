@@ -1,14 +1,15 @@
-import {Link, Outlet} from "react-router-dom";
+import {Link, Outlet, useLocation} from "react-router-dom";
 import AdminHeader from "../../Headers/AppHeader/AppHeader.jsx";
 import {Layout} from "antd";
 import AdminSider from "../../Siders/AppSider/AppSider.jsx";
 import {useState} from "react";
-import {BarChartOutlined, GiftOutlined, ProductOutlined, UserOutlined} from "@ant-design/icons";
+import {BarChartOutlined, GiftOutlined, ProductOutlined, TagsOutlined, UserOutlined} from "@ant-design/icons";
 
 const { Content} = Layout;
 
 const AdminLayout = () => {
     const [collapsed, setCollapsed] = useState(false);
+    const location = useLocation();
 
     const handleCollapse = (isCollapsed) => {
         setCollapsed(isCollapsed);
@@ -19,6 +20,11 @@ const AdminLayout = () => {
             key: "/admin/users",
             icon: <UserOutlined />,
             label: <Link to="/admin/users">Users</Link>,
+        },
+        {
+            key: "/admin/categories",
+            icon: <TagsOutlined />,
+            label: <Link to="/admin/categories">Categories</Link>,
         },
         {
             key: "/admin/promotions",
@@ -45,7 +51,7 @@ const AdminLayout = () => {
                            username="Adminstrator"
                            onLogout={() => console.log("Admin logout")}/>
                 <Layout>
-                    <AdminSider onCollapse={handleCollapse} menuItems={menuItems} />
+                    <AdminSider onCollapse={handleCollapse} menuItems={menuItems} location={location} />
                     <Content style={{ padding: '32px' }}>
                         <Outlet/>
                     </Content>
