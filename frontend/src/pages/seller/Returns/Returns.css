@@ -1,7 +1,12 @@
 .returns-page {
+    animation: fadeIn 0.4s ease-out;
 }
 
-/* --- Header --- */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
 .returns-page .page-header {
     display: flex;
     justify-content: space-between;
@@ -16,7 +21,6 @@
     color: #1f1f1f;
 }
 
-/* --- Stats Grid --- */
 .returns-page .stats-grid {
     display: grid;
     grid-template-columns: repeat(5, 1fr);
@@ -50,7 +54,6 @@
     flex-shrink: 0;
 }
 
-/* Status Colors */
 .returns-page .stat-card.total .stat-icon {
     background: #e6f7ff;
     color: #1890ff;
@@ -61,25 +64,20 @@
     color: #fa8c16;
 }
 
-/* Orange */
 .returns-page .stat-card.approved .stat-icon {
     background: #e6fffb;
     color: #13c2c2;
 }
 
-/* Cyan */
 .returns-page .stat-card.rejected .stat-icon {
     background: #fff1f0;
     color: #ff4d4f;
 }
 
-/* Red */
 .returns-page .stat-card.completed .stat-icon {
     background: #f6ffed;
     color: #52c41a;
 }
-
-/* Green */
 
 .returns-page .stat-info {
     display: flex;
@@ -99,7 +97,6 @@
     line-height: 1.2;
 }
 
-/* --- Table --- */
 .returns-page .table-card {
     background: #ffffff;
     border-radius: 12px;
@@ -113,7 +110,6 @@
     margin-bottom: 20px;
 }
 
-/* --- View Modal Styles --- */
 .return-modal-header {
     text-align: center;
     margin-bottom: 24px;
@@ -157,4 +153,24 @@
     font-weight: 500;
     color: #262626;
     text-align: right;
+}
+
+@media (max-width: 992px) {
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 576px) {
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .table-actions {
+        flex-direction: column;
+    }
+
+    .table-actions .ant-input-affix-wrapper {
+        width: 100% !important;
+    }
 }

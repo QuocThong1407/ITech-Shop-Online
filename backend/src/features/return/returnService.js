@@ -617,24 +617,6 @@ const getAllReturns = async (
   };
 };
 
-// const from = (page - 1) * limit;
-// const to = from + limit - 1;
-// query = query.range(from, to).order("createdAt", { ascending: false });
-
-// const { data, error, count } = await query;
-
-// if (error) throw error;
-
-// return {
-//   returns: data,
-//   pagination: {
-//     page: parseInt(page),
-//     limit: parseInt(limit),
-//     total: count,
-//     totalPages: Math.ceil(count / limit),
-//   },
-// };
-
 // lấy chi tiết return
 const getReturnById = async (returnId, userId, userRole) => {
   const { data: returnRequest, error } = await supabase
