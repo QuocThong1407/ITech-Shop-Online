@@ -1445,6 +1445,104 @@ fetch("http://localhost:5000/api/users/me", {
 
 ---
 
+## Membership
+
+### Get My Membership (Customer Only)
+
+- **Method:** GET
+- **URL:** `/memberships/me`
+- **Auth:** Required (Customer)
+- **Response (200):**
+  ```json
+  {
+    "id": "string",
+    "customerId": "string",
+    "membership": "BRONZE | SILVER | GOLD | PLATINUM",
+    "spent": "number",
+    "createdAt": "timestamp",
+    "updatedAt": "timestamp",
+    "Customer": { "User": { "username", "email" } },
+    "tierInfo": {
+      "current": "BRONZE",
+      "spent": 500000,
+      "nextTier": "SILVER",
+      "spentToNextTier": 500000,
+      "benefits": {
+        "discountPercentage": 0,
+        "freeShipping": false,
+        "prioritySupport": false,
+        "earlyAccess": false
+      }
+    }
+  }
+  ```
+- **Note:**
+  - Tiers: BRONZE (0-999K), SILVER (1M-4.99M), GOLD (5M-9.99M), PLATINUM (10M+)
+  - Auto-upgraded when order DELIVERED (adds payment amount to spent)
+  - Auto-downgraded when order CANCELLED/RETURNED (deducts payment amount from spent)
+- **Errors:** 401, 403, 404 (customer/membership not found), 500
+
+### Get All Memberships (Admin Only)
+
+- **Method:** GET
+- **URL:** `/memberships`
+- **Auth:** Required (Admin)
+- **Query Params:**
+  - `page` (int, default 1)
+  - `limit` (int, default 10)
+  - `tier` (BRONZE/SILVER/GOLD/PLATINUM)
+  - `sort` (spent_asc/spent_desc, default: spent_desc)
+- **Response (200):**
+  ```json
+  {
+    "data": [
+      {
+        "id": "string",
+        "customerId": "string",
+        "membership": "string",
+        "spent": "number",
+        "Customer": { "User": { "username", "email" } },
+        "benefits": { }
+      }
+    ],
+    "pagination": { "page", "limit", "total", "totalPages" }
+  }
+  ```
+- **Errors:** 401, 403, 500
+
+### Get Membership by ID (Admin Only)
+
+- **Method:** GET
+- **URL:** `/memberships/:id`
+- **Auth:** Required (Admin)
+- **Response (200):** Membership object with customer info and benefits
+- **Errors:** 401, 403, 404 (membership not found), 500
+
+### Get Top Spent Members (Admin Only)
+
+- **Method:** GET
+- **URL:** `/memberships/top-spent`
+- **Auth:** Required (Admin)
+- **Query Params:** `limit` (int, default 10, max 100)
+- **Response (200):**
+  ```json
+  [
+    {
+      "rank": 1,
+      "id": "string",
+      "customerId": "string",
+      "membership": "PLATINUM",
+      "spent": 15000000,
+      "Customer": { "User": { "username", "email" } },
+      "benefits": { }
+    }
+  ]
+  ```
+- **Note:** Ordered by spent (descending), includes rank position
+- **Errors:** 400 (invalid limit), 401, 403, 500
+
+---
+
 ## Notes for Frontend Implementation
 
 - Always use `Authorization: Bearer <token>` header for authenticated requests
