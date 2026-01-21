@@ -45,9 +45,16 @@ const SellerLayout = () => {
                              homePath="/seller"
                              username="Seller"
                              onLogout={() => console.log("Seller logout")}/>
-                <Layout>
-                    <SellerSider onCollapse={handleCollapse} menuItems={menuItems} location={location} />
-                    <Content style={{ padding: '32px' }}>
+                <Layout style={{flex: 1}}>
+                    <SellerSider collapsed={collapsed} onCollapse={handleCollapse} menuItems={menuItems} location={location} />
+
+                    <Content style={{
+                        padding: '32px',
+                        marginLeft: collapsed ? 70 : 230,
+                        marginTop: 64,
+                        transition: 'all 0.2s',
+                        minHeight: '100vh',
+                    }}>
                         <Outlet/>
                     </Content>
                 </Layout>
