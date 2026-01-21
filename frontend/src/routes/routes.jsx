@@ -37,6 +37,7 @@ import Coupons from "../pages/admin/Coupons/Coupons.jsx";
 import Returns from "../pages/seller/Returns/Returns.jsx";
 import Cancellations from "../pages/seller/Cancellations/Cancellations.jsx";
 import SellerOrders from "../pages/seller/Orders/Orders.jsx";
+import Categories from "../pages/admin/Categories/Categories.jsx";
 
 export const routes = [
     {
@@ -166,7 +167,11 @@ export const routes = [
             {
                 path: 'coupons',
                 element: <Coupons/>
-            }
+            },
+            {
+                path: "categories",
+                element: <Categories/>
+            },
         ]
     },
     {
@@ -176,10 +181,6 @@ export const routes = [
             {
                 path: 'orders',
                 element: <SellerOrders/>
-            },
-            {
-                path: "categories",
-                element: <Category/>
             },
             {
                 path: "categories/new",
