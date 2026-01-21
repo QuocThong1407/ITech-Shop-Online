@@ -36,6 +36,7 @@ import Promotions from "../pages/admin/Promotions/Promotions.jsx";
 import Coupons from "../pages/admin/Coupons/Coupons.jsx";
 import Returns from "../pages/seller/Returns/Returns.jsx";
 import Cancellations from "../pages/seller/Cancellations/Cancellations.jsx";
+import SellerOrders from "../pages/seller/Orders/Orders.jsx";
 
 export const routes = [
     {
@@ -173,8 +174,8 @@ export const routes = [
         element: <SellerLayout/>,
         children: [
             {
-                path: 'dashboard',
-                element: <Dashboard/>
+                path: 'orders',
+                element: <SellerOrders/>
             },
             {
                 path: "categories",
@@ -199,7 +200,7 @@ export const routes = [
             {
                 path: 'cancellations',
                 element: <Cancellations/>
-            }
+            },
         ]
     }
 ]
