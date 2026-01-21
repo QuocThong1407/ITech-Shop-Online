@@ -21,6 +21,7 @@ import {
 } from 'antd';
 import { DeleteOutlined, ShoppingCartOutlined, TagOutlined, GiftOutlined } from '@ant-design/icons';
 import cartService from '../../../services/cartService';
+import orderService from '../../../services/orderService';
 import addressService from '../../../services/addressService';
 import couponService from '../../../services/couponService';
 import membershipService from '../../../services/membershipService';
@@ -143,7 +144,7 @@ const Cart = () => {
             console.log('Addresses response:', response);
 
             // Handle response structure
-            const addressData = response?.data?.addresses || response?.addresses || [];
+            const addressData = response?.data || [];
             if (addressData.length > 0) {
                 setAddresses(addressData);
                 setSelectedAddress(addressData[0].id);
@@ -309,7 +310,7 @@ const Cart = () => {
             message.warning('Please select a delivery address');
             return;
         }
-
+        console.log(selectedAddress)
         try {
             setCheckingOut(true);
 
@@ -322,20 +323,25 @@ const Cart = () => {
             };
 
             console.log('Processing checkout:', {
-                customerId: user.customer.id,
+                customerId: user.user.id,
                 selectedItems,
                 selectedAddress,
                 paymentMethod,
                 discountInfo
             });
 
-            const response = await cartService.checkout(
-                user.customer.id,
-                selectedItems,
-                selectedAddress,
-                paymentMethod,
-                discountInfo
-            );
+            const response = await orderService.createOrder({
+                // user.user.id,
+                // selectedItems,
+                // selectedAddress,
+                // paymentMethod,
+                // discountInfo
+                userId: user.user.id,
+                addressId: selectedAddress,
+                paymentMethod: paymentMethod,
+                // cartItemIds: selectedItems,
+                // discountInfo: discountInfo
+            });
 
             console.log('Checkout response:', response);
 

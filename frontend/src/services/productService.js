@@ -85,14 +85,6 @@ const deleteProduct = (productId) => {
 };
 
 /**
- * Get products for the current seller
- * @returns {Promise} Array of seller's products
- */
-const getSellerProducts = () => {
-    return get('/products/seller/me');
-};
-
-/**
  * Get products by a specific seller ID
  * @param {string} sellerId - Seller ID
  * @returns {Promise} Array of products
@@ -107,7 +99,7 @@ const getSellerProductsBySellerId = (sellerId) => {
  * @returns {Promise} Array of reviews
  */
 const getProductReviews = (productId) => {
-    return get(`/reviews?productId=${productId}`);
+    return get(`/reviews/product/${productId}`);
 };
 
 const productService = {
@@ -117,7 +109,6 @@ const productService = {
     createProduct,
     updateProduct,
     deleteProduct,
-    getSellerProducts,
     getSellerProductsBySellerId,
     getProductReviews,
 };
