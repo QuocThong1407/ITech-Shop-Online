@@ -1,7 +1,8 @@
 // backend/src/features/order/orderService.js
 const { supabase } = require("../../configs/supabase");
 const orderHelper = require("./orderHelper");
-
+const membershipService = require("../membership/membershipService");
+const membershipRefundHandler = require("../membership/membershipRefundHandler");
 // tạo order mới từ cart của customer
 const createOrder = async (userId, addressId, paymentMethod = "COD") => {
   const timestamp = new Date().toISOString();
@@ -394,6 +395,7 @@ const updateOrderStatus = async (orderId, newStatus, userId, userRole) => {
   orderHelper.validateStatusTransition(order.status, newStatus);
 
   const timestamp = new Date().toISOString();
+  const oldStatus = order.status;
 
   // cập nhật trạng thái order
   const updatedOrder = await orderHelper.updateOrderStatusRecord(
@@ -405,10 +407,47 @@ const updateOrderStatus = async (orderId, newStatus, userId, userRole) => {
 
   // cập nhật trạng thái payment
   await orderHelper.updatePaymentStatus(orderId, newStatus, timestamp);
+  // case: order → DELIVERED → cộng spent + upgrade membership
+  if (oldStatus !== "DELIVERED" && newStatus === "DELIVERED") {
+    //tránh cộng lại
+    try {
+      const result = await membershipRefundHandler.handleOrderRestore(orderId);
 
-  // hoàn tồn kho nếu bị hủy
+      if (result.success) {
+        console.log(
+          `Membership earned: +${result.newSpent} (${result.newTier})`,
+        );
+      }
+    } catch (err) {
+      console.error("Failed to update membership on delivery:", err);
+    }
+  }
+
+  // case 2: order PENDING/SHIPPED → CANCELLED  → hoàn tồn kho
   if (newStatus === "CANCELLED") {
+    // hoàn tồn kho
     await orderHelper.restoreOrderStock(orderId, timestamp);
+
+    // nếu trước đó là DELIVERED → trừ spent
+    if (oldStatus === "DELIVERED") {
+      try {
+        const refundResult =
+          await membershipRefundHandler.handleOrderRefund(orderId);
+
+        if (refundResult.success) {
+          if (refundResult.downgraded) {
+            console.log(
+              `Customer downgraded: ${refundResult.previousTier} → ${refundResult.newTier}`,
+            );
+          }
+          console.log(
+            `Refunded ${refundResult.refundedAmount} from membership`,
+          );
+        }
+      } catch (err) {
+        console.error("Failed to refund membership:", err);
+      }
+    }
   }
 
   return updatedOrder;
