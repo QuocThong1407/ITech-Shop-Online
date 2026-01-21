@@ -25,7 +25,7 @@ const register = async ({
     email,
     password,
     options: {
-      emailRedirectTo: `${process.env.FRONTEND_URL}/auth/verify`,
+      emailRedirectTo: process.env.EMAIL_VERIFICATION_REDIRECT_URL,
       data: { username },
     },
   });
