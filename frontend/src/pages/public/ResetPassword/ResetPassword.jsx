@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
-import { Button, Col, Form, Input, Row, message } from "antd";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import React, { useState, useEffect } from 'react';
+import { Button, Col, Form, Input, Row, message, Spin } from "antd";
+import { useNavigate, useSearchParams, useLocation } from "react-router-dom";
 import LoginImage from "../../../assets/LoginImage.png";
 import BreadscrumbMenu from "../../../components/BreadscrumbMenu/BreadscrumbMenu.jsx";
 import { Link } from "react-router-dom";
@@ -9,10 +9,60 @@ import "./ResetPassword.scss";
 
 const ResetPassword = () => {
     const [loading, setLoading] = useState(false);
+    const [initializing, setInitializing] = useState(true);
     const [messageApi, contextHolder] = message.useMessage();
     const navigate = useNavigate();
+    const location = useLocation();
     const [searchParams] = useSearchParams();
-    const token = searchParams.get('token');
+    
+    // State to store token and error info
+    const [token, setToken] = useState(null);
+    const [hashError, setHashError] = useState(null);
+
+    // Parse token from URL hash fragment (Supabase sends token in hash) or query params
+    useEffect(() => {
+        const parseTokenFromUrl = () => {
+            // First check query params (standard token param)
+            const queryToken = searchParams.get('token');
+            if (queryToken) {
+                setToken(queryToken);
+                setInitializing(false);
+                return;
+            }
+
+            // Parse hash fragment (Supabase format: #access_token=xxx&type=recovery...)
+            const hash = location.hash;
+            if (hash) {
+                const hashParams = new URLSearchParams(hash.substring(1));
+                
+                // Check for errors in the hash
+                const error = hashParams.get('error');
+                const errorDescription = hashParams.get('error_description');
+                if (error) {
+                    setHashError({
+                        error,
+                        description: errorDescription?.replace(/\+/g, ' ') || 'Unknown error'
+                    });
+                    setInitializing(false);
+                    return;
+                }
+
+                // Check for access_token with type=recovery
+                const accessToken = hashParams.get('access_token');
+                const type = hashParams.get('type');
+                if (accessToken && type === 'recovery') {
+                    setToken(accessToken);
+                    setInitializing(false);
+                    return;
+                }
+            }
+
+            // No valid token found
+            setInitializing(false);
+        };
+
+        parseTokenFromUrl();
+    }, [location.hash, searchParams]);
 
     const onFinish = async (values) => {
         if (!token) {
@@ -41,6 +91,36 @@ const ResetPassword = () => {
             title: 'Reset Password'
         }
     ];
+
+    // Show loading while parsing token
+    if (initializing) {
+        return (
+            <>
+                {contextHolder}
+                <BreadscrumbMenu items={breadcrumbItems} />
+                <div className="reset-password" style={{ textAlign: 'center', padding: '48px' }}>
+                    <Spin size="large" />
+                    <p style={{ marginTop: '16px' }}>Validating reset link...</p>
+                </div>
+            </>
+        );
+    }
+
+    // Show error if there was an error in the hash (e.g., expired link)
+    if (hashError) {
+        return (
+            <>
+                {contextHolder}
+                <BreadscrumbMenu items={breadcrumbItems} />
+                <div className="reset-password" style={{ textAlign: 'center', padding: '48px' }}>
+                    <h2>Invalid Reset Link</h2>
+                    <p style={{ color: '#ff4d4f' }}>{hashError.description}</p>
+                    <p>This password reset link is invalid or has expired.</p>
+                    <Link to="/forgot-password">Request a new reset link</Link>
+                </div>
+            </>
+        );
+    }
 
     if (!token) {
         return (

@@ -88,7 +88,8 @@ const createReview = (data) => {
  * @param {Object} data - Review data to update
  * @param {number} [data.rating] - Rating (1-5)
  * @param {string} [data.comment] - Review comment
- * @param {File[]} [data.images] - Array of image files (max 5)
+ * @param {File[]} [data.images] - Array of new image files to upload (max 5)
+ * @param {string[]} [data.existingImages] - Array of existing image URLs to keep
  * @returns {Promise} Updated review object
  */
 const updateReview = (id, data) => {
@@ -99,9 +100,16 @@ const updateReview = (id, data) => {
     if (data.comment !== undefined) {
         formData.append('comment', data.comment);
     }
+    // Append new image files for upload
     if (data.images && data.images.length > 0) {
         data.images.forEach((file) => {
             formData.append('images', file);
+        });
+    }
+    // Append existing image URLs to keep
+    if (data.existingImages && data.existingImages.length > 0) {
+        data.existingImages.forEach((url) => {
+            formData.append('existingImages', url);
         });
     }
     return put(`/reviews/${id}`, formData);

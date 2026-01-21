@@ -68,25 +68,80 @@ const LeaveReview = () => {
 };
 
 const ReviewItem = ({ item, orderId, onSuccess }) => {
-    const [rating, setRating] = useState(item.review?.rating || 0);
-    const [comment, setComment] = useState(item.review?.comment || '');
+    const [currentReview, setCurrentReview] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [rating, setRating] = useState(0);
+    const [comment, setComment] = useState('');
     const [submitting, setSubmitting] = useState(false);
-    const [isEditing, setIsEditing] = useState(!item.review);
-    const [fileList, setFileList] = useState(
-        item.review?.images?.map((url, index) => ({
-            uid: `-${index}`,
-            name: `image-${index}`,
-            status: 'done',
-            url: url,
-        })) || []
-    );
-    const hasExistingReview = !!item.review;
+    const [isEditing, setIsEditing] = useState(false);
+    const [fileList, setFileList] = useState([]);
 
-    // Extract actual file objects from fileList for upload
+    console.log('ReviewItem props:', { item, orderId });
+
+    // Fetch review for this variant when component mounts
+    useEffect(() => {
+        fetchProductReview();
+    }, [item.ProductVariant?.id]);
+
+    const fetchProductReview = async () => {
+        try {
+            setLoading(true);
+            const variantId = item.ProductVariant?.id;
+            if (!variantId) {
+                setLoading(false);
+                setIsEditing(true);
+                return;
+            }
+
+            const response = await reviewService.getVariantReviews(variantId);
+            const reviews = response.data?.reviews || response.reviews || [];
+            console.log('Fetched reviews for variant:', reviews);
+
+            console.log(orderId)
+            
+            // Find the review for this specific order item
+            const orderItemReview = reviews.find(review => review.orderItemId === item.id);
+            console.log('Order item review found:', orderItemReview);
+
+            if (orderItemReview) {
+                setCurrentReview(orderItemReview);
+                setRating(orderItemReview.rating || 0);
+                setComment(orderItemReview.comment || '');
+                setFileList(
+                    orderItemReview.images?.map((url, index) => ({
+                        uid: `-${index}`,
+                        name: `image-${index}`,
+                        status: 'done',
+                        url: url,
+                    })) || []
+                );
+                setIsEditing(false);
+            } else {
+                setIsEditing(true);
+            }
+        } catch (error) {
+            console.error('Error fetching product reviews:', error);
+            // If error fetching, assume no review exists yet
+            setIsEditing(true);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const hasExistingReview = !!currentReview;
+
+    // Extract actual file objects from fileList for upload (new files only)
     const getImageFiles = () => {
         return fileList
             .filter(file => file.originFileObj) // Only new files that need to be uploaded
             .map(file => file.originFileObj);
+    };
+
+    // Get URLs of existing images that user wants to keep
+    const getExistingImageUrls = () => {
+        return fileList
+            .filter(file => file.url && !file.originFileObj) // Existing images (have URL, no originFileObj)
+            .map(file => file.url);
     };
 
     const handleSubmit = async () => {
@@ -99,13 +154,15 @@ const ReviewItem = ({ item, orderId, onSuccess }) => {
             setSubmitting(true);
 
             const imageFiles = getImageFiles();
+            const existingImageUrls = getExistingImageUrls();
 
             if (hasExistingReview) {
                 // Update existing review
-                await reviewService.updateReview(item.review.id, {
+                await reviewService.updateReview(currentReview.id, {
                     rating,
                     comment,
                     images: imageFiles,
+                    existingImages: existingImageUrls, // Send existing image URLs to keep
                 });
                 message.success('Review updated successfully');
             } else {
@@ -120,6 +177,7 @@ const ReviewItem = ({ item, orderId, onSuccess }) => {
             }
 
             setIsEditing(false);
+            await fetchProductReview(); // Refresh review data
             onSuccess();
         } catch (error) {
             const errorMsg = error.response?.data?.message || error.message || 'Failed to submit review';
@@ -128,7 +186,17 @@ const ReviewItem = ({ item, orderId, onSuccess }) => {
             setSubmitting(false);
         }
     };
+if (loading) {
+        return (
+            <Card style={{ marginBottom: '24px' }}>
+                <div style={{ textAlign: 'center', padding: '40px' }}>
+                    <Spin />
+                </div>
+            </Card>
+        );
+    }
 
+    
     return (
         <Card
             hoverable={!hasExistingReview}
@@ -250,9 +318,9 @@ const ReviewItem = ({ item, orderId, onSuccess }) => {
                                 {hasExistingReview && (
                                     <Button onClick={() => {
                                         setIsEditing(false);
-                                        setRating(item.review.rating);
-                                        setComment(item.review.comment);
-                                        setFileList(item.review.images?.map((url, index) => ({
+                                        setRating(currentReview.rating);
+                                        setComment(currentReview.comment || '');
+                                        setFileList(currentReview.images?.map((url, index) => ({
                                             uid: `-${index}`,
                                             name: `image-${index}`,
                                             status: 'done',
@@ -269,15 +337,15 @@ const ReviewItem = ({ item, orderId, onSuccess }) => {
                             <div style={{ marginBottom: '12px' }}>
                                 <Rate disabled value={rating} style={{ fontSize: '18px' }} />
                                 <Text type="secondary" style={{ marginLeft: '12px' }}>
-                                    Reviewed on {new Date(item.review.createdAt).toLocaleDateString('en-US')}
+                                    Reviewed on {new Date(currentReview.createdAt || currentReview.reviewDate).toLocaleDateString('en-US')}
                                 </Text>
                             </div>
                             <Text style={{ fontSize: '16px', fontStyle: 'italic', color: '#434343', display: 'block', marginBottom: '16px' }}>
                                 "{comment || 'No comment provided.'}"
                             </Text>
-                            {item.review?.images?.length > 0 && (
+                            {currentReview?.images?.length > 0 && (
                                 <Space size="small" wrap>
-                                    {item.review.images.map((url, index) => (
+                                    {currentReview.images.map((url, index) => (
                                         <Image
                                             key={index}
                                             src={url}
