@@ -45,14 +45,20 @@ const createProduct = async (req, res) => {
       stockQuantity,
       categoryId,
       variants,
-      sellerId,
+      sellerUserId,
     } = req.body;
 
-    if (!name || !description || price === undefined || !categoryId) {
+    if (
+      !name ||
+      !description ||
+      price === undefined ||
+      !categoryId ||
+      !sellerUserId
+    ) {
       return errorResponse(
         res,
         400,
-        "Name, description, price, and category ID are required",
+        "Name, description, price, category ID, and seller user ID are required",
       );
     }
 
