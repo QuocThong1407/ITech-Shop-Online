@@ -38,6 +38,8 @@ import Returns from "../pages/seller/Returns/Returns.jsx";
 import Cancellations from "../pages/seller/Cancellations/Cancellations.jsx";
 import SellerOrders from "../pages/seller/Orders/Orders.jsx";
 import Categories from "../pages/admin/Categories/Categories.jsx";
+import RevenueReport from "../pages/admin/RevenueReport/RevenueReport.jsx";
+import ActivityReport from "../pages/admin/ActivityReport/ActivityReport.jsx";
 
 export const routes = [
     {
@@ -172,6 +174,14 @@ export const routes = [
                 path: "categories",
                 element: <Categories/>
             },
+            {
+                path: 'reports/revenues',
+                element: <RevenueReport/>
+            },
+            {
+                path: 'reports/activities',
+                element: <ActivityReport/>
+            }
         ]
     },
     {

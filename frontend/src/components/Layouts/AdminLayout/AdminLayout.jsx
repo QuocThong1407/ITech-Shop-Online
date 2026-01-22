@@ -3,7 +3,16 @@ import AdminHeader from "../../Headers/AppHeader/AppHeader.jsx";
 import {Layout} from "antd";
 import AdminSider from "../../Siders/AppSider/AppSider.jsx";
 import {useState} from "react";
-import {BarChartOutlined, GiftOutlined, ProductOutlined, TagsOutlined, UserOutlined, DashboardOutlined} from "@ant-design/icons";
+import {
+    BarChartOutlined,
+    GiftOutlined,
+    ProductOutlined,
+    TagsOutlined,
+    UserOutlined,
+    DashboardOutlined,
+    AppstoreOutlined,
+    DollarOutlined, SafetyCertificateOutlined
+} from "@ant-design/icons";
 
 const { Content} = Layout;
 
@@ -27,6 +36,11 @@ const AdminLayout = () => {
             label: <Link to="/admin/users">Users</Link>,
         },
         {
+            key: "/admin/products",
+            icon: <AppstoreOutlined />,
+            label: <Link to="/admin/products">Products</Link>,
+        },
+        {
             key: "/admin/categories",
             icon: <TagsOutlined />,
             label: <Link to="/admin/categories">Categories</Link>,
@@ -42,9 +56,20 @@ const AdminLayout = () => {
             label: <Link to="/admin/coupons">Coupons</Link>,
         },
         {
-            key: "/admin/reports",
             icon: <BarChartOutlined />,
-            label: <Link to="/admin/reports">Reports</Link>,
+            label: <span>Reports</span>,
+            children: [
+                {
+                    key: '/admin/reports/revenues',
+                    icon: <DollarOutlined/>,
+                    label: <Link to="/admin/reports/revenues">Revenues</Link>,
+                },
+                {
+                    key: '/admin/reports/activities',
+                    icon: <SafetyCertificateOutlined/>,
+                    label: <Link to="/admin/reports/activities">Activities</Link>,
+                }
+            ]
         },
     ]
 
