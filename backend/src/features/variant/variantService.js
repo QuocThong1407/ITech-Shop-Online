@@ -7,6 +7,21 @@ const {
   deleteImageFromSupabase,
 } = require("../../utils/uploadHelper");
 
+async function resolveActor(userId) {
+  const [{ data: seller }, { data: admin }] = await Promise.all([
+    supabase.from("Seller").select("id").eq("userId", userId).single(),
+    supabase.from("Admin").select("id").eq("userId", userId).single(),
+  ]);
+
+  if (admin) return { role: "ADMIN" };
+  if (seller) return { role: "SELLER", sellerId: seller.id };
+
+  throw {
+    status: 403,
+    message: "You do not have permission to do this action",
+  };
+}
+
 //seller tạo mới variant cho sản phẩm của họ
 const createVariant = async ({
   productId,
@@ -17,16 +32,8 @@ const createVariant = async ({
   userId,
 }) => {
   const now = new Date().toISOString();
+  const actor = await resolveActor(userId);
 
-  const { data: seller } = await supabase
-    .from("Seller")
-    .select("id")
-    .eq("userId", userId)
-    .single();
-
-  if (!seller) {
-    throw { status: 403, message: "Only sellers can create variants" };
-  }
   // Lấy thông tin sản phẩm
   const { data: product } = await supabase
     .from("Product")
@@ -38,11 +45,11 @@ const createVariant = async ({
   if (!product) {
     throw { status: 404, message: "Product not found" };
   }
-  // Kiểm tra seller có được phân công cho sản phẩm này không
-  if (product.createdBy !== seller.id) {
+  // seller phải là owner
+  if (actor.role === "SELLER" && product.createdBy !== actor.sellerId) {
     throw {
       status: 403,
-      message: "You can only create variants for products assigned to you",
+      message: "You do not have permission to perform this action",
     };
   }
   // Kiểm tra trùng lặp variant attributes
@@ -101,16 +108,6 @@ const createVariant = async ({
 };
 
 const updateVariant = async (variantId, updates, userId) => {
-  const { data: seller } = await supabase
-    .from("Seller")
-    .select("id")
-    .eq("userId", userId)
-    .single();
-
-  if (!seller) {
-    throw { status: 403, message: "Only sellers can update variants" };
-  }
-
   // Lấy variant với thông tin sản phẩm
   const { data: variant } = await supabase
     .from("ProductVariant")
@@ -129,6 +126,7 @@ const updateVariant = async (variantId, updates, userId) => {
     )
     .eq("id", variantId)
     .single();
+  const actor = await resolveActor(userId);
 
   if (!variant) {
     throw { status: 404, message: "Product variant not found" };
@@ -137,11 +135,11 @@ const updateVariant = async (variantId, updates, userId) => {
   if (variant.Product.is_deleted) {
     throw { status: 400, message: "Cannot update variant of deleted product" };
   }
-  // Kiểm tra seller có được phân công cho sản phẩm này không
-  if (variant.Product.createdBy !== seller.id) {
+  // seller phải là owner
+  if (actor.role === "SELLER" && variant.Product.createdBy !== actor.sellerId) {
     throw {
       status: 403,
-      message: "You can only update variants of products assigned to you",
+      message: "You do not have permission to do this action",
     };
   }
   // Kiểm tra trùng lặp variant attributes nếu có cập nhật
@@ -215,16 +213,6 @@ const updateVariant = async (variantId, updates, userId) => {
 };
 
 const deleteVariant = async (variantId, userId) => {
-  const { data: seller } = await supabase
-    .from("Seller")
-    .select("id")
-    .eq("userId", userId)
-    .single();
-
-  if (!seller) {
-    throw { status: 403, message: "Only sellers can delete variants" };
-  }
-
   const { data: variant } = await supabase
     .from("ProductVariant")
     .select(
@@ -245,11 +233,16 @@ const deleteVariant = async (variantId, userId) => {
   if (!variant) {
     throw { status: 404, message: "Product variant not found" };
   }
+  const actor = await resolveActor(userId);
+
+  if (variant.Product.is_deleted) {
+    throw { status: 400, message: "Cannot delete variant of deleted product" };
+  }
   // Kiểm tra sản phẩm đã xóa chưa
-  if (variant.Product.createdBy !== seller.id) {
+  if (actor.role === "SELLER" && variant.Product.createdBy !== actor.sellerId) {
     throw {
       status: 403,
-      message: "You can only delete variants of products assigned to you",
+      message: "You do not have permission to do this action",
     };
   }
 

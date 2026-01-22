@@ -238,9 +238,16 @@ const updateProduct = async (productId, updates, userId, files) => {
     .select("id")
     .eq("userId", userId)
     .single();
-
-  if (!admin) {
-    throw { status: 403, message: "Only admins can update products" };
+  const { data: seller } = await supabase
+    .from("Seller")
+    .select("id")
+    .eq("userId", userId)
+    .single();
+  if (!admin && !seller) {
+    throw {
+      status: 403,
+      message: "Only admins or sellers can update products",
+    };
   }
 
   const { data: existing } = await supabase
