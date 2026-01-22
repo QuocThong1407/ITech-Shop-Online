@@ -1,3 +1,18 @@
+/* Center the images in the carousel */
+.gallery__main .slick-slide {
+    text-align: center;
+}
+
+.gallery__main .slick-slide > div {
+    display: inline-block;
+}
+
+.gallery__main .ant-image {
+    display: inline-block;
+    max-width: 100%;
+    height: auto;
+}
+
 .thumbnail-gallery__container {
     display: flex;
     overflow-x: auto; 

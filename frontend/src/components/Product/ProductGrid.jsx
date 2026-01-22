@@ -51,9 +51,9 @@ const ProductGrid = ({
                         key={p.id} 
                         xs={12}
                         sm={8}
-                        md={6}
-                        lg={6}
-                        xl={6}
+                        md={4}
+                        lg={4}
+                        xl={4}
                         xxl={4}
                     >
                         <Link 
