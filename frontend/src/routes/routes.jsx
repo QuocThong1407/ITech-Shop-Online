@@ -57,7 +57,7 @@ export const routes = [
                 element: <Register/>,
             },
             {
-                path: '/auth/verify',
+                path: '/verify-email',
                 element: <VerifyEmail/>,
             },
             {

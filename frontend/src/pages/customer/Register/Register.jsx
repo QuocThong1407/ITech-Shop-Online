@@ -13,7 +13,6 @@ const Register = () => {
     const navigate = useNavigate();
 
     const onFinish = async (values) => {
-        console.log(values);
         setLoading(true);
         try {
             const response = await authServices.register({

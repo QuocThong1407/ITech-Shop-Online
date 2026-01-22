@@ -76,8 +76,6 @@ const ReviewItem = ({ item, orderId, onSuccess }) => {
     const [isEditing, setIsEditing] = useState(false);
     const [fileList, setFileList] = useState([]);
 
-    console.log('ReviewItem props:', { item, orderId });
-
     // Fetch review for this variant when component mounts
     useEffect(() => {
         fetchProductReview();
@@ -95,13 +93,9 @@ const ReviewItem = ({ item, orderId, onSuccess }) => {
 
             const response = await reviewService.getVariantReviews(variantId);
             const reviews = response.data?.reviews || response.reviews || [];
-            console.log('Fetched reviews for variant:', reviews);
-
-            console.log(orderId)
             
             // Find the review for this specific order item
             const orderItemReview = reviews.find(review => review.orderItemId === item.id);
-            console.log('Order item review found:', orderItemReview);
 
             if (orderItemReview) {
                 setCurrentReview(orderItemReview);

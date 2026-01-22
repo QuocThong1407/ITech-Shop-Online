@@ -16,12 +16,8 @@ const Loading = () => {
         const orderId = searchParams.get('orderId');
         const nextUrl = searchParams.get('nextUrl');
 
-        console.log('Loading page - orderId:', orderId);
-        console.log('Loading page - nextUrl:', nextUrl);
-
         // If no orderId, this is a regular loading page
         if (!orderId) {
-            console.log('No orderId found, redirecting...');
             // Redirect after a short delay
             setTimeout(() => {
                 navigate(nextUrl ? `/${nextUrl}` : '/');
@@ -31,10 +27,8 @@ const Loading = () => {
 
         // Update payment status with backend
         const updatePayment = async () => {
-            console.log('Calling updatePaymentStatus API with orderId:', orderId);
             try {
                 const result = await paymentService.updatePaymentStatus(orderId);
-                console.log('Payment update result:', result);
                 
                 if (result.success) {
                     setStatus('success');
