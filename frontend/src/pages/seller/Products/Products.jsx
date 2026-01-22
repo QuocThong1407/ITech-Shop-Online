@@ -219,8 +219,8 @@ const Product = () => {
 
             const response = await productService.getAllProducts({
                 page: 1,
-                limit: 10000,
-                createdBy: sellerId
+                limit: 1000,
+                sellerId
             });
 
             const allProducts = response?.data?.products || [];
@@ -576,25 +576,28 @@ const Product = () => {
     },
     {
         title: "Action",
+        align: "center",
         render: (_, record) => (
             <div className="action-buttons">
-                <Tooltip title="View">
-                    <Button size="small"
-                            icon={<EyeOutlined style={{color: '#13c2c2'}}/>}
-                            onClick={() => {setSelectedProduct(record);setViewModalOpen(true);}}/>
-                </Tooltip>
-                <Tooltip title="Edit">
-                    <Button size="small"
-                            icon={<EditOutlined
-                                style={{color: '#faad14'}}/>}
-                            onClick={() => handleEdit(record)}/>
-                </Tooltip>
-                <Tooltip title="Delete">
-                    <Button size="small"
-                            danger
-                            icon={<DeleteOutlined/>}
-                            onClick={() => handleDelete(record.id)}/>
-                </Tooltip>
+                <Button size="small"
+                        style={{borderColor: '#008ECC'}}
+                        icon={<EyeOutlined style={{color: '#13c2c2'}}/>}
+                        onClick={() => {setSelectedProduct(record);setViewModalOpen(true);}}>
+                    View
+                </Button>
+
+                <Button size="small"
+                        icon={<EditOutlined style={{color: '#faad14'}}/>}
+                        style={{borderColor: '#faad14'}}
+                        onClick={() => handleEdit(record)}>
+                    Edit
+                </Button>
+                {/*<Tooltip title="Delete">*/}
+                {/*    <Button size="small"*/}
+                {/*            danger*/}
+                {/*            icon={<DeleteOutlined/>}*/}
+                {/*            onClick={() => handleDelete(record.id)}/>*/}
+                {/*</Tooltip>*/}
             </div>
         ),
     }], [categories]);
@@ -850,12 +853,12 @@ const Product = () => {
                     <div>
                         <Title level={2} style={{margin: 0, color: '#008ECC', fontWeight: 700}}>My Products</Title>
                     </div>
-                    <Button type="primary"
-                            icon={<PlusOutlined/>}
-                            style={{backgroundColor: '#008ECC'}}
-                            onClick={handleAdd}>
-                        Add Product
-                    </Button>
+                    {/*<Button type="primary"*/}
+                    {/*        icon={<PlusOutlined/>}*/}
+                    {/*        style={{backgroundColor: '#008ECC'}}*/}
+                    {/*        onClick={handleAdd}>*/}
+                    {/*    Add Product*/}
+                    {/*</Button>*/}
                 </div>
 
                 <div className="stats-grid">
@@ -913,17 +916,17 @@ const Product = () => {
                 </div>
             </div>
 
-            <Modal title="Add New Product"
-                   open={isAddModalOpen}
-                   onOk={submitAdd}
-                   onCancel={() => setIsAddModalOpen(false)} confirmLoading={addLoading}
-                   okText="Create"
-                   centered
-                   width={900}
-                   style={{top: 20}}>
+            {/*<Modal title="Add New Product"*/}
+            {/*       open={isAddModalOpen}*/}
+            {/*       onOk={submitAdd}*/}
+            {/*       onCancel={() => setIsAddModalOpen(false)} confirmLoading={addLoading}*/}
+            {/*       okText="Create"*/}
+            {/*       centered*/}
+            {/*       width={900}*/}
+            {/*       style={{top: 20}}>*/}
 
-                <Form form={addForm} layout="vertical">{renderProductFormContent(addForm)}</Form>
-            </Modal>
+            {/*    <Form form={addForm} layout="vertical">{renderProductFormContent(addForm)}</Form>*/}
+            {/*</Modal>*/}
 
             <Modal title="Edit Product"
                    open={isEditModalOpen}
