@@ -40,6 +40,9 @@ import SellerOrders from "../pages/seller/Orders/Orders.jsx";
 import Categories from "../pages/admin/Categories/Categories.jsx";
 import RevenueReport from "../pages/admin/RevenueReport/RevenueReport.jsx";
 import ActivityReport from "../pages/admin/ActivityReport/ActivityReport.jsx";
+import AdminProducts from "../pages/admin/Products/Products.jsx";
+import ProtectedRoute from "./ProtectedRoute.jsx";
+import {Navigate} from "react-router";
 
 export const routes = [
     {
@@ -152,8 +155,15 @@ export const routes = [
     },
     {
         path: '/admin',
-        element: <AdminLayout/>,
+        element:
+            <ProtectedRoute allowedRoles={['ADMIN']}>
+                <AdminLayout/>
+            </ProtectedRoute> ,
         children: [
+            {
+                index: true,
+                element: <Navigate to='dashboard' replace/>
+            },
             {
                 path: 'dashboard',
                 element: <Dashboard/>
@@ -181,13 +191,24 @@ export const routes = [
             {
                 path: 'reports/activities',
                 element: <ActivityReport/>
+            },
+            {
+                path: 'products',
+                element: <AdminProducts/>
             }
         ]
     },
     {
         path: '/seller',
-        element: <SellerLayout/>,
+        element:
+            <ProtectedRoute allowedRoles={['SELLER']}>
+                <SellerLayout/>
+            </ProtectedRoute>,
         children: [
+            {
+                index: true,
+                element: <Navigate to='orders' replace/>
+            },
             {
                 path: 'orders',
                 element: <SellerOrders/>
