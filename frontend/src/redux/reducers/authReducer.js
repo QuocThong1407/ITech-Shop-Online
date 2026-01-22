@@ -14,7 +14,7 @@ const authReducer = (state = initialState, action) => {
     switch (action.type) {
         case AuthActionTypes.LOGIN_SUCCESS:
             // Store user in localStorage for persistence
-            localStorage.setItem('user', JSON.stringify(action.payload));
+            // localStorage.setItem('user', JSON.stringify(action.payload));
             return {
                 ...state,
                 isAuthenticated: true,
@@ -22,8 +22,8 @@ const authReducer = (state = initialState, action) => {
             };
         case AuthActionTypes.LOGOUT:
             // Clear localStorage on logout
-            localStorage.removeItem('accessToken');
-            localStorage.removeItem('user');
+            // localStorage.removeItem('accessToken');
+            // localStorage.removeItem('user');
             return {
                 isAuthenticated: false,
                 user: {},
