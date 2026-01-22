@@ -26,8 +26,6 @@ const FilteredProducts = () => {
         }));
     };
 
-    console.log(filters);
-
     useEffect(() => {
         if (categories.length > 0 && categoryId) {
             const found = categories.find(c => c.id === categoryId);

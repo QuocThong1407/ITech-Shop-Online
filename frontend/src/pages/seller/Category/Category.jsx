@@ -56,10 +56,8 @@ const Category = () => {
     }
 
   const handleDelete = async (id, force = false) => {
-    console.log(`[handleDelete] id: ${id}, force: ${force}`)
     try {
         const result = await categoryService.deleteCategory(id, force)
-        console.log('[handleDelete] Success:', result)
         message.success('Category deleted successfully')
         fetchCategories()
         setIsForceModalOpen(false)
@@ -77,7 +75,6 @@ const Category = () => {
             lowerMessage.includes('cannot delete category')
 
         if (isExistingProductsError && !force) {
-            console.log('[handleDelete] Showing force delete modal')
             setPendingDeleteId(id)
             setIsForceModalOpen(true)
         } else {
