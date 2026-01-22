@@ -15,11 +15,18 @@ router.patch(
   productController.updateProductStock,
 ); // PATCH /api/products/:id/stock
 
+router.put(
+  "/:id",
+  upload.any(),
+  authenticate,
+  checkRole("ADMIN", "SELLER"),
+  productController.updateProduct,
+); // PUT /api/products/:id
+
 // admin only
 router.use(authenticate, checkRole("ADMIN"));
 
 router.post("/", upload.any(), productController.createProduct); // POST /api/products
-router.put("/:id", upload.any(), productController.updateProduct); // PUT /api/products/:id
 router.delete("/:id", productController.deleteProduct); // DELETE /api/products/:id
 
 module.exports = router;

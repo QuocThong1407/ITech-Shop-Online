@@ -62,7 +62,7 @@ const createProduct = async (req, res) => {
       );
     }
 
-    if (!sellerId) {
+    if (!sellerUserId) {
       return errorResponse(
         res,
         400,

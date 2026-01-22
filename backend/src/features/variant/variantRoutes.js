@@ -8,7 +8,7 @@ const { authenticate, checkRole, upload } = require("../../middleware/index");
 router.get("/product/:productId", variantController.getVariantsByProductId); // GET /api/variants/product/:productId
 
 // seller only
-router.use(authenticate, checkRole("SELLER"));
+router.use(authenticate, checkRole("SELLER", "ADMIN"));
 
 router.post("/", upload.array("images"), variantController.createVariant); // POST /api/variants
 router.put("/:id", upload.array("images"), variantController.updateVariant); // PUT /api/variants/:id
