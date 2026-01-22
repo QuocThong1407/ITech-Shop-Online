@@ -72,7 +72,7 @@ const createProduct = async ({
   price,
   stockQuantity,
   categoryId,
-  sellerId,
+  sellerUserId,
   files,
   variants,
   createdBy,
@@ -93,7 +93,7 @@ const createProduct = async ({
   const { data: seller, error: sellerError } = await supabase
     .from("Seller")
     .select("id, userId, User!Seller_userId_fkey(username, email)")
-    .eq("id", sellerId)
+    .eq("userId", sellerUserId)
     .single();
 
   if (sellerError || !seller) {
@@ -169,7 +169,7 @@ const createProduct = async ({
       images: productImages,
       variantTypes,
       variantOptions,
-      createdBy: sellerId, // gán product cho seller
+      createdBy: seller.id, // gán product cho seller
       is_deleted: false,
       createdAt: now,
       updatedAt: now,
