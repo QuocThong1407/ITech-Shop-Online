@@ -5,15 +5,17 @@ import ProductSection from '../../../components/Product/ProductSection'
 import { setProducts } from '../../../redux/actions/productAction.js'
 import { useDispatch, useSelector } from 'react-redux'
 import { get } from '../../../utils/request'
+import categoryService from '../../../services/categoryService.js'
 
 const Home = () => {
   const dispatch = useDispatch()
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState(null)
 
+  const [topCategories, setTopCategories] = useState([])
+
   const allProducts = useSelector(state => state.allProducts.products)
   const allCategories = useSelector(state => state.categories.allCategories)
-  const topCategories = useSelector(state => state.categories.topCategories)
   const user = useSelector(state => state.authReducer.user)
   const navigate = useNavigate()
 
@@ -40,6 +42,18 @@ const Home = () => {
         setIsLoading(false)
       }
     }
+    
+    const getTopCategories = async () => {
+      try {
+        setIsLoading(true)
+        const data = await categoryService.getCategoryStats();
+        setTopCategories(data.data.topCategories)
+      } catch (error) {
+        console.error("Lỗi khi tải danh mục hàng đầu:", error);
+      }
+    }
+
+    getTopCategories()
     getProducts()
   }, [])
 

@@ -12,20 +12,14 @@ const ProductCard = ({ product }) => {
     };
 
     // Strip HTML tags from description
-    const stripHtml = (html) => {
-        if (!html) return '';
-        const doc = new DOMParser().parseFromString(html, 'text/html');
-        return doc.body.textContent || '';
-    };
-
-    // Get seller name from product
-    const sellerName = product.Seller?.User?.username || product.Seller?.email || "Seller";
+    // const stripHtml = (html) => {
+    //     if (!html) return '';
+    //     const doc = new DOMParser().parseFromString(html, 'text/html');
+    //     return doc.body.textContent || '';
+    // };
     
     // Get category name
     const categoryName = product.Category?.name || "Category";
-
-    // Get clean description (strip HTML)
-    const cleanDescription = stripHtml(product.description);
 
     // Get the first image or use a placeholder
     const productImage = product.images && product.images.length > 0 
@@ -68,21 +62,21 @@ const ProductCard = ({ product }) => {
                 </div>
 
                 {/* Description */}
-                <Typography.Paragraph 
+                {/* <Typography.Paragraph 
                     className="product-description"
                     ellipsis={{ rows: 2, tooltip: cleanDescription }}
                 >
                     {cleanDescription}
-                </Typography.Paragraph>
+                </Typography.Paragraph> */}
 
                 {/* Price and Seller */}
                 <Flex justify="space-between" align="center" className="product-footer">
-                    <Typography.Text className="product-price" strong>
+                    <Typography.Text className="product-price" strong type="danger">
                         {formatVND(product.price)}
                     </Typography.Text>
-                    <Tag color="default" className="category-tag">
+                    {/* <Tag color="default" className="category-tag">
                         {sellerName}
-                    </Tag>
+                    </Tag> */}
                 </Flex>
             </div>
         </Card>
