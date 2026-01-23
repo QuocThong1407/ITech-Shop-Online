@@ -26,7 +26,9 @@ const ActionButtons = ({ selectedProductVariant, amount, productData, isAuthenti
     const hasVariants = productData?.variantTypes?.length > 0
 
     // For products without variants, use the first (default) product variant
-    const defaultVariant = !hasVariants && productData?.productVariants?.[0] ? productData.productVariants[0] : null
+    // Handle both PascalCase (from Supabase) and camelCase
+    const productVariants = productData?.ProductVariant || productData?.productVariants || []
+    const defaultVariant = !hasVariants && productVariants[0] ? productVariants[0] : null
 
     // effectiveVariant is the selected variant, or default variant for no-variant products
     const effectiveVariant = selectedProductVariant || defaultVariant
@@ -82,15 +84,6 @@ const ActionButtons = ({ selectedProductVariant, amount, productData, isAuthenti
 
         try {
             setLoading(true)
-
-            // Get or create cart for the user
-            // console.log("User from Redux:", user)
-            // console.log("User ID for cart creation:", user.id)
-            // console.log("Customer data:", user.customer)
-
-            if (!user.user) {
-                throw new Error("Customer information not found")
-            }
 
             // Add item to cart - use variant ID
             // The backend automatically handles cart creation
