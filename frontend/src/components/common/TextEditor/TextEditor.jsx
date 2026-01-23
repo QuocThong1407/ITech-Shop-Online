@@ -129,7 +129,7 @@ export default function TinyMCEEditor({ value, onChange, onUploadedImages }) {
 
   return (
     <Editor
-      apiKey="wo5yr5cvm21r10czqjpc8cx0jazms2ld0qx1eexiit6tvx2l"
+      apiKey="4gkfws4p2gh8h2xpr3p2i4xx289br8258bwr3tf98na06vpy"
       onInit={(evt, editor) => {
         editorRef.current = editor;
         // Place cursor at the end when editor is ready
