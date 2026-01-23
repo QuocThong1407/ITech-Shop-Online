@@ -66,10 +66,24 @@ const getMembershipById = async (req, res) => {
     );
   }
 };
+const recalculateAllMemberships = async (req, res) => {
+  try {
+    const result = await membershipService.recalculateAllMemberships();
+    successResponse(res, 200, result, "Memberships recalculated successfully");
+  } catch (error) {
+    console.error("Recalculate memberships error:", error);
+    errorResponse(
+      res,
+      500,
+      error.message || "Failed to recalculate memberships",
+    );
+  }
+};
 
 module.exports = {
   getMyMembership,
   getTopSpentMembers,
   getAllMemberships,
   getMembershipById,
+  recalculateAllMemberships,
 };

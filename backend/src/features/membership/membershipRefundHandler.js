@@ -7,11 +7,21 @@ const handleOrderRefund = async (orderId) => {
   const now = new Date().toISOString();
 
   try {
-    // lấy order
+    // 1. Lấy order + OrderItem
     const { data: order, error: orderError } = await supabase
       .from("Order")
-      .select(`id, customerId, Payment!Payment_orderId_fkey(amount)`)
-
+      .select(
+        `
+        id, customerId,
+        OrderItem!OrderItem_orderId_fkey(
+          quantity,
+          ProductVariant!OrderItem_productVariantId_fkey(
+            priceAdjustment,
+            Product!ProductVariant_productId_fkey(price)
+          )
+        )
+      `,
+      )
       .eq("id", orderId)
       .single();
 
@@ -20,15 +30,19 @@ const handleOrderRefund = async (orderId) => {
       return { success: false, reason: "Order not found" };
     }
 
-    // nếu order từng DELIVERED (đã tính spent)
-    // kiểm tra xem order này đã được tính vào spent chưa
-    const paymentAmount = order.Payment?.[0]?.amount || 0;
-
-    if (paymentAmount <= 0) {
-      return { success: false, reason: "No payment to refund" };
+    // 2. Tính subtotal từ OrderItem (thay vì dùng payment.amount)
+    let subtotal = 0;
+    for (const item of order.OrderItem) {
+      const basePrice = item.ProductVariant.Product.price;
+      const adjustment = item.ProductVariant.priceAdjustment || 0;
+      subtotal += (basePrice + adjustment) * item.quantity;
     }
 
-    // lấy membership hiện tại
+    if (subtotal <= 0) {
+      return { success: false, reason: "Invalid order amount" };
+    }
+
+    // 3. Lấy membership
     const { data: membership, error: membershipError } = await supabase
       .from("Membership")
       .select("id, membership, spent")
@@ -40,13 +54,11 @@ const handleOrderRefund = async (orderId) => {
       return { success: false, reason: "Membership not found" };
     }
 
-    // tính spent mới (trừ đi số tiền của order bị cancel/return)
-    const newSpent = Math.max(0, membership.spent - paymentAmount);
-
-    // tính tier mới
+    // 4. Trừ spent (dùng subtotal thay vì payment.amount)
+    const newSpent = Math.max(0, membership.spent - subtotal);
     const newTier = await calculateMembershipTier(newSpent);
 
-    // update membership
+    // 5. Update
     const { data: updated, error: updateError } = await supabase
       .from("Membership")
       .update({
@@ -68,13 +80,13 @@ const handleOrderRefund = async (orderId) => {
       ["BRONZE", "SILVER", "GOLD", "PLATINUM"].indexOf(membership.membership);
 
     console.log(
-      `Membership refunded for customer ${order.customerId}: ${paymentAmount} (${membership.membership} → ${newTier})`,
+      `Membership refunded for customer ${order.customerId}: -${subtotal} (${membership.membership} → ${newTier})`,
     );
 
     return {
       success: true,
       customerId: order.customerId,
-      refundedAmount: paymentAmount,
+      refundedAmount: subtotal, // ← Trả về subtotal thay vì payment.amount
       previousSpent: membership.spent,
       newSpent: newSpent,
       previousTier: membership.membership,
@@ -93,28 +105,50 @@ const handleOrderRestore = async (orderId) => {
   const now = new Date().toISOString();
 
   try {
+    // 1. Lấy order + OrderItem
     const { data: order } = await supabase
       .from("Order")
-      .select(`id, customerId, Payment!Payment_orderId_fkey(amount)`)
+      .select(
+        `
+        id, customerId,
+        OrderItem!OrderItem_orderId_fkey(
+          quantity,
+          ProductVariant!OrderItem_productVariantId_fkey(
+            priceAdjustment,
+            Product!ProductVariant_productId_fkey(price)
+          )
+        )
+      `,
+      )
       .eq("id", orderId)
       .single();
 
-    if (!order) return { success: false };
+    if (!order) return { success: false, reason: "Order not found" };
 
-    const paymentAmount = order.Payment?.[0]?.amount || 0;
-    if (paymentAmount <= 0) return { success: false };
+    // 2. Tính subtotal từ OrderItem
+    let subtotal = 0;
+    for (const item of order.OrderItem) {
+      const basePrice = item.ProductVariant.Product.price;
+      const adjustment = item.ProductVariant.priceAdjustment || 0;
+      subtotal += (basePrice + adjustment) * item.quantity;
+    }
 
+    if (subtotal <= 0) return { success: false, reason: "Invalid subtotal" };
+
+    // 3. Lấy membership ← THIẾU ĐOẠN NÀY!
     const { data: membership } = await supabase
       .from("Membership")
       .select("id, membership, spent")
       .eq("customerId", order.customerId)
       .single();
 
-    if (!membership) return { success: false };
+    if (!membership) return { success: false, reason: "Membership not found" };
 
-    const newSpent = membership.spent + paymentAmount;
+    // 4. Tính tier mới
+    const newSpent = membership.spent + subtotal;
     const newTier = await calculateMembershipTier(newSpent);
 
+    // 5. Update
     await supabase
       .from("Membership")
       .update({
@@ -124,12 +158,14 @@ const handleOrderRestore = async (orderId) => {
       })
       .eq("id", membership.id);
 
-    console.log(` Membership restored for customer ${order.customerId}`);
+    console.log(
+      `Membership restored for customer ${order.customerId}: +${subtotal} (${membership.membership} → ${newTier})`,
+    );
 
     return { success: true, newSpent, newTier };
   } catch (error) {
     console.error("Handle order restore error:", error);
-    return { success: false };
+    return { success: false, reason: error.message };
   }
 };
 

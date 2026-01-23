@@ -8,7 +8,8 @@ const calculateMembershipTier = async (totalSpent) => {
 
   const matched = tiers.find(
     (tier) =>
-      totalSpent >= tier.min && (tier.max === null || totalSpent <= tier.max),
+      totalSpent >= tier.config.min &&
+      (tier.config.max === null || totalSpent <= tier.config.max),
   );
 
   return matched ? matched.name : "BRONZE";
@@ -233,6 +234,58 @@ const getMembershipTierConfig = async () => {
     }))
     .sort((a, b) => a.min - b.min);
 };
+// Recalculate tất cả membership dựa trên spent hiện tại
+const recalculateAllMemberships = async () => {
+  const { data: memberships, error } = await supabase
+    .from("Membership")
+    .select("id, customerId, spent, membership");
+
+  if (error) throw error;
+
+  const results = {
+    total: memberships.length,
+    updated: 0,
+    unchanged: 0,
+    errors: [],
+  };
+
+  for (const membership of memberships) {
+    try {
+      const correctTier = await calculateMembershipTier(membership.spent);
+
+      if (correctTier !== membership.membership) {
+        const { error: updateError } = await supabase
+          .from("Membership")
+          .update({
+            membership: correctTier,
+            updatedAt: new Date().toISOString(),
+          })
+          .eq("id", membership.id);
+
+        if (updateError) {
+          results.errors.push({
+            membershipId: membership.id,
+            error: updateError.message,
+          });
+        } else {
+          results.updated++;
+          console.log(
+            `Updated membership ${membership.id}: ${membership.membership} → ${correctTier} (spent: ${membership.spent})`,
+          );
+        }
+      } else {
+        results.unchanged++;
+      }
+    } catch (err) {
+      results.errors.push({
+        membershipId: membership.id,
+        error: err.message,
+      });
+    }
+  }
+
+  return results;
+};
 
 module.exports = {
   getMyMembership,
@@ -243,4 +296,5 @@ module.exports = {
   getMembershipById,
   getAllMemberships,
   getMembershipTierConfig,
+  recalculateAllMemberships,
 };
