@@ -22,7 +22,7 @@ const getAllProducts = (params = {}) => {
     if (search) searchParams.append('search', search);
     if (minPrice !== undefined) searchParams.append('minPrice', minPrice);
     if (maxPrice !== undefined) searchParams.append('maxPrice', maxPrice);
-    if (sellerId) searchParams.append('sellerId', sellerId);
+    if (sellerId) searchParams.append('sellerUserId', sellerId);
 
     const queryString = searchParams.toString();
     const url = queryString ? `/products?${queryString}` : '/products';
