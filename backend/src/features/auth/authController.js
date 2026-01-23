@@ -64,13 +64,13 @@ const login = async (req, res) => {
     // Set access token as httpOnly, Secure cookie
     res.cookie('accessToken', result.accessToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production', // true in production
-      sameSite: 'lax',
+      secure: true, // true in production
+      sameSite: 'none',
       maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
     });
 
     // Return user data only, not the token
-    successResponse(res, 200, { user: result.user }, "Login successful");
+    successResponse(res, 200, { user: result.user, accessToken: result.accessToken }, "Login successful");
   } catch (err) {
     errorResponse(res, err.status || 401, err.message || "Login failed");
   }
