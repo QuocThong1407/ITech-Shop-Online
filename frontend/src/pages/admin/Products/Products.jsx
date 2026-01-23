@@ -46,6 +46,7 @@ import TextEditor from "../../../components/common/TextEditor/TextEditor.jsx"
 import dayjs from 'dayjs';
 import "../../admin/Products/Products.css";
 import DescriptionEditor from "../../../components/common/DescriptionEditor/DescriptionEditor.jsx";
+import DescriptionRenderer from "../../../components/common/DescriptionRenderer/DescriptionRenderer.jsx";
 
 const {Title, Text} = Typography;
 const {Option} = Select;
@@ -1045,7 +1046,8 @@ const Products = () => {
                             padding: '10px 0'
                         }}>
                             <span style={{color: '#888'}}>Create At:</span>
-                            <span style={{fontWeight: 600}}>{dayjs(selectedProduct.createdAt).format('DD/MM/YYYY')}</span>
+                            <span
+                                style={{fontWeight: 600}}>{dayjs(selectedProduct.createdAt).format('DD/MM/YYYY')}</span>
                         </div>
 
                         <div style={{
@@ -1062,16 +1064,16 @@ const Products = () => {
                             <span style={{color: '#888', display: 'block', marginBottom: 5}}>Description:</span>
 
                             <div style={{
-                                background: '#f9f9f9',
-                                padding: 10,
+                                background: '#fff',
+                                padding: '16px',
                                 borderRadius: 8,
                                 fontSize: 13,
-                                maxHeight: '200px',
-                                overflowY: 'auto'
+                                maxHeight: '400px',
+                                overflowY: 'auto',
+                                border: '1px solid #d9d9d9'
                             }}>
 
-                                <div
-                                    dangerouslySetInnerHTML={{__html: selectedProduct.description || "No description."}}/>
+                                <DescriptionRenderer description={selectedProduct.description}/>
                             </div>
                         </div>
                     </div>
