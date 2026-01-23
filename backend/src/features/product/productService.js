@@ -424,7 +424,10 @@ const getAllProducts = async ({
     .eq("is_deleted", false);
 
   if (categoryId) query = query.eq("categoryId", categoryId);
-  if (sellerId) query = query.eq("createdBy", sellerId);
+  if (sellerId) {
+    query = query.eq("Seller.userId", sellerId);
+  }
+
   if (search)
     query = query.or(`name.ilike.%${search}%,description.ilike.%${search}%`);
   if (minPrice !== undefined) query = query.gte("price", parseFloat(minPrice));
