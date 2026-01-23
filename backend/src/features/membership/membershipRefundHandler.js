@@ -44,7 +44,7 @@ const handleOrderRefund = async (orderId) => {
     const newSpent = Math.max(0, membership.spent - paymentAmount);
 
     // tính tier mới
-    const newTier = calculateMembershipTier(newSpent);
+    const newTier = await calculateMembershipTier(newSpent);
 
     // update membership
     const { data: updated, error: updateError } = await supabase
@@ -113,7 +113,7 @@ const handleOrderRestore = async (orderId) => {
     if (!membership) return { success: false };
 
     const newSpent = membership.spent + paymentAmount;
-    const newTier = calculateMembershipTier(newSpent);
+    const newTier = await calculateMembershipTier(newSpent);
 
     await supabase
       .from("Membership")

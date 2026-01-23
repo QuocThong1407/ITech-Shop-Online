@@ -1,25 +1,17 @@
 // backend/src/features/membership/membershipService.js
 const { supabase } = require("../../configs/supabase");
-
-// Membership tiers và ngưỡng
-const MEMBERSHIP_TIERS = {
-  BRONZE: { min: 0, max: 999999, name: "BRONZE" },
-  SILVER: { min: 1000000, max: 4999999, name: "SILVER" },
-  GOLD: { min: 5000000, max: 9999999, name: "GOLD" },
-  PLATINUM: { min: 10000000, max: Infinity, name: "PLATINUM" },
-};
+const systemService = require("../system/systemService");
 
 //xd membership tier dựa trên tổng spent
-const calculateMembershipTier = (totalSpent) => {
-  if (totalSpent >= MEMBERSHIP_TIERS.PLATINUM.min) {
-    return "PLATINUM";
-  } else if (totalSpent >= MEMBERSHIP_TIERS.GOLD.min) {
-    return "GOLD";
-  } else if (totalSpent >= MEMBERSHIP_TIERS.SILVER.min) {
-    return "SILVER";
-  } else {
-    return "BRONZE";
-  }
+const calculateMembershipTier = async (totalSpent) => {
+  const tiers = await systemService.getMembershipTierConfig();
+
+  const matched = tiers.find(
+    (tier) =>
+      totalSpent >= tier.min && (tier.max === null || totalSpent <= tier.max),
+  );
+
+  return matched ? matched.name : "BRONZE";
 };
 
 //lấy thông tin membership của customer hiện tại
@@ -62,7 +54,7 @@ const getMyMembership = async (userId) => {
   if (!membership) throw { status: 404, message: "Membership not found" };
 
   // tính thông tin bổ sung
-  const nextTier = getNextTier(membership.membership);
+  const nextTier = await getNextTier(membership.membership);
 
   return {
     ...membership,
@@ -73,54 +65,27 @@ const getMyMembership = async (userId) => {
       spentToNextTier: nextTier
         ? Math.max(0, nextTier.min - membership.spent)
         : 0,
-      benefits: getMembershipBenefits(membership.membership),
+      benefits: await getMembershipBenefits(membership.membership),
     },
   };
 };
 
 //lấy tier tiếp theo
-const getNextTier = (currentTier) => {
-  const tiers = ["BRONZE", "SILVER", "GOLD", "PLATINUM"];
-  const currentIndex = tiers.indexOf(currentTier);
-
-  if (currentIndex === -1 || currentIndex === tiers.length - 1) {
-    return null;
-  }
-
-  const nextTierName = tiers[currentIndex + 1];
-  return MEMBERSHIP_TIERS[nextTierName];
+const getNextTier = async (currentTier) => {
+  const tiers = await systemService.getMembershipTierConfig();
+  const idx = tiers.findIndex((t) => t.name === currentTier);
+  return idx === -1 || idx === tiers.length - 1 ? null : tiers[idx + 1];
 };
 
 //lấy benefits của từng tier
-const getMembershipBenefits = (tier) => {
-  const benefits = {
-    BRONZE: {
-      discountPercentage: 0,
-      freeShipping: false,
-      prioritySupport: false,
-      earlyAccess: false,
-    },
-    SILVER: {
-      discountPercentage: 5,
-      freeShipping: false,
-      prioritySupport: false,
-      earlyAccess: false,
-    },
-    GOLD: {
-      discountPercentage: 10,
-      freeShipping: true,
-      prioritySupport: true,
-      earlyAccess: false,
-    },
-    PLATINUM: {
-      discountPercentage: 15,
-      freeShipping: true,
-      prioritySupport: true,
-      earlyAccess: true,
-    },
-  };
+const getMembershipBenefits = async (tier) => {
+  const { data } = await supabase
+    .from("SystemParameter")
+    .select("value")
+    .eq("key", `MEMBERSHIP_BENEFIT_${tier}`)
+    .single();
 
-  return benefits[tier] || benefits.BRONZE;
+  return data ? JSON.parse(data.value) : {};
 };
 
 //lấy danh sách top spent members (Admin)
@@ -146,11 +111,13 @@ const getTopSpentMembers = async (limit = 10) => {
   if (error) throw error;
 
   // Thêm rank và benefit info
-  return data.map((member, index) => ({
-    rank: index + 1,
-    ...member,
-    benefits: getMembershipBenefits(member.membership),
-  }));
+  return Promise.all(
+    data.map(async (member, index) => ({
+      rank: index + 1,
+      ...member,
+      benefits: await getMembershipBenefits(member.membership),
+    })),
+  );
 };
 
 //lấy membership theo customerId (helper gọi ở order)
@@ -191,7 +158,7 @@ const getMembershipById = async (id) => {
 
   return {
     ...data,
-    benefits: getMembershipBenefits(data.membership),
+    benefits: await getMembershipBenefits(data.membership),
   };
 };
 // Admin - lấy danh sách memberships
@@ -236,10 +203,12 @@ const getAllMemberships = async ({
   if (error) throw error;
 
   return {
-    data: data.map((m) => ({
-      ...m,
-      benefits: getMembershipBenefits(m.membership),
-    })),
+    data: await Promise.all(
+      data.map(async (m) => ({
+        ...m,
+        benefits: await getMembershipBenefits(m.membership),
+      })),
+    ),
     pagination: {
       page,
       limit,
@@ -247,6 +216,22 @@ const getAllMemberships = async ({
       totalPages: Math.ceil(count / limit),
     },
   };
+};
+
+const getMembershipTierConfig = async () => {
+  const { data, error } = await supabase
+    .from("SystemParameter")
+    .select("*")
+    .like("key", "MEMBERSHIP_TIER_%");
+
+  if (error) throw error;
+
+  return data
+    .map((row) => ({
+      ...JSON.parse(row.value),
+      name: row.key.replace("MEMBERSHIP_TIER_", ""),
+    }))
+    .sort((a, b) => a.min - b.min);
 };
 
 module.exports = {
@@ -257,4 +242,5 @@ module.exports = {
   getMembershipBenefits,
   getMembershipById,
   getAllMemberships,
+  getMembershipTierConfig,
 };
