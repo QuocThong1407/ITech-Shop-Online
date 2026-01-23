@@ -228,11 +228,7 @@ export default function DescriptionEditor({ value, onChange, onUploadedImages })
                       <Button
                         type="primary"
                         size="small"
-                        onClick={() => {
-                          // Just close the editor, content is already auto-saved
-                          setEditingSectionId(null);
-                          setEditingSectionData({ title: '', content: '' });
-                        }}
+                        onClick={handleSaveSection}
                       >
                         Done
                       </Button>
