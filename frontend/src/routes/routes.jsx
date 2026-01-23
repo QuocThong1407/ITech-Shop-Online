@@ -30,6 +30,7 @@ import VerifyEmail from "../pages/public/VerifyEmail/VerifyEmail.jsx";
 import AccessRestricted from "../pages/public/AccessRestricted/AccessRestricted.jsx";
 import Confirmation from "../pages/customer/Confirmation/Confirmation.jsx";
 import Loading from '../pages/customer/Loading/Loading.jsx';
+import PaymentResult from '../pages/customer/PaymentResult/PaymentResult.jsx';
 import ProductDetail from "../components/ProductDetail/ProductDetail.jsx";
 import Products from "../pages/seller/Products/Products.jsx";
 import Promotions from "../pages/admin/Promotions/Promotions.jsx";
@@ -104,6 +105,10 @@ export const routes = [
             {
                 path: '/loading',
                 element: <Loading/>,
+            },
+            {
+                path: '/payment-return',
+                element: <PaymentResult/>,
             },
             {
                 path: '/profile',

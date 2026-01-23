@@ -1,0 +1,38 @@
+.payment-result-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 60vh;
+    padding: 24px;
+}
+
+.payment-result-card {
+    max-width: 600px;
+    width: 100%;
+    text-align: center;
+}
+
+.loading-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 48px 24px;
+}
+
+.payment-result-card .ant-result-title {
+    font-size: 24px;
+    font-weight: 600;
+}
+
+.payment-result-card .ant-result-subtitle {
+    font-size: 16px;
+    color: #666;
+}
+
+.payment-result-card .ant-result-extra {
+    margin-top: 24px;
+}
+
+.payment-result-card .ant-result-extra .ant-btn {
+    margin: 8px;
+}

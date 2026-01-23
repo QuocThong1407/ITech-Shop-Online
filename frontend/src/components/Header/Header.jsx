@@ -157,7 +157,7 @@ const Header = () => {
             <Row className="header__middle">
                 <Col span={6}>
                     <Link to="/">
-                        <Typography.Title level={2} className="logo">
+                        <Typography.Title level={1} className="logo">
                             ITech Shop
                         </Typography.Title>
                     </Link>
@@ -166,7 +166,7 @@ const Header = () => {
                     <div style={{position: 'relative', width: '100%'}} ref={searchContainerRef}>
                         <AutoComplete
                             popupMatchSelectWidth={true}
-                            style={{width: '100%'}}
+                            style={{width: '90%'}}
                             options={options}
                             onSelect={onSelect}
                             onSearch={(text) => setSearchValue(text)}
