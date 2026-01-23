@@ -389,6 +389,51 @@ const updateProductStock = async (productId, stockQuantity, userId) => {
   return data;
 };
 
+// Helper function to calculate review stats for a product
+const getProductReviewStats = async (productId) => {
+  // Get all order items for this product's variants
+  const { data: orderItems } = await supabase
+    .from("OrderItem")
+    .select(
+      `
+      id,
+      quantity,
+      ProductVariant!OrderItem_productVariantId_fkey(
+        productId
+      )
+    `
+    )
+    .eq("ProductVariant.productId", productId);
+
+  if (!orderItems || orderItems.length === 0) {
+    return { averageRating: 0, reviewCount: 0, soldCount: 0 };
+  }
+
+  const orderItemIds = orderItems.map((oi) => oi.id);
+
+  // Calculate sold count from order items
+  const soldCount = orderItems.reduce((sum, oi) => sum + (oi.quantity || 0), 0);
+
+  // Get all reviews for these order items
+  const { data: reviews } = await supabase
+    .from("Review")
+    .select("rating")
+    .in("orderItemId", orderItemIds);
+
+  if (!reviews || reviews.length === 0) {
+    return { averageRating: 0, reviewCount: 0, soldCount };
+  }
+
+  const avgRating =
+    reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length;
+
+  return {
+    averageRating: Math.round(avgRating * 10) / 10,
+    reviewCount: reviews.length,
+    soldCount,
+  };
+};
+
 // Lấy danh sách product với phân trang và lọc
 const getAllProducts = async ({
   page = 1,
@@ -441,8 +486,21 @@ const getAllProducts = async ({
 
   if (error) throw error;
 
+  // Add review stats to each product
+  const productsWithStats = await Promise.all(
+    (data || []).map(async (product) => {
+      const reviewStats = await getProductReviewStats(product.id);
+      return {
+        ...product,
+        averageRating: reviewStats.averageRating,
+        reviewCount: reviewStats.reviewCount,
+        soldCount: reviewStats.soldCount,
+      };
+    })
+  );
+
   return {
-    products: data,
+    products: productsWithStats,
     pagination: {
       page: parseInt(page),
       limit: parseInt(limit),
@@ -491,7 +549,15 @@ const getProductById = async (productId) => {
   if (error) throw error;
   if (!product) throw { status: 404, message: "Product not found" };
 
-  return product;
+  // Add review stats to the product
+  const reviewStats = await getProductReviewStats(productId);
+
+  return {
+    ...product,
+    averageRating: reviewStats.averageRating,
+    reviewCount: reviewStats.reviewCount,
+    soldCount: reviewStats.soldCount,
+  };
 };
 
 // admin xóa product (soft delete)
