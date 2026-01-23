@@ -1,19 +1,16 @@
 const API_DOMAIN = import.meta.env.VITE_API_DOMAIN;
 
 const request = async (path, options = {}) => {
-    const token = localStorage.getItem('accessToken');
-
     const headers = {
         Accept: 'application/json',
         ...options.headers,
     };
 
-    if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
-    }
+    // No need to manually add Authorization header
+    // httpOnly cookie will be sent automatically with credentials: 'include'
 
     const defaultOptions = {
-        credentials: 'include',
+        credentials: 'include', // This sends cookies automatically
         ...options,
         headers: headers,
     };
@@ -24,9 +21,7 @@ const request = async (path, options = {}) => {
         const errorData = await response.json();
 
         if (response.status === 401) {
-            localStorage.removeItem('accessToken');
-            localStorage.removeItem('user');
-
+            // Token expired or invalid - cookie will be cleared by server
             if (window.location.pathname !== '/login') {
                 alert("Your login session has expired. Please log in again.");
                 window.location.href = '/login';

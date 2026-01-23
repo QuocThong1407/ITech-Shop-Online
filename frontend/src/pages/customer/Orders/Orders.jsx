@@ -180,6 +180,7 @@ const Orders = () => {
     const getStatusIcon = (status) => {
         switch (status) {
             case 'PENDING': return <ClockCircleOutlined />;
+            case 'CONFIRMED': return <CheckCircleOutlined />;
             case 'SHIPPED': return <CarOutlined />;
             case 'DELIVERED': return <CheckCircleOutlined />;
             case 'CANCELLED': return <CloseCircleOutlined />;
@@ -193,6 +194,7 @@ const Orders = () => {
     const getStatusColor = (status) => {
         switch (status) {
             case 'PENDING': return 'orange';
+            case 'CONFIRMED': return 'cyan';
             case 'SHIPPED': return 'blue';
             case 'DELIVERED': return 'green';
             case 'CANCELLED': return 'red';

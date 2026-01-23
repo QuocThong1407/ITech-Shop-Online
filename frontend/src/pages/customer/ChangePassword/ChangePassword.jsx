@@ -12,15 +12,15 @@ const ChangePassword = () => {
     const [loading, setLoading] = useState(false);
 
     const handleSendResetLink = async () => {
-        console.log("Sending reset link to:", user, user.email, user.user.email);
-        if (!user || !user.user.email) {
+        console.log("Sending reset link to:", user, user?.email);
+        if (!user || !user.email) {
             messageApi.error("User email not found. Please log in again.");
             return;
         }
 
         setLoading(true);
         try {
-            await authServices.forgotPassword(user.user.email);
+            await authServices.forgotPassword(user.email);
             messageApi.success("Reset link sent! Please check your email.");
         } catch (error) {
             messageApi.error(error.message || "Failed to send reset link.");

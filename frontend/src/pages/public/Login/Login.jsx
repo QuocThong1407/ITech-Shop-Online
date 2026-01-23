@@ -40,14 +40,16 @@ const Login = () => {
             });
 
             if (userData) {
-                dispatch(setLoginSuccess(userData.data));
+                // Normalize: store only the user object, not the wrapper
+                const user = userData.data?.user || userData.data;
+                dispatch(setLoginSuccess(user));
 
                 messageApi.open({
                     type: 'success',
                     content: 'Login Successfully!',
                     duration: 0.5,
                     onClose: () => {
-                        navigateBasedOnRole(userData.data.user.role);
+                        navigateBasedOnRole(user.role);
                     }
                 });
             }

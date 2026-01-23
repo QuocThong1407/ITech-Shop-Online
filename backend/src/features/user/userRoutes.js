@@ -3,10 +3,13 @@ const express = require("express");
 const router = express.Router();
 const userController = require("./userController");
 const { authenticate, checkRole } = require("../../middleware/index");
+const upload = require("../../middleware/upload");
 
 //current user
 router.get("/me", authenticate, userController.getMe);
 router.patch("/me", authenticate, userController.updateMe);
+router.get("/me/pfp", authenticate, userController.getPfp);
+router.post("/me/pfp", authenticate, upload.single("file"), userController.uploadPfp);
 
 //admin only
 router.use(authenticate, checkRole("ADMIN"));

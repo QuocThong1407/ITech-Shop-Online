@@ -143,8 +143,8 @@ const getPromotionById = async (promotionId) => {
 
   return {
     ...promotion,
-    products: products?.map((p) => p.Product) || [],
-    categories: categories?.map((c) => c.Category) || [],
+    appliedProducts: products?.map((p) => p.Product) || [],
+    appliedCategories: categories?.map((c) => c.Category) || [],
   };
 };
 

@@ -30,7 +30,7 @@ const ProductSection = ({title, products, bannerImage, onViewAll, categoryId }) 
                 )}
 
                 <Col xs={24} md={hasBanner ? 18 : 24}>
-                    <ProductGrid products={products} from={0} end={10} />
+                    <ProductGrid products={products} from={0} end={6} />
                 </Col>
             </Row>
         </div>

@@ -64,7 +64,7 @@ const Cart = () => {
             return;
         }
 
-        if (!user?.user?.id) {
+        if (!user?.id) {
             console.error('User customer ID not found:', user);
             message.error('Customer information not available');
             setLoading(false);
@@ -335,11 +335,15 @@ const Cart = () => {
 
         try {
             setCouponLoading(true);
-            const productVariantIds = cart.cartItems
-                .filter((item) => selectedItems.includes(item.id))
-                .map((item) => item.productVariant.id);
+            // Calculate order amount for selected items
+            const orderAmount = calculateTotal();
+            
+            if (orderAmount <= 0) {
+                message.warning('Please select items before applying a coupon');
+                return;
+            }
 
-            const response = await couponService.validateCoupon(code, productVariantIds);
+            const response = await couponService.validateCoupon(code, orderAmount);
 
             if (response?.data?.valid) {
                 setAppliedCoupon(response.data.coupon);
@@ -392,7 +396,7 @@ const Cart = () => {
             };
 
             console.log('Processing checkout:', {
-                customerId: user.user.id,
+                customerId: user.id,
                 selectedItems,
                 selectedAddress,
                 paymentMethod,
@@ -400,12 +404,12 @@ const Cart = () => {
             });
 
             const response = await orderService.createOrder({
-                // user.user.id,
+                // user.id,
                 // selectedItems,
                 // selectedAddress,
                 // paymentMethod,
                 // discountInfo
-                userId: user.user.id,
+                userId: user.id,
                 addressId: selectedAddress,
                 paymentMethod: paymentMethod,
                 // cartItemIds: selectedItems,

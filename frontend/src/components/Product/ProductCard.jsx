@@ -54,7 +54,8 @@ const ProductCard = ({ product }) => {
                         <Typography.Title 
                             level={5} 
                             className="product-name"
-                            ellipsis={{ tooltip: product.name }}
+                            ellipsis={{ rows: 2, tooltip: product.name }}
+                            title={product.name}
                         >
                             {product.name}
                         </Typography.Title>
