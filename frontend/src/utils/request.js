@@ -1,16 +1,19 @@
 const API_DOMAIN = import.meta.env.VITE_API_DOMAIN;
 
 const request = async (path, options = {}) => {
+    const token = localStorage.getItem('accessToken');
+
     const headers = {
         Accept: 'application/json',
         ...options.headers,
     };
 
-    // No need to manually add Authorization header
-    // httpOnly cookie will be sent automatically with credentials: 'include'
+    if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+    }
 
     const defaultOptions = {
-        credentials: 'include', // This sends cookies automatically
+        credentials: 'include',
         ...options,
         headers: headers,
     };

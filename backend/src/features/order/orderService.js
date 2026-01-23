@@ -17,8 +17,17 @@ const createOrder = async (userId, addressId, paymentMethod = "COD") => {
   orderHelper.validateCartItems(cartItems);
 
   // tính tổng tiền và tồn kho cần trừ
-  const { totalAmount, variantUpdates } =
-    orderHelper.calculateOrderDetails(cartItems);
+  const {
+    subtotal,
+    discountPercentage,
+    discountAmount,
+    finalAmount,
+    membershipTier,
+    variantUpdates,
+  } = await orderHelper.calculateOrderDetailsWithDiscount(
+    cartItems,
+    customer.id,
+  );
 
   let order = null;
   let createdItemIds = [];
@@ -57,7 +66,7 @@ const createOrder = async (userId, addressId, paymentMethod = "COD") => {
     // tạo payment
     await orderHelper.createPayment(
       order.id,
-      totalAmount,
+      finalAmount,
       paymentMethod,
       timestamp,
     );

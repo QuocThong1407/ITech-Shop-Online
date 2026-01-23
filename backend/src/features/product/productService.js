@@ -401,7 +401,7 @@ const getProductReviewStats = async (productId) => {
       ProductVariant!OrderItem_productVariantId_fkey(
         productId
       )
-    `
+    `,
     )
     .eq("ProductVariant.productId", productId);
 
@@ -511,7 +511,7 @@ const getAllProducts = async ({
         reviewCount: reviewStats.reviewCount,
         soldCount: reviewStats.soldCount,
       };
-    })
+    }),
   );
 
   return {

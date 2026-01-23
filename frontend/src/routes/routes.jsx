@@ -25,7 +25,7 @@ import OrderDetail from "../pages/customer/Orders/OrderDetail.jsx";
 import LeaveReview from "../pages/customer/Orders/LeaveReview.jsx";
 import AccountInfo from "../pages/customer/AccountInfo/AccountInfo.jsx";
 import CustomerProductDetail from "../components/ProductDetail/ProductDetail.jsx";
-import Profile from "../components/layouts/Profile/Profile.jsx";
+import Profile from "../components/Layouts/Profile/Profile.jsx";
 import VerifyEmail from "../pages/public/VerifyEmail/VerifyEmail.jsx";
 import AccessRestricted from "../pages/public/AccessRestricted/AccessRestricted.jsx";
 import Confirmation from "../pages/customer/Confirmation/Confirmation.jsx";

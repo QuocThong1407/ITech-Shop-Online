@@ -18,4 +18,6 @@ router.use(authenticate, checkRole("ADMIN"));
 router.get("/top-spent", membershipController.getTopSpentMembers); // GET /api/memberships/top-spent
 router.get("/", membershipController.getAllMemberships); // GET /api/memberships/
 router.get("/:id", membershipController.getMembershipById); // GET /api/memberships/:id
+router.post("/recalculate", membershipController.recalculateAllMemberships);
+
 module.exports = router;

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import {
     Card,
     Form,
@@ -6,11 +6,9 @@ import {
     Button,
     Tabs,
     message,
-    Spin,
     Typography,
     Row,
     Col,
-    Divider,
     Alert,
     Switch,
     Input
@@ -18,9 +16,7 @@ import {
 import {
     SaveOutlined,
     SettingOutlined,
-    RocketOutlined,
     CrownOutlined,
-    PercentageOutlined,
     CarOutlined,
     GiftOutlined
 } from "@ant-design/icons";
@@ -29,17 +25,19 @@ import "./Settings.css";
 
 const { Title, Text } = Typography;
 
+// 1. Định nghĩa danh sách Tier cố định
+const TIER_NAMES = ['BRONZE', 'SILVER', 'GOLD'];
+
 const Settings = () => {
     const [loading, setLoading] = useState(false);
-    
+
     const [vatForm] = Form.useForm();
     const [shippingForm] = Form.useForm();
-    
+
     const [membershipTierForm] = Form.useForm();
     const [membershipBenefitForm] = Form.useForm();
-    
-    const [tiers, setTiers] = useState([]);
-    const [benefits, setBenefits] = useState([]);
+
+    const [dataLoaded, setDataLoaded] = useState(false);
 
     const fetchAllData = async () => {
         setLoading(true);
@@ -50,7 +48,7 @@ const Settings = () => {
                 systemService.getMembershipTiers(),
                 systemService.getMembershipBenefits()
             ]);
-            
+
             if (vatRes.success && vatRes.data) {
                 vatForm.setFieldsValue({ rate: vatRes.data.value.rate });
             }
@@ -69,7 +67,6 @@ const Settings = () => {
             }
 
             if (tierRes.success && tierRes.data) {
-                setTiers(tierRes.data);
                 const tierValues = {};
                 tierRes.data.forEach(t => {
                     tierValues[`${t.name}_min`] = t.config.min;
@@ -79,7 +76,6 @@ const Settings = () => {
             }
 
             if (benefitRes.success && benefitRes.data) {
-                setBenefits(benefitRes.data);
                 const benefitValues = {};
                 benefitRes.data.forEach(b => {
                     benefitValues[`${b.tier}_discount`] = b.benefits.discountPercentage;
@@ -89,6 +85,8 @@ const Settings = () => {
                 });
                 membershipBenefitForm.setFieldsValue(benefitValues);
             }
+
+            setDataLoaded(true);
 
         } catch (error) {
             console.error(error);
@@ -106,12 +104,8 @@ const Settings = () => {
     const handleSaveGeneral = async () => {
         try {
             setLoading(true);
-            // const vatValues = await vatForm.validateFields();
-            // await systemService.updateVatRate(vatValues.rate);
-
             const shipValues = await shippingForm.validateFields();
             await systemService.updateShippingFee('STANDARD', shipValues);
-
             message.success("General settings updated successfully!");
             fetchAllData();
         } catch (error) {
@@ -127,23 +121,23 @@ const Settings = () => {
             setLoading(true);
 
             const tierValues = await membershipTierForm.validateFields();
-            const tierPromises = tiers.map(t => {
+            const tierPromises = TIER_NAMES.map(tierName => {
                 const payload = {
-                    min: tierValues[`${t.name}_min`],
-                    max: tierValues[`${t.name}_max`]
+                    min: tierValues[`${tierName}_min`],
+                    max: tierValues[`${tierName}_max`]
                 };
-                return systemService.updateMembershipTier(t.name, payload);
+                return systemService.updateMembershipTier(tierName, payload);
             });
 
             const benefitValues = await membershipBenefitForm.validateFields();
-            const benefitPromises = benefits.map(b => {
+            const benefitPromises = TIER_NAMES.map(tierName => {
                 const payload = {
-                    discountPercentage: benefitValues[`${b.tier}_discount`],
-                    freeShipping: benefitValues[`${b.tier}_freeShip`],
-                    prioritySupport: benefitValues[`${b.tier}_priority`],
-                    earlyAccess: benefitValues[`${b.tier}_early`]
+                    discountPercentage: benefitValues[`${tierName}_discount`],
+                    freeShipping: benefitValues[`${tierName}_freeShip`],
+                    prioritySupport: benefitValues[`${tierName}_priority`],
+                    earlyAccess: benefitValues[`${tierName}_early`]
                 };
-                return systemService.updateMembershipBenefit(b.tier, payload);
+                return systemService.updateMembershipBenefit(tierName, payload);
             });
 
             await Promise.all([...tierPromises, ...benefitPromises]);
@@ -162,21 +156,6 @@ const Settings = () => {
     const GeneralTab = () => (
         <div className="settings-tab-content">
             <Row gutter={[24, 24]}>
-                {/*<Col span={24}>*/}
-                {/*    <Card title={<span><PercentageOutlined /> VAT Rate (Value Added Tax)</span>} size="small">*/}
-                {/*        <Form form={vatForm} layout="vertical">*/}
-                {/*            <Form.Item*/}
-                {/*                name="rate"*/}
-                {/*                label="VAT Rate (%)"*/}
-                {/*                help="Applies to all orders."*/}
-                {/*                rules={[{ required: true, message: 'Please enter VAT rate' }]}*/}
-                {/*            >*/}
-                {/*                <InputNumber min={0} max={100} addonAfter="%" style={{ width: 200 }} />*/}
-                {/*            </Form.Item>*/}
-                {/*        </Form>*/}
-                {/*    </Card>*/}
-                {/*</Col>*/}
-
                 <Col span={24}>
                     <Card title={<span><CarOutlined /> Shipping Fees (Standard)</span>} size="small">
                         <Form form={shippingForm} layout="vertical">
@@ -220,6 +199,54 @@ const Settings = () => {
         </div>
     );
 
+    const renderTierInputs = (tierName, color) => (
+        <div key={tierName} className="tier-row" style={{ marginBottom: 16, paddingBottom: 16, borderBottom: '1px dashed #eee' }}>
+            <Text strong style={{ fontSize: 16, color: color }}>
+                {tierName}
+            </Text>
+            <Row gutter={16} style={{ marginTop: 8 }}>
+                <Col span={12}>
+                    <Form.Item name={`${tierName}_min`} label="Min Spending" rules={[{ required: true }]}>
+                        <InputNumber style={{ width: '100%' }} formatter={v => `${v}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')} parser={v => v.replace(/\$\s?|(,*)/g, '')} addonAfter="₫" />
+                    </Form.Item>
+                </Col>
+                <Col span={12}>
+                    <Form.Item name={`${tierName}_max`} label="Max Spending">
+                        <InputNumber style={{ width: '100%' }} formatter={v => `${v}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')} parser={v => v.replace(/\$\s?|(,*)/g, '')} addonAfter="₫" />
+                    </Form.Item>
+                </Col>
+            </Row>
+        </div>
+    );
+
+    const renderBenefitInputs = (tierName) => (
+        <div key={tierName} className="benefit-row" style={{ marginBottom: 24, background: '#fafafa', padding: 16, borderRadius: 8 }}>
+            <Text strong style={{ fontSize: 15 }}>Benefits for: {tierName}</Text>
+            <Row gutter={24} style={{ marginTop: 12 }}>
+                <Col span={6}>
+                    <Form.Item name={`${tierName}_discount`} label="Discount (%)">
+                        <InputNumber min={0} max={100} addonAfter="%" style={{ width: '100%' }} />
+                    </Form.Item>
+                </Col>
+                <Col span={6}>
+                    <Form.Item name={`${tierName}_freeShip`} label="Free Shipping" valuePropName="checked">
+                        <Switch />
+                    </Form.Item>
+                </Col>
+                <Col span={6}>
+                    <Form.Item name={`${tierName}_priority`} label="Priority Support" valuePropName="checked">
+                        <Switch />
+                    </Form.Item>
+                </Col>
+                <Col span={6}>
+                    <Form.Item name={`${tierName}_early`} label="Early Access" valuePropName="checked">
+                        <Switch />
+                    </Form.Item>
+                </Col>
+            </Row>
+        </div>
+    );
+
     const MembershipTab = () => (
         <div className="settings-tab-content">
             <Alert
@@ -234,32 +261,10 @@ const Settings = () => {
                 <Col span={24}>
                     <Card title={<span><CrownOutlined /> Membership Tiers Configuration</span>} size="small">
                         <Form form={membershipTierForm} layout="vertical">
-                            {tiers.map(tier => (
-                                <div key={tier.id} className="tier-row" style={{ marginBottom: 16, paddingBottom: 16, borderBottom: '1px dashed #eee' }}>
-                                    <Text strong style={{ fontSize: 16, color: tier.name === 'GOLD' ? '#faad14' : (tier.name === 'SILVER' ? '#7d7d7d' : '#8c5400') }}>
-                                        {tier.name}
-                                    </Text>
-                                    <Row gutter={16} style={{ marginTop: 8 }}>
-                                        <Col span={12}>
-                                            <Form.Item
-                                                name={`${tier.name}_min`}
-                                                label="Min Spending"
-                                                rules={[{ required: true }]}
-                                            >
-                                                <InputNumber style={{ width: '100%' }} formatter={v => `${v}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')} parser={v => v.replace(/\$\s?|(,*)/g, '')} addonAfter="₫" />
-                                            </Form.Item>
-                                        </Col>
-                                        <Col span={12}>
-                                            <Form.Item
-                                                name={`${tier.name}_max`}
-                                                label="Max Spending"
-                                            >
-                                                <InputNumber style={{ width: '100%' }} formatter={v => `${v}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')} parser={v => v.replace(/\$\s?|(,*)/g, '')} addonAfter="₫" />
-                                            </Form.Item>
-                                        </Col>
-                                    </Row>
-                                </div>
-                            ))}
+                            {/* Gọi hàm render cứng cho từng loại */}
+                            {renderTierInputs('BRONZE', '#8c5400')}
+                            {renderTierInputs('SILVER', '#7d7d7d')}
+                            {renderTierInputs('GOLD', '#faad14')}
                         </Form>
                     </Card>
                 </Col>
@@ -267,48 +272,10 @@ const Settings = () => {
                 <Col span={24}>
                     <Card title={<span><GiftOutlined /> Tier Benefits</span>} size="small">
                         <Form form={membershipBenefitForm} layout="vertical">
-                            {benefits.map(benefit => (
-                                <div key={benefit.id} className="benefit-row" style={{ marginBottom: 24, background: '#fafafa', padding: 16, borderRadius: 8 }}>
-                                    <Text strong style={{ fontSize: 15 }}>Benefits for: {benefit.tier}</Text>
-                                    <Row gutter={24} style={{ marginTop: 12 }}>
-                                        <Col span={6}>
-                                            <Form.Item
-                                                name={`${benefit.tier}_discount`}
-                                                label="Discount (%)"
-                                            >
-                                                <InputNumber min={0} max={100} addonAfter="%" style={{ width: '100%' }} />
-                                            </Form.Item>
-                                        </Col>
-                                        <Col span={6}>
-                                            <Form.Item
-                                                name={`${benefit.tier}_freeShip`}
-                                                label="Free Shipping"
-                                                valuePropName="checked"
-                                            >
-                                                <Switch />
-                                            </Form.Item>
-                                        </Col>
-                                        <Col span={6}>
-                                            <Form.Item
-                                                name={`${benefit.tier}_priority`}
-                                                label="Priority Support"
-                                                valuePropName="checked"
-                                            >
-                                                <Switch />
-                                            </Form.Item>
-                                        </Col>
-                                        <Col span={6}>
-                                            <Form.Item
-                                                name={`${benefit.tier}_early`}
-                                                label="Early Access"
-                                                valuePropName="checked"
-                                            >
-                                                <Switch />
-                                            </Form.Item>
-                                        </Col>
-                                    </Row>
-                                </div>
-                            ))}
+                            {/* Gọi hàm render cứng cho từng loại */}
+                            {renderBenefitInputs('BRONZE')}
+                            {renderBenefitInputs('SILVER')}
+                            {renderBenefitInputs('GOLD')}
                         </Form>
                     </Card>
                 </Col>

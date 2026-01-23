@@ -204,23 +204,25 @@ const getMembershipTiers = async () => {
   const { data, error } = await supabase
     .from("SystemParameter")
     .select("*")
-    .like("key", "MEMBERSHIP_TIER_%")
-    .order("key", { ascending: true });
+    .like("key", "MEMBERSHIP_TIER_%");
 
   if (error) throw error;
 
-  return data.map((tier) => {
-    const value = parseValue(tier.value);
-    return {
-      id: tier.id,
-      key: tier.key,
-      name: tier.key.replace("MEMBERSHIP_TIER_", ""),
-      config: value,
-      description: tier.description,
-      createdAt: tier.createdAt,
-      updatedAt: tier.updatedAt,
-    };
-  });
+  // Parse và sắp xếp theo min ascending
+  return data
+    .map((tier) => {
+      const value = parseValue(tier.value);
+      return {
+        id: tier.id,
+        key: tier.key,
+        name: tier.key.replace("MEMBERSHIP_TIER_", ""),
+        config: value,
+        description: tier.description,
+        createdAt: tier.createdAt,
+        updatedAt: tier.updatedAt,
+      };
+    })
+    .sort((a, b) => a.config.min - b.config.min); // ← Sắp xếp theo min
 };
 
 // Tạo/Cập nhật membership tier

@@ -555,6 +555,58 @@ const getOrderIdsForSeller = async (sellerId) => {
   return [...new Set((orderItems || []).map((item) => item.orderId))];
 };
 
+const membershipService = require("../membership/membershipService");
+// Tính tổng tiền SAU KHI áp dụng membership discount
+const calculateOrderDetailsWithDiscount = async (cartItems, customerId) => {
+  // Tính tổng tiền gốc
+  let totalAmount = 0;
+  const variantUpdates = [];
+
+  for (const item of cartItems) {
+    const basePrice = item.ProductVariant.Product.price;
+    const adjustment = item.ProductVariant.priceAdjustment || 0;
+    const itemPrice = basePrice + adjustment;
+    totalAmount += itemPrice * item.quantity;
+
+    variantUpdates.push({
+      variantId: item.productVariantId,
+      productId: item.ProductVariant.productId,
+      quantityToDeduct: item.quantity,
+      currentQuantity: item.ProductVariant.quantity,
+    });
+  }
+
+  // Lấy membership và discount
+  let discountPercentage = 0;
+  let membershipTier = "BRONZE";
+
+  try {
+    const membership =
+      await membershipService.getMembershipByCustomerId(customerId);
+    membershipTier = membership.membership;
+
+    const benefits =
+      await membershipService.getMembershipBenefits(membershipTier);
+    discountPercentage = benefits.discountPercentage || 0;
+  } catch (error) {
+    console.error("Failed to get membership discount:", error);
+    // Tiếp tục không discount nếu lỗi
+  }
+
+  // Tính số tiền giảm
+  const discountAmount = (totalAmount * discountPercentage) / 100;
+  const finalAmount = totalAmount - discountAmount;
+
+  return {
+    subtotal: totalAmount, // Tổng tiền gốc
+    discountPercentage, // % giảm giá
+    discountAmount, // Số tiền giảm
+    finalAmount, // Tổng tiền sau giảm
+    membershipTier, // Hạng membership
+    variantUpdates,
+  };
+};
+
 module.exports = {
   validatePaymentMethod,
   getCustomerByUserId,
@@ -578,4 +630,5 @@ module.exports = {
   checkOrderOwnership,
   checkSellerOrderOwnership,
   getOrderIdsForSeller,
+  calculateOrderDetailsWithDiscount,
 };
