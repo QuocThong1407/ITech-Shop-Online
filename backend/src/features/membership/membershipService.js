@@ -4,7 +4,7 @@ const systemService = require("../system/systemService");
 
 //xd membership tier dựa trên tổng spent
 const calculateMembershipTier = async (totalSpent) => {
-  const tiers = await systemService.getMembershipTierConfig();
+  const tiers = await systemService.getMembershipTiers();
 
   const matched = tiers.find(
     (tier) =>
@@ -72,7 +72,7 @@ const getMyMembership = async (userId) => {
 
 //lấy tier tiếp theo
 const getNextTier = async (currentTier) => {
-  const tiers = await systemService.getMembershipTierConfig();
+  const tiers = await systemService.getMembershipTiers();
   const idx = tiers.findIndex((t) => t.name === currentTier);
   return idx === -1 || idx === tiers.length - 1 ? null : tiers[idx + 1];
 };
