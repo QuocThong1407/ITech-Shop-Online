@@ -159,7 +159,19 @@ const resetPassword = async ({ token, newPassword }) => {
   if (!token || !newPassword) {
     throw { status: 400, message: "Token and newPassword are required" };
   }
-  const { data, error } = await supabase.auth.updateUser(token, {
+
+  // Set the session using the access token from the recovery flow
+  const { error: sessionError } = await supabase.auth.setSession({
+    access_token: token,
+    refresh_token: token, // For recovery flow, access_token can be used
+  });
+
+  if (sessionError) {
+    throw { status: 400, message: sessionError.message };
+  }
+
+  // Now update the user's password
+  const { data, error } = await supabase.auth.updateUser({
     password: newPassword,
   });
 

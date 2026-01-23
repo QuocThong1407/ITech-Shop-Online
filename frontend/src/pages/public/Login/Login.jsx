@@ -18,10 +18,10 @@ const Login = () => {
     const navigateBasedOnRole = (role) => {
         switch (role) {
             case 'ADMIN':
-                navigate('/admin/orders');
+                navigate('/admin');
                 break;
             case 'SELLER':
-                navigate('/seller/products');
+                navigate('/seller');
                 break;
             case 'CUSTOMER':
                 navigate('/');
@@ -40,14 +40,16 @@ const Login = () => {
             });
 
             if (userData) {
-                dispatch(setLoginSuccess(userData.data));
+                // Normalize: store only the user object, not the wrapper
+                const user = userData.data?.user || userData.data;
+                dispatch(setLoginSuccess(user));
 
                 messageApi.open({
                     type: 'success',
                     content: 'Login Successfully!',
                     duration: 0.5,
                     onClose: () => {
-                        navigateBasedOnRole(userData.data.role);
+                        navigateBasedOnRole(user.role);
                     }
                 });
             }

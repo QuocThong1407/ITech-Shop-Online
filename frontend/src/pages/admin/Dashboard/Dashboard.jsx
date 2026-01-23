@@ -86,7 +86,7 @@ const Dashboard = () => {
                 const amount = Number(order.Payment?.[0]?.amount || 0);
                 const orderDate = dayjs(order.createdAt).format('YYYY-MM-DD');
 
-                if (order.status === 'DELIVERED') {
+                if (order.status === 'DELIVERED' && order.Payment?.[0]?.status === 'SUCCESS') {
                     revenue += amount;
 
                     if (revenueByDate[orderDate]) {
@@ -293,7 +293,7 @@ const Dashboard = () => {
                     <div className="stat-widget-icon green"><DollarOutlined /></div>
 
                     <div className="stat-widget-content">
-                        <span className="stat-widget-label">Revenue (Delivered)</span>
+                        <span className="stat-widget-label">Revenue</span>
                         <span className="stat-widget-value">{loading ? <Skeleton.Button active size="small" /> : formatCurrency(stats.estimatedRevenue)}</span>
                     </div>
                 </div>

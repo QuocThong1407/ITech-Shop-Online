@@ -6,11 +6,11 @@ const { v4: uuidv4 } = require("uuid");
 
 // kiểm tra phương thức thanh toán hợp lệ
 const validatePaymentMethod = (paymentMethod) => {
-  const validMethods = ["COD", "VNPAY"];
+  const validMethods = ["COD", "VNPAY", "STRIPE"];
   if (!validMethods.includes(paymentMethod)) {
     throw {
       status: 400,
-      message: "Invalid payment method. Must be COD or VNPAY",
+      message: "Invalid payment method. Must be COD, VNPAY, or STRIPE",
     };
   }
 };

@@ -13,7 +13,7 @@ const CategoryListing = () => {
     useEffect(() => {
         const fetchCategories = async () => {
             try {
-                const categories = await categoryService.getCategoryStats();
+                const categories = await categoryService.getAllCategories();
                 dispatch(setCategories(categories.data))
             }
             catch(error) {

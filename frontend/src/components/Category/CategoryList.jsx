@@ -1,12 +1,12 @@
 import { Link } from "react-router"
 import { useSelector } from "react-redux"
-import { Button, Card, Space, Image } from 'antd'
+import { Button, Card, Space, Image, Typography } from 'antd'
 import { RightOutlined, LeftOutlined } from '@ant-design/icons'
 import './Category.css'
 // import { useRef } from "react"
 
 const CategoryList = () => {
-    const categories = useSelector(state => state.categories.topCategories)
+    const categories = useSelector(state => state.categories.allCategories)
     
     return (
         <Card title='Categories'>
@@ -19,9 +19,9 @@ const CategoryList = () => {
                                 <div className="category__image">
                                     <img src={image}/>
                                 </div>
-                                <div className="category__name">
+                                <Typography.Text ellipsis={{ tooltip: true }}>
                                     {name}
-                                </div>
+                                </Typography.Text>
                             </Button>
                         </Link>
                     )

@@ -25,7 +25,9 @@ import orderService from '../../../services/orderService';
 import addressService from '../../../services/addressService';
 import couponService from '../../../services/couponService';
 import membershipService from '../../../services/membershipService';
+import paymentService from '../../../services/paymentService';
 import { formatVND } from '../../../utils/converter';
+import BreadscrumbMenu from '../../../components/BreadscrumbMenu/BreadscrumbMenu.jsx';
 
 const { Title, Text } = Typography;
 
@@ -64,7 +66,7 @@ const Cart = () => {
             return;
         }
 
-        if (!user?.user?.id) {
+        if (!user?.id) {
             console.error('User customer ID not found:', user);
             message.error('Customer information not available');
             setLoading(false);
@@ -335,11 +337,15 @@ const Cart = () => {
 
         try {
             setCouponLoading(true);
-            const productVariantIds = cart.cartItems
-                .filter((item) => selectedItems.includes(item.id))
-                .map((item) => item.productVariant.id);
+            // Calculate order amount for selected items
+            const orderAmount = calculateTotal();
+            
+            if (orderAmount <= 0) {
+                message.warning('Please select items before applying a coupon');
+                return;
+            }
 
-            const response = await couponService.validateCoupon(code, productVariantIds);
+            const response = await couponService.validateCoupon(code, orderAmount);
 
             if (response?.data?.valid) {
                 setAppliedCoupon(response.data.coupon);
@@ -392,35 +398,52 @@ const Cart = () => {
             };
 
             console.log('Processing checkout:', {
-                customerId: user.user.id,
+                customerId: user.id,
                 selectedItems,
                 selectedAddress,
                 paymentMethod,
                 discountInfo
             });
 
+            // Create order first
             const response = await orderService.createOrder({
-                // user.user.id,
-                // selectedItems,
-                // selectedAddress,
-                // paymentMethod,
-                // discountInfo
-                userId: user.user.id,
+                userId: user.id,
                 addressId: selectedAddress,
                 paymentMethod: paymentMethod,
-                // cartItemIds: selectedItems,
-                // discountInfo: discountInfo
             });
 
             console.log('Checkout response:', response);
 
             if (response && (response.ok || response.data)) {
                 const orderData = response.data?.order || response.data;
+                const orderId = orderData?.id;
+
+                // Handle VNPay payment
+                if (paymentMethod === 'VNPAY' && orderId) {
+                    try {
+                        // VNPay must redirect to backend first, which then redirects to frontend
+                        const backendUrl = import.meta.env.VITE_API_DOMAIN || 'http://localhost:5000/api';
+                        const returnUrl = `${backendUrl}/payments/vnpay/return`;
+                        const paymentResponse = await paymentService.createVNPayPayment(orderId, returnUrl);
+                        
+                        if (paymentResponse?.data?.paymentUrl) {
+                            message.success('Redirecting to VNPay...');
+                            window.location.href = paymentResponse.data.paymentUrl;
+                            return;
+                        } else {
+                            throw new Error('Failed to get VNPay payment URL');
+                        }
+                    } catch (paymentError) {
+                        console.error('VNPay payment error:', paymentError);
+                        message.error(paymentError.message || 'Failed to initiate VNPay payment. Order created, please retry payment from orders page.');
+                        navigate('/orders');
+                        return;
+                    }
+                }
 
                 // Check if Stripe session URL exists
                 if (orderData?.stripeSessionUrl) {
                     message.success('Redirecting to Stripe checkout...');
-                    // Redirect to Stripe checkout page
                     window.location.href = orderData.stripeSessionUrl;
                     return;
                 }
@@ -464,9 +487,14 @@ const Cart = () => {
         );
     }
 
+    const breadcrumbItems = [
+        { title: 'Cart' }
+    ];
+
     return (
-        <div style={{ padding: '24px', maxWidth: '1200px', margin: '0 auto' }}>
-            <Card>
+        <div>
+            <BreadscrumbMenu items={breadcrumbItems} />
+            <Card style={{ marginTop: '16px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
                     <Checkbox
                         checked={selectedItems.length === cart.cartItems.length}
@@ -756,7 +784,7 @@ const Cart = () => {
                     >
                         <Space direction="vertical">
                             <Radio value="COD">Cash on Delivery (COD)</Radio>
-                            <Radio value="VNPAY" disabled>VNPay <Text type="secondary">(in maintenance)</Text></Radio>
+                            <Radio value="VNPAY">VNPay</Radio>
                             <Radio value="STRIPE">Stripe</Radio>
                         </Space>
                     </Radio.Group>

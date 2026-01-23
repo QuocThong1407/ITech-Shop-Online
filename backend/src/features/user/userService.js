@@ -286,6 +286,53 @@ const updateMe = async (userId, { username }) => {
   return data;
 };
 
+const getPfp = async (userId) => {
+  // Image is stored in Customer table, not User table
+  const { data: customer, error } = await supabase
+    .from("Customer")
+    .select("image")
+    .eq("userId", userId)
+    .single();
+
+  if (error && error.code !== 'PGRST116') throw error; // Ignore not found error
+  return { image: customer?.image || null };
+};
+
+const uploadPfp = async (userId, file) => {
+  const { uploadImageToSupabase, deleteImageFromSupabase } = require("../../utils/uploadHelper");
+  
+  // Get customer record
+  const { data: customer, error: customerError } = await supabase
+    .from("Customer")
+    .select("id, image")
+    .eq("userId", userId)
+    .single();
+
+  if (customerError) throw { status: 404, message: "Customer profile not found" };
+
+  // Delete old image if exists
+  if (customer?.image) {
+    await deleteImageFromSupabase(customer.image, "avatars");
+  }
+
+  // Upload new image
+  const imageUrl = await uploadImageToSupabase(file, "avatars", "pfp/");
+
+  // Update customer with new image URL
+  const { data, error } = await supabase
+    .from("Customer")
+    .update({
+      image: imageUrl,
+      updatedAt: new Date(),
+    })
+    .eq("id", customer.id)
+    .select("image")
+    .single();
+
+  if (error) throw error;
+  return { image: data.image };
+};
+
 module.exports = {
   getAllUsers,
   getUserById,
@@ -294,4 +341,6 @@ module.exports = {
   deleteUser,
   getUserStats,
   updateMe,
+  getPfp,
+  uploadPfp,
 };

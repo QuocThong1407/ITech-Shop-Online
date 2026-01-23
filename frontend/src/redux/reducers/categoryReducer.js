@@ -10,7 +10,7 @@ export const categoryReducer = (state = initialState, {type, payload}) => {
         case CategoryActionTypes.SET_CATEGORIES:
             return {
                 ...state,
-                allCategories: payload.allCategories,
+                allCategories: payload.allCategories || payload.categories,
                 topCategories: payload.topCategories
             }
         default:

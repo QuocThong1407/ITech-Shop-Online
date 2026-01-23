@@ -12,6 +12,7 @@ const ChangePassword = () => {
     const [loading, setLoading] = useState(false);
 
     const handleSendResetLink = async () => {
+        console.log("Sending reset link to:", user, user?.email);
         if (!user || !user.email) {
             messageApi.error("User email not found. Please log in again.");
             return;

@@ -108,18 +108,21 @@ const createPayment = async ({
   // Kiểm tra xem đã có payment chưa
   const { data: existingPayment } = await supabase
     .from("Payment")
-    .select("id, status")
+    .select("id, status, method")
     .eq("orderId", orderId)
     .single();
 
   if (existingPayment) {
-    //check trùng
-    if (["SUCCESS", "PENDING"].includes(existingPayment.status)) {
+    // If payment already SUCCESS, don't allow new payment
+    if (existingPayment.status === "SUCCESS") {
       throw {
         status: 400,
-        message: `Payment already exists with status: ${existingPayment.status}`,
+        message: `Payment already completed successfully`,
       };
     }
+    // If payment is PENDING with same method (e.g., for VNPay URL regeneration), allow it
+    // If payment is PENDING with different method, allow update to new method
+    // Only block if payment is already SUCCESS
   }
 
   // Tính tổng tiền từ order items

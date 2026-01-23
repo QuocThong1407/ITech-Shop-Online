@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef } from 'react'
 import "./Profile.scss"
 import { Avatar, Col, Menu, Row, message, Spin } from "antd";
 import { UserOutlined, RightOutlined, ShoppingOutlined, HomeOutlined, LockOutlined, CameraOutlined, CrownOutlined } from "@ant-design/icons";
-import { Outlet } from "react-router-dom";
+import { Outlet, useLocation } from "react-router-dom";
 import { Link } from "react-router-dom";
 import userService from "../../../services/userService";
 
@@ -13,6 +13,25 @@ const Profile = () => {
     const [loading, setLoading] = useState(false);
     const fileInputRef = useRef(null);
     const [isHovering, setIsHovering] = useState(false);
+    const location = useLocation();
+
+    // Determine selected menu key based on current URL
+    const getSelectedKey = () => {
+        const path = location.pathname;
+        if (path === '/profile' || path === '/profile/') {
+            return 'account-info';
+        }
+        if (path.includes('/profile/membership')) {
+            return 'membership';
+        }
+        if (path.includes('/profile/my-address')) {
+            return 'my-address';
+        }
+        if (path.includes('/profile/change-password')) {
+            return 'change-password';
+        }
+        return 'account-info';
+    };
 
     const menuItems = [
         {
@@ -231,7 +250,7 @@ const Profile = () => {
                             <Menu
                                 items={menuItems}
                                 mode="vertical"
-                                defaultSelectedKeys={['account-info']}
+                                selectedKeys={[getSelectedKey()]}
                                 style={{
                                     border: 'none',
                                 }}

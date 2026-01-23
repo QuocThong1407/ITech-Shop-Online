@@ -48,13 +48,14 @@ const Membership = () => {
     };
 
     const getNextTierInfo = (spent) => {
-        if (spent < 100) {
-            return { next: 'SILVER', goal: 100, remaining: 100 - spent };
+        // Backend uses VND thresholds: SILVER >= 1,000,000 VND, GOLD >= 5,000,000 VND
+        if (spent < 1000000) {
+            return { next: 'SILVER', goal: 1000000, remaining: 1000000 - spent };
         }
-        if (spent < 500) {
-            return { next: 'GOLD', goal: 500, remaining: 500 - spent };
+        if (spent < 5000000) {
+            return { next: 'GOLD', goal: 5000000, remaining: 5000000 - spent };
         }
-        return { next: null, goal: 2000, remaining: 0 };
+        return { next: null, goal: 5000000, remaining: 0 };
     };
 
     if (loading) {

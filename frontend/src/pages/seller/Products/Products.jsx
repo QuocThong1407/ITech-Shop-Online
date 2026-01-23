@@ -44,6 +44,8 @@ import {
 import TextEditor from "../../../components/common/TextEditor/TextEditor.jsx"
 import dayjs from 'dayjs';
 import "./Products.css";
+import DescriptionEditor from "../../../components/common/DescriptionEditor/DescriptionEditor.jsx";
+import DescriptionRenderer from "../../../components/common/DescriptionRenderer/DescriptionRenderer.jsx";
 
 const {Title, Text} = Typography;
 const {Option} = Select;
@@ -219,8 +221,8 @@ const Product = () => {
 
             const response = await productService.getAllProducts({
                 page: 1,
-                limit: 10000,
-                createdBy: sellerId
+                limit: 1000,
+                sellerId
             });
 
             const allProducts = response?.data?.products || [];
@@ -576,25 +578,28 @@ const Product = () => {
     },
     {
         title: "Action",
+        align: "center",
         render: (_, record) => (
             <div className="action-buttons">
-                <Tooltip title="View">
-                    <Button size="small"
-                            icon={<EyeOutlined style={{color: '#13c2c2'}}/>}
-                            onClick={() => {setSelectedProduct(record);setViewModalOpen(true);}}/>
-                </Tooltip>
-                <Tooltip title="Edit">
-                    <Button size="small"
-                            icon={<EditOutlined
-                                style={{color: '#faad14'}}/>}
-                            onClick={() => handleEdit(record)}/>
-                </Tooltip>
-                <Tooltip title="Delete">
-                    <Button size="small"
-                            danger
-                            icon={<DeleteOutlined/>}
-                            onClick={() => handleDelete(record.id)}/>
-                </Tooltip>
+                <Button size="small"
+                        style={{borderColor: '#008ECC'}}
+                        icon={<EyeOutlined style={{color: '#13c2c2'}}/>}
+                        onClick={() => {setSelectedProduct(record);setViewModalOpen(true);}}>
+                    View
+                </Button>
+
+                <Button size="small"
+                        icon={<EditOutlined style={{color: '#faad14'}}/>}
+                        style={{borderColor: '#faad14'}}
+                        onClick={() => handleEdit(record)}>
+                    Edit
+                </Button>
+                {/*<Tooltip title="Delete">*/}
+                {/*    <Button size="small"*/}
+                {/*            danger*/}
+                {/*            icon={<DeleteOutlined/>}*/}
+                {/*            onClick={() => handleDelete(record.id)}/>*/}
+                {/*</Tooltip>*/}
             </div>
         ),
     }], [categories]);
@@ -649,7 +654,7 @@ const Product = () => {
             children: (
                 <div className="section-content">
                     <Form.Item name="description" noStyle>
-                        <TextEditor placeholder="Enter details..."/>
+                        <DescriptionEditor placeholder="Enter details..."/>
                     </Form.Item>
                 </div>
             )
@@ -850,12 +855,12 @@ const Product = () => {
                     <div>
                         <Title level={2} style={{margin: 0, color: '#008ECC', fontWeight: 700}}>My Products</Title>
                     </div>
-                    <Button type="primary"
-                            icon={<PlusOutlined/>}
-                            style={{backgroundColor: '#008ECC'}}
-                            onClick={handleAdd}>
-                        Add Product
-                    </Button>
+                    {/*<Button type="primary"*/}
+                    {/*        icon={<PlusOutlined/>}*/}
+                    {/*        style={{backgroundColor: '#008ECC'}}*/}
+                    {/*        onClick={handleAdd}>*/}
+                    {/*    Add Product*/}
+                    {/*</Button>*/}
                 </div>
 
                 <div className="stats-grid">
@@ -913,17 +918,17 @@ const Product = () => {
                 </div>
             </div>
 
-            <Modal title="Add New Product"
-                   open={isAddModalOpen}
-                   onOk={submitAdd}
-                   onCancel={() => setIsAddModalOpen(false)} confirmLoading={addLoading}
-                   okText="Create"
-                   centered
-                   width={900}
-                   style={{top: 20}}>
+            {/*<Modal title="Add New Product"*/}
+            {/*       open={isAddModalOpen}*/}
+            {/*       onOk={submitAdd}*/}
+            {/*       onCancel={() => setIsAddModalOpen(false)} confirmLoading={addLoading}*/}
+            {/*       okText="Create"*/}
+            {/*       centered*/}
+            {/*       width={900}*/}
+            {/*       style={{top: 20}}>*/}
 
-                <Form form={addForm} layout="vertical">{renderProductFormContent(addForm)}</Form>
-            </Modal>
+            {/*    <Form form={addForm} layout="vertical">{renderProductFormContent(addForm)}</Form>*/}
+            {/*</Modal>*/}
 
             <Modal title="Edit Product"
                    open={isEditModalOpen}
@@ -977,7 +982,8 @@ const Product = () => {
                                 padding: '10px 0'
                             }}>
                                 <span style={{color: '#888'}}>Create At:</span>
-                                <span style={{fontWeight: 600}}>{dayjs(selectedProduct.createdAt).format('DD/MM/YYYY')}</span>
+                                <span
+                                    style={{fontWeight: 600}}>{dayjs(selectedProduct.createdAt).format('DD/MM/YYYY')}</span>
                             </div>
 
                             <div style={{
@@ -994,16 +1000,16 @@ const Product = () => {
                                 <span style={{color: '#888', display: 'block', marginBottom: 5}}>Description:</span>
 
                                 <div style={{
-                                    background: '#f9f9f9',
-                                    padding: 10,
+                                    background: '#fff',
+                                    padding: '16px',
                                     borderRadius: 8,
                                     fontSize: 13,
-                                    maxHeight: '200px',
-                                    overflowY: 'auto'
+                                    maxHeight: '400px',
+                                    overflowY: 'auto',
+                                    border: '1px solid #d9d9d9'
                                 }}>
 
-                                    <div
-                                        dangerouslySetInnerHTML={{__html: selectedProduct.description || "No description."}}/>
+                                    <DescriptionRenderer description={selectedProduct.description}/>
                                 </div>
                             </div>
                         </div>

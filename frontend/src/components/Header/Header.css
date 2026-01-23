@@ -38,7 +38,7 @@
 }
 
 .header .header__middle .logo {
-    font-size: 24px;
+    /* font-size: 24px; */
     font-weight: bold;
     color: #008ecc;
     text-decoration: none;
@@ -95,4 +95,32 @@
     background-color: #fff;
     border-top: 1px solid #e8e8e8;
     border-bottom: 1px solid #e8e8e8;
+}
+
+/* Search Suggestion Styles */
+.search-suggestion-item {
+    display: flex;
+    align-items: center;
+    padding: 8px 4px;
+}
+
+.search-suggestion-info {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    flex: 1;
+}
+
+.search-suggestion-info .product-name {
+    font-size: 14px;
+    line-height: 1.4;
+    max-width: 300px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.search-suggestion-info .product-price {
+    font-size: 13px;
+    font-weight: 600;
 }
