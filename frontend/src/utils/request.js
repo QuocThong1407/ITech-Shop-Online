@@ -1,8 +1,11 @@
 const API_DOMAIN = import.meta.env.VITE_API_DOMAIN;
 
 const request = async (path, options = {}) => {
+    const token = localStorage.getItem('token');
+
     const headers = {
         Accept: 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
         ...options.headers,
     };
 
