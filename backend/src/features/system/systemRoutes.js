@@ -4,7 +4,6 @@ const router = express.Router();
 const systemController = require("./systemController");
 const { authenticate, checkRole } = require("../../middleware/index");
 
-// Tất cả routes chỉ dành cho ADMIN
 router.use(authenticate, checkRole("ADMIN"));
 
 // === GENERAL ROUTES ===

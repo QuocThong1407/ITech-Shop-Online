@@ -2094,6 +2094,297 @@ These endpoints are called by VNPay to update transaction statuses in the system
 
 ---
 
+---
+
+## System Configuration (Admin Only)
+
+All system configuration endpoints require Admin authentication.
+
+### Get All System Configurations
+
+- **Method:** GET
+- **URL:** `/system`
+- **Auth:** Required (Admin)
+- **Response (200):**
+  ```json
+  {
+    "success": true,
+    "message": "System configurations retrieved",
+    "data": {
+      "membership": {
+        "tiers": [
+          {
+            "id": "string",
+            "key": "MEMBERSHIP_TIER_BRONZE",
+            "value": { "min": 0, "max": 999999, "name": "BRONZE" },
+            "description": "string"
+          }
+        ],
+        "benefits": [
+          {
+            "id": "string",
+            "key": "MEMBERSHIP_BENEFIT_BRONZE",
+            "value": {
+              "discountPercentage": 0,
+              "freeShipping": false,
+              "prioritySupport": false,
+              "earlyAccess": false
+            }
+          }
+        ]
+      },
+      "tax": {
+        "vat": {
+          "id": "string",
+          "key": "VAT_RATE",
+          "value": { "rate": 10 }
+        }
+      },
+      "shipping": {
+        "fees": [
+          {
+            "id": "string",
+            "key": "SHIPPING_STANDARD",
+            "value": {
+              "baseFee": 30000,
+              "feePerKm": 5000,
+              "freeShippingThreshold": 500000,
+              "maxDistance": 50
+            }
+          }
+        ]
+      }
+    }
+  }
+  ```
+- **Errors:** 401, 403, 500
+
+### Get Configuration by Key
+
+- **Method:** GET
+- **URL:** `/system/config/:key`
+- **Auth:** Required (Admin)
+- **Response (200):** Configuration object with parsed value
+- **Errors:** 401, 403, 404 (configuration not found), 500
+
+### Create Configuration
+
+- **Method:** POST
+- **URL:** `/system/config`
+- **Auth:** Required (Admin)
+- **Body:** JSON
+  ```json
+  {
+    "configKey": "string",
+    "configValue": "any (string, number, object, etc.)",
+    "description": "string (optional)"
+  }
+  ```
+- **Response (201):** Created configuration object
+- **Note:** Value is automatically stringified if object/array
+- **Errors:** 400 (validation, missing key/value), 401, 403, 409 (key already exists), 500
+
+### Update Configuration
+
+- **Method:** PUT
+- **URL:** `/system/config/:id`
+- **Auth:** Required (Admin)
+- **Body:** JSON (optional fields)
+  ```json
+  {
+    "configValue": "any",
+    "description": "string"
+  }
+  ```
+- **Response (200):** Updated configuration object
+- **Errors:** 400, 401, 403, 404 (configuration not found), 500
+
+### Delete Configuration
+
+- **Method:** DELETE
+- **URL:** `/system/config/:id`
+- **Auth:** Required (Admin)
+- **Response (200):** Success message
+- **Note:** Cannot delete protected configurations (e.g., VAT_RATE)
+- **Errors:** 401, 403 (protected config), 404, 500
+
+---
+
+### Get Membership Tiers
+
+- **Method:** GET
+- **URL:** `/system/membership/tiers`
+- **Auth:** Required (Admin)
+- **Response (200):**
+  ```json
+  {
+    "success": true,
+    "data": [
+      {
+        "id": "string",
+        "key": "MEMBERSHIP_TIER_BRONZE",
+        "name": "BRONZE",
+        "config": { "min": 0, "max": 999999, "name": "BRONZE" },
+        "description": "string",
+        "createdAt": "timestamp",
+        "updatedAt": "timestamp"
+      }
+    ]
+  }
+  ```
+- **Errors:** 401, 403, 500
+
+### Create/Update Membership Tier
+
+- **Method:** PUT
+- **URL:** `/system/membership/tiers/:tierName`
+- **Auth:** Required (Admin)
+- **Body:** JSON
+  ```json
+  {
+    "min": "number (>= 0)",
+    "max": "number (optional, must be > min)",
+    "description": "string (optional)"
+  }
+  ```
+- **Response (200):** Tier configuration object
+- **Note:** Upsert operation - creates if not exists, updates if exists
+- **Errors:** 400 (invalid config, max <= min), 401, 403, 500
+
+---
+
+### Get Membership Benefits
+
+- **Method:** GET
+- **URL:** `/system/membership/benefits`
+- **Auth:** Required (Admin)
+- **Response (200):**
+  ```json
+  {
+    "success": true,
+    "data": [
+      {
+        "id": "string",
+        "key": "MEMBERSHIP_BENEFIT_BRONZE",
+        "tier": "BRONZE",
+        "benefits": {
+          "discountPercentage": 0,
+          "freeShipping": false,
+          "prioritySupport": false,
+          "earlyAccess": false
+        },
+        "description": "string"
+      }
+    ]
+  }
+  ```
+- **Errors:** 401, 403, 500
+
+### Create/Update Membership Benefit
+
+- **Method:** PUT
+- **URL:** `/system/membership/benefits/:tierName`
+- **Auth:** Required (Admin)
+- **Body:** JSON
+  ```json
+  {
+    "discountPercentage": "number (0-100)",
+    "freeShipping": "boolean",
+    "prioritySupport": "boolean",
+    "earlyAccess": "boolean",
+    "description": "string (optional)"
+  }
+  ```
+- **Response (200):** Benefit configuration object
+- **Note:** Upsert operation - creates if not exists, updates if exists
+- **Errors:** 400 (invalid discount percentage), 401, 403, 500
+
+---
+
+### Get VAT Rate
+
+- **Method:** GET
+- **URL:** `/system/tax/vat`
+- **Auth:** Required (Admin)
+- **Response (200):**
+  ```json
+  {
+    "success": true,
+    "data": {
+      "id": "string",
+      "key": "VAT_RATE",
+      "value": { "rate": 10 },
+      "description": "Value Added Tax rate in percentage"
+    }
+  }
+  ```
+- **Note:** Auto-creates with default 10% if not exists
+- **Errors:** 401, 403, 500
+
+### Update VAT Rate
+
+- **Method:** PUT
+- **URL:** `/system/tax/vat`
+- **Auth:** Required (Admin)
+- **Body:** JSON
+  ```json
+  {
+    "rate": "number (0-100)"
+  }
+  ```
+- **Response (200):** Updated VAT configuration
+- **Errors:** 400 (rate not in 0-100 range), 401, 403, 500
+
+---
+
+### Get Shipping Fees
+
+- **Method:** GET
+- **URL:** `/system/shipping/fees`
+- **Auth:** Required (Admin)
+- **Response (200):**
+  ```json
+  {
+    "success": true,
+    "data": [
+      {
+        "id": "string",
+        "key": "SHIPPING_STANDARD",
+        "type": "STANDARD",
+        "config": {
+          "baseFee": 30000,
+          "feePerKm": 5000,
+          "freeShippingThreshold": 500000,
+          "maxDistance": 50
+        },
+        "description": "string"
+      }
+    ]
+  }
+  ```
+- **Errors:** 401, 403, 500
+
+### Create/Update Shipping Fee
+
+- **Method:** PUT
+- **URL:** `/system/shipping/fees/:type`
+- **Auth:** Required (Admin)
+- **Body:** JSON
+  ```json
+  {
+    "baseFee": "number (>= 0)",
+    "feePerKm": "number (>= 0)",
+    "freeShippingThreshold": "number (optional)",
+    "maxDistance": "number (optional)",
+    "description": "string (optional)"
+  }
+  ```
+- **Response (200):** Shipping fee configuration object
+- **Note:** Upsert operation - creates if not exists, updates if exists
+- **Errors:** 400 (negative fees), 401, 403, 500
+
+---
+
 ## Notes for Frontend Implementation
 
 - Always use `Authorization: Bearer <token>` header for authenticated requests
