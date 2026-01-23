@@ -10,8 +10,8 @@ const Footer = () => {
             <Row gutter={[32, 32]} style={{ width: '100%' }}>
                 <Col xs={24} sm={24} md={24} lg={8} xl={8}>
                     <Space direction="vertical" size="middle" style={{ width: '100%' }}>
-                        <Title level={4} style={{ margin: 0 }}>
-                            SWOO-1ST NYC TECH ONLINE MARKET
+                        <Title level={3} style={{ margin: 0, color: "#008ECC" }}>
+                            ITECH SHOP ONLINE MARKET
                         </Title>
                         <Space direction="vertical" size="small">
                             <Text type="secondary" strong>HOTLINE 24/7</Text>
@@ -136,7 +136,7 @@ const Footer = () => {
             <Row justify="center">
                 <Col>
                     <Text type="secondary">
-                        © 2025 SWOO-1ST. All rights reserved.
+                        © 2025 ITech Shop. All rights reserved.
                     </Text>
                 </Col>
             </Row>

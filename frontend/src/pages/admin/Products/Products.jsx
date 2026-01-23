@@ -559,7 +559,7 @@ const Products = () => {
                     <Space align={"center"}>
                         <UserOutlined/>
                         <div style={{ display: 'flex', flexDirection: 'column' }}>
-                            <Text style={{fontSize: 14}}>{record.Seller.email}</Text>
+                            <Text style={{fontSize: 14}}>{record.Seller.User.email}</Text>
                         </div>
                     </Space>
                     : <Text type="secondary">System/Admin</Text>

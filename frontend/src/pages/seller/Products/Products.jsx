@@ -270,7 +270,7 @@ const Product = () => {
                     page: 1,
                     limit: 1000,
                     search: q,
-                    createdBy: sellerId
+                    sellerId: sellerId
                 });
 
                 if (response?.data) {
