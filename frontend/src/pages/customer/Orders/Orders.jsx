@@ -33,6 +33,7 @@ import orderService from '../../../services/orderService';
 import cancellationService from '../../../services/cancellationService';
 import returnService from '../../../services/returnService';
 import paymentService from '../../../services/paymentService';
+import BreadscrumbMenu from "../../../components/BreadscrumbMenu/BreadscrumbMenu.jsx";
 
 const { Title, Text } = Typography;
 const { Panel } = Collapse;
@@ -113,17 +114,19 @@ const Orders = () => {
 
     const handleRetryPayment = async (orderId) => {
         try {
-            const response = await paymentService.retryPayment(orderId);
-            if (response?.data?.sessionUrl) {
-                message.success('Redirecting to Stripe checkout...');
-                window.location.href = response.data.sessionUrl;
-            } else if (response?.sessionUrl) {
-                window.location.href = response.sessionUrl;
+            // VNPay must redirect to backend first, which then redirects to frontend
+            const backendUrl = import.meta.env.VITE_API_DOMAIN || 'http://localhost:5000/api';
+            const returnUrl = `${backendUrl}/payments/vnpay/return`;
+            const response = await paymentService.createVNPayPayment(orderId, returnUrl);
+            
+            if (response?.data?.paymentUrl) {
+                message.success('Redirecting to VNPay...');
+                window.location.href = response.data.paymentUrl;
             } else {
-                throw new Error('Failed to get checkout URL');
+                throw new Error('Failed to get payment URL');
             }
         } catch (error) {
-            message.error(error.message || 'Failed to retry payment');
+            message.error(error.response?.data?.message || error.message || 'Failed to retry payment');
         }
     };
 
@@ -638,15 +641,32 @@ const Orders = () => {
         },
     ];
 
+    const getActiveTabTitle = () => {
+        switch (activeTab) {
+            case 'orders':
+                return 'Orders';
+            case 'returns':
+                return 'Returns';
+            case 'cancellations':
+                return 'Cancellations';
+            default:
+                return 'Orders';
+        }
+    };
+
+    const breadcrumbItems = [
+        { title: 'Orders', href: '#' },
+        { title: getActiveTabTitle() }
+    ];
+
     return (
-        <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '24px' }}>
-            <Title level={2} style={{ marginBottom: '24px' }}>
-                <ShoppingOutlined /> My Orders
-            </Title>
+        <div>
+            <BreadscrumbMenu items={breadcrumbItems} />
             <Tabs
                 activeKey={activeTab}
                 onChange={setActiveTab}
                 items={tabItems}
+                style={{ marginTop: '16px' }}
             />
 
             {/* Request Modals */}

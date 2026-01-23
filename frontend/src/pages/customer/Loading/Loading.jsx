@@ -9,8 +9,8 @@ const Loading = () => {
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
     const [status, setStatus] = useState('loading'); // loading, success, failed
-    const [message, setMessage] = useState('Processing your payment...');
-    const [orderId, setOrderId] = useState(null);
+    const [message, setMessage] = useState('Processing...');
+    const [currentOrderId, setCurrentOrderId] = useState(null);
 
     useEffect(() => {
         const orderId = searchParams.get('orderId');
@@ -25,42 +25,50 @@ const Loading = () => {
             return;
         }
 
-        // Update payment status with backend
-        const updatePayment = async () => {
+        setCurrentOrderId(orderId);
+
+        // Check payment status with backend
+        const checkPaymentStatus = async () => {
             try {
-                const result = await paymentService.updatePaymentStatus(orderId);
+                const result = await paymentService.getPaymentByOrderId(orderId);
+                const payment = result?.data;
                 
-                if (result.success) {
+                if (payment?.status === 'SUCCESS') {
                     setStatus('success');
-                    setMessage(result.message);
-                    setOrderId(result.orderId);
+                    setMessage('Payment completed successfully!');
                     
                     // Redirect to orders page after 3 seconds
                     setTimeout(() => {
                         navigate('/orders');
                     }, 3000);
+                } else if (payment?.status === 'PENDING') {
+                    setStatus('loading');
+                    setMessage('Payment is being processed...');
+                    
+                    // Check again after 2 seconds
+                    setTimeout(checkPaymentStatus, 2000);
                 } else {
                     setStatus('failed');
-                    setMessage(result.message);
+                    setMessage('Payment failed or was cancelled.');
                     
-                    // Redirect to cart after 5 seconds
+                    // Redirect to orders after 5 seconds
                     setTimeout(() => {
-                        navigate('/cart');
+                        navigate('/orders');
                     }, 5000);
                 }
             } catch (error) {
-                console.error('Payment update error:', error);
+                console.error('Payment check error:', error);
                 setStatus('failed');
-                setMessage('Error processing payment. Please check your orders or contact support.');
+                setMessage('Error checking payment status. Please check your orders.');
                 
-                // Redirect to orders page after 5 seconds to check manually
+                // Redirect to orders page after 5 seconds
                 setTimeout(() => {
                     navigate('/orders');
                 }, 5000);
             }
         };
 
-        updatePayment();
+        checkPaymentStatus();
     }, [searchParams, navigate]);
 
     const renderIcon = () => {
@@ -87,7 +95,7 @@ const Loading = () => {
                         subTitle={
                             <>
                                 <p>{message}</p>
-                                {orderId && <p>Order ID: <strong>{orderId}</strong></p>}
+                                {currentOrderId && <p>Order ID: <strong>{currentOrderId}</strong></p>}
                                 <p>You will be redirected to your orders page shortly...</p>
                             </>
                         }

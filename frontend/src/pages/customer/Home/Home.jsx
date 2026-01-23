@@ -1,13 +1,13 @@
-import React, { use, useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router'
 import CategoryListing from '../../../components/Category/CategoryListing'
 import ProductSection from '../../../components/Product/ProductSection'
 import PromotionFlag from '../../../components/PromotionFlag/PromotionFlag'
 import { setProducts } from '../../../redux/actions/productAction.js'
 import { useDispatch, useSelector } from 'react-redux'
-import { get } from '../../../utils/request'
 import categoryService from '../../../services/categoryService.js'
 import productService from '../../../services/productService.js'
+import { Spin, Empty } from 'antd'
 
 const Home = () => {
   const dispatch = useDispatch()
@@ -17,7 +17,6 @@ const Home = () => {
   const [topCategories, setTopCategories] = useState([])
 
   const allProducts = useSelector(state => state.allProducts.products)
-  const allCategories = useSelector(state => state.categories.allCategories)
   const user = useSelector(state => state.authReducer.user)
   const navigate = useNavigate()
 
@@ -30,60 +29,78 @@ const Home = () => {
   }, [user, navigate])
 
   useEffect(() => {
-    const getProducts = async () => {
+    const fetchData = async () => {
       try {
         setIsLoading(true)
-        const data = await productService.getAllProducts({ limit: 100 })
+        
+        // Fetch both products and categories in parallel
+        const [productsResponse, categoriesResponse] = await Promise.all([
+          productService.getAllProducts({ limit: 100 }),
+          categoryService.getCategoryStats()
+        ])
 
-        dispatch(setProducts(data.data.products))
+        // Set products first
+        if (productsResponse?.data?.products) {
+          dispatch(setProducts(productsResponse.data.products))
+        }
+
+        // Then set categories
+        if (categoriesResponse?.data?.topCategories) {
+          setTopCategories(categoriesResponse.data.topCategories)
+        }
+
         setError(null)
       } catch (error) {
-        console.error("Lỗi khi tải sản phẩm:", error);
-        setError("Unable to load product data.");
+        console.error("Error loading data:", error);
+        setError("Unable to load data.");
       } finally {
         setIsLoading(false)
       }
     }
-    
-    const getTopCategories = async () => {
-      try {
-        setIsLoading(true)
-        const data = await categoryService.getCategoryStats();
-        setTopCategories(data.data.topCategories)
-      } catch (error) {
-        console.error("Lỗi khi tải danh mục hàng đầu:", error);
-      }
-    }
 
-    getTopCategories()
-    getProducts()
-  }, [])
+    fetchData()
+  }, [dispatch])
 
+  // Filter categories that actually have products to display
+  const categoriesWithProducts = topCategories.filter(category => {
+    const categoryProducts = allProducts.filter(p => p.categoryId === category.id)
+    return categoryProducts.length > 0
+  })
+
+  if (isLoading) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '400px' }}>
+        <Spin size="large" />
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div style={{ padding: '50px' }}>
+        <Empty description={error} />
+      </div>
+    )
+  }
 
   return (
     <div>
       <CategoryListing />
       <PromotionFlag />
-      {topCategories.map(category => (
-        <ProductSection
-          key={category.id}
-          title={category.name}
-          products={allProducts.filter(p => p.categoryId === category.id)}
-          categoryId={category.id}
-        />  
-      ))}
-      {/* <ProductSection
-        title='test'
-        products={allProducts}
-      />
-      <ProductSection
-        title='Suggested: this should be best-selling products of the week/month'
-        products={allProducts}
-      />
-      <ProductSection
-        title='Suggested: this should be recommended products for the user'
-        products={allProducts}
-      /> */}
+      {categoriesWithProducts.length > 0 ? (
+        categoriesWithProducts.map(category => (
+          <ProductSection
+            key={category.id}
+            title={category.name}
+            products={allProducts.filter(p => p.categoryId === category.id)}
+            categoryId={category.id}
+          />  
+        ))
+      ) : (
+        <div style={{ padding: '50px', textAlign: 'center' }}>
+          <Empty description="No products available" />
+        </div>
+      )}
     </div>
   )
 }
