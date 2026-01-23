@@ -86,7 +86,7 @@ const Dashboard = () => {
                 const amount = Number(order.Payment?.[0]?.amount || 0);
                 const orderDate = dayjs(order.createdAt).format('YYYY-MM-DD');
 
-                if (order.status === 'DELIVERED' && order.Payment?.[0]?.status === 'SUCCESS') {
+                if (order.Payment?.[0]?.status === 'SUCCESS') {
                     revenue += amount;
 
                     if (revenueByDate[orderDate]) {
