@@ -1,10 +1,3 @@
-import {
-    UserOutlined,
-    BarChartOutlined,
-    GiftOutlined,
-    ProductOutlined
-} from "@ant-design/icons";
-import {Link, useLocation} from "react-router-dom";
 import {Layout, Menu} from 'antd';
 import "./AppSider.css"
 

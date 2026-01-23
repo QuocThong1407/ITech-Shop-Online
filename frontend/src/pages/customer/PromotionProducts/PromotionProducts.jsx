@@ -1,5 +1,6 @@
 import {useEffect, useState} from "react";
 import {useParams} from "react-router";
+import {Link} from "react-router-dom";
 import promotionService from "../../../services/promotionService.js";
 import productService from "../../../services/productService.js";
 import BreadscrumbMenu from "../../../components/BreadscrumbMenu/BreadscrumbMenu.jsx";
@@ -23,11 +24,8 @@ const PromotionProducts = () => {
             setLoading(true);
             try {
                 const promoRes = await promotionService.getPromotionById(id);
-                console.log("Promotion data:", promoRes);
-
                 const promoData = promoRes.data?.promotion || promoRes.data || {};
                 setPromotion(promoData);
-                console.log("Fetched promotion data:", promoData);
 
                 let fetchedProducts = [];
 
@@ -72,8 +70,7 @@ const PromotionProducts = () => {
 
                 setProducts(uniqueProducts);
             }
-            catch (error) {
-                console.error("Error fetching promotion data:", error);
+            catch {
                 setProducts([]);
             }
             finally {
@@ -157,7 +154,12 @@ const PromotionProducts = () => {
                             <Row gutter={[16, 16]}>
                                 {products.map(product => (
                                     <Col key={product.id} xs={12} sm={12} md={8} lg={6} xl={{ flex: '20%' }} xxl={4}>
-                                        <ProductCard product={product} />
+                                        <Link 
+                                            to={`/product/${product.id}`} 
+                                            className="product-link" 
+                                        >
+                                            <ProductCard product={product} />
+                                        </Link>
                                     </Col>
                                 ))}
                             </Row>

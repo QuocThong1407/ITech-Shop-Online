@@ -1,7 +1,5 @@
 import { useState, useEffect } from 'react'
 import { useDispatch } from 'react-redux'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
 import './App.css'
 import AllRoutes from "./components/AllRoutes/AllRoutes.jsx";
 import authService from './services/authService.js'
@@ -21,9 +19,8 @@ function App() {
         if (response && response.data) {
           dispatch(setLoginSuccess(response.data))
         }
-      } catch (error) {
+      } catch {
         // No valid session - user needs to login
-        console.log('No active session')
       }
       
       setIsRestoring(false)

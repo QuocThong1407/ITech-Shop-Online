@@ -67,7 +67,7 @@ const LeaveReview = () => {
     );
 };
 
-const ReviewItem = ({ item, orderId, onSuccess }) => {
+const ReviewItem = ({ item, onSuccess }) => {
     const [currentReview, setCurrentReview] = useState(null);
     const [loading, setLoading] = useState(true);
     const [rating, setRating] = useState(0);

@@ -22,36 +22,46 @@ const Footer = () => {
                             NYC 10092
                         </Paragraph>
                         <Space size="middle">
-                            <Button 
-                                type="default" 
-                                shape="circle" 
-                                icon={<TwitterOutlined />} 
-                                className="media__icon twitter"
-                            />
-                            <Button 
-                                type="default" 
-                                shape="circle" 
-                                icon={<FacebookOutlined />} 
-                                className="media__icon facebook"
-                            />
-                            <Button 
-                                type="default" 
-                                shape="circle" 
-                                icon={<InstagramOutlined />} 
-                                className="media__icon instagram"
-                            />
-                            <Button 
-                                type="default" 
-                                shape="circle" 
-                                icon={<YoutubeOutlined />} 
-                                className="media__icon youtube"
-                            />
-                            <Button 
-                                type="default" 
-                                shape="circle" 
-                                icon={<PinterestOutlined />} 
-                                className="media__icon"
-                            />
+                            <a href="https://x.com/" target="_blank" rel="noopener noreferrer">
+                                <Button 
+                                    type="default" 
+                                    shape="circle" 
+                                    icon={<TwitterOutlined />} 
+                                    className="media__icon twitter"
+                                />
+                            </a>
+                            <a href="https://facebook.com/" target="_blank" rel="noopener noreferrer">
+                                <Button 
+                                    type="default" 
+                                    shape="circle" 
+                                    icon={<FacebookOutlined />} 
+                                    className="media__icon facebook"
+                                />
+                            </a>
+                            <a href="https://instagram.com/" target="_blank" rel="noopener noreferrer">
+                                <Button 
+                                    type="default" 
+                                    shape="circle" 
+                                    icon={<InstagramOutlined />} 
+                                    className="media__icon instagram"
+                                />
+                            </a>
+                            <a href="https://youtube.com/" target="_blank" rel="noopener noreferrer">
+                                <Button 
+                                    type="default" 
+                                    shape="circle" 
+                                    icon={<YoutubeOutlined />} 
+                                    className="media__icon youtube"
+                                />
+                            </a>
+                            <a href="https://pinterest.com/" target="_blank" rel="noopener noreferrer">
+                                <Button 
+                                    type="default" 
+                                    shape="circle" 
+                                    icon={<PinterestOutlined />} 
+                                    className="media__icon pinterest"
+                                />
+                            </a>
                         </Space>
                     </Space>
                 </Col>

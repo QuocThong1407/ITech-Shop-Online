@@ -32,10 +32,6 @@ const PromotionFlag = () => {
         fetchActivePromotions()
     }, [])
 
-    const handlePromotionClick = (promotionId) => {
-        navigate(`/promotion/${promotionId}`)
-    }
-
     if (loading) {
         return (
             <div className="promotion-flag-container">

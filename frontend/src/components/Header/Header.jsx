@@ -30,13 +30,12 @@ const Header = () => {
             try {
                 const categories = await categoryService.getAllCategories();
                 dispatch(setCategories(categories.data))
-            }
-            catch (error) {
-                console.error(error)
+            } catch {
+                // Failed to load categories
             }
         }
         fetchCategories()
-    }, []);
+    }, [dispatch]);
 
     // Search suggestions with debounce
     useEffect(() => {

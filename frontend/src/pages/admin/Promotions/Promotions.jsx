@@ -1,4 +1,4 @@
-import React, {useState, useEffect, useCallback, useMemo} from "react";
+import React, {useState, useEffect, useCallback} from "react";
 import promotionService from "../../../services/promotionService";
 import productService from "../../../services/productService";
 import categoryService from "../../../services/categoryService";
@@ -129,7 +129,7 @@ const Promotions = () => {
                 });
                 setStats({total: promotions.length, active, upcoming, expired, inactive});
             }
-        } catch (error) {
+        } catch {
             messageApi.error("Failed to load promotions");
         } finally {
             setLoading(false);
@@ -298,7 +298,7 @@ const Promotions = () => {
                     await promotionService.deletePromotion(id);
                     messageApi.success("Deleted successfully");
                     await fetchPromotions();
-                } catch (error) {
+                } catch {
                     messageApi.error("Delete failed");
                 }
             }

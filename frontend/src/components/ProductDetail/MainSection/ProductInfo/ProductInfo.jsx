@@ -21,10 +21,6 @@ const ProductInfo = ({
     const { isAuthenticated } = useSelector(state => state.authReducer || { isAuthenticated: false })
     const navigate = useNavigate()
 
-    console.log("ProductInfo selectedProductVariant:", selectedProductVariant)
-    console.log("ProductInfo selectedAttributes:", selectedAttributes)
-    console.log("ProductInfo isAuthenticated:", isAuthenticated)
-
     // Format price to VND
     const formatVND = (price) => {
         return new Intl.NumberFormat('vi-VN', {

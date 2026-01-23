@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import categoryService from "../../../services/categoryService.js";
 import productService from "../../../services/productService.js";
 import {
@@ -233,7 +233,7 @@ const Category = () => {
                     await categoryService.deleteCategory(id);
                     messageApi.success("Deleted successfully");
                     fetchCategories();
-                } catch (error) {
+                } catch {
                     messageApi.error("Delete failed");
                 }
             }
