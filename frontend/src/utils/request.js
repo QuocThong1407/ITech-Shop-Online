@@ -22,7 +22,11 @@ const request = async (path, options = {}) => {
 
         if (response.status === 401) {
             // Token expired or invalid - cookie will be cleared by server
-            if (window.location.pathname !== '/login') {
+            // Don't show alert or redirect for public auth-related pages
+            const publicAuthPaths = ['/login', '/register', '/verify-email', '/reset-password', '/forgot-password'];
+            const isPublicAuthPage = publicAuthPaths.some(p => window.location.pathname.startsWith(p));
+            
+            if (!isPublicAuthPage) {
                 alert("Your login session has expired. Please log in again.");
                 window.location.href = '/login';
             }
