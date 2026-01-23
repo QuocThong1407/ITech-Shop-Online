@@ -23,17 +23,21 @@ const PromotionProducts = () => {
             setLoading(true);
             try {
                 const promoRes = await promotionService.getPromotionById(id);
+                console.log("Promotion data:", promoRes);
 
                 const promoData = promoRes.data?.promotion || promoRes.data || {};
                 setPromotion(promoData);
+                console.log("Fetched promotion data:", promoData);
 
                 let fetchedProducts = [];
 
                 if (promoData) {
                     const promises = [];
 
-                    if (promoData.appliedCategories && promoData.appliedCategories.length > 0) {
-                        promoData.appliedCategories.forEach(cat => {
+                    // Check for both appliedCategories (correct field) and categories (legacy)
+                    const categories = promoData.appliedCategories || promoData.categories || [];
+                    if (categories.length > 0) {
+                        categories.forEach(cat => {
                             promises.push(
                                 productService.getAllProducts({categoryId: cat.id})
                                     .then(res => res.data?.products || [])
@@ -42,8 +46,10 @@ const PromotionProducts = () => {
                         });
                     }
 
-                    if (promoData.appliedProducts && promoData.appliedProducts.length > 0) {
-                        promoData.appliedProducts.forEach(prod => {
+                    // Check for both appliedProducts (correct field) and products (legacy)
+                    const appliedProducts = promoData.appliedProducts || promoData.products || [];
+                    if (appliedProducts.length > 0) {
+                        appliedProducts.forEach(prod => {
                             promises.push(
                                 productService.getProductById(prod.id)
                                     .then(res => res.data ? [res.data] : [])
