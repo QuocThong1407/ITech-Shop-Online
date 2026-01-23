@@ -11,6 +11,5 @@ router.get("/:id", addressController.getAddressById); // GET /api/addresses/:id
 router.post("/", addressController.createAddress); // POST /api/addresses
 router.put("/:id", addressController.updateAddress); // PUT /api/addresses/:id
 router.delete("/:id", addressController.deleteAddress); // DELETE /api/addresses/:id
-router.patch("/:id/default", addressController.setDefaultAddress); // PATCH /api/addresses/:id/default
 
 module.exports = router;
