@@ -1,0 +1,80 @@
+.membership {
+    padding: 24px;
+
+    &__card {
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        border: none;
+    }
+
+    .tier-card {
+        background: linear-gradient(135deg, #ffffff 0%, #f0f8ff 100%);
+    }
+
+    &__tier-info {
+        display: flex;
+        align-items: center;
+        gap: 24px;
+    }
+
+    &__tier-icon {
+        font-size: 48px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 80px;
+        height: 80px;
+        background: white;
+        border-radius: 50%;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    &__spent {
+        margin-bottom: 16px;
+    }
+
+    &__progress {
+        margin-top: 24px;
+    }
+
+    &__next-tier {
+        margin-top: 12px;
+        text-align: right;
+    }
+
+    &__benefits {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+
+        li {
+            padding: 12px 0;
+            border-bottom: 1px solid #f0f0f0;
+            display: flex;
+            align-items: center;
+
+            &::before {
+                content: "✓";
+                color: #52c41a;
+                margin-right: 12px;
+                font-weight: bold;
+            }
+
+            &:last-child {
+                border-bottom: none;
+            }
+        }
+    }
+}
+
+.membership-loading {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 400px;
+}
+
+.membership-empty {
+    padding: 48px;
+    text-align: center;
+}

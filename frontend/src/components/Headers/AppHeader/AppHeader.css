@@ -1,0 +1,66 @@
+.admin-header {
+    width: 100%;
+    background-color: #fff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    z-index: 999;
+    height: 64px;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+}
+
+.admin-header .admin-header__main {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    height: 64px;
+    padding: 10px 24px;
+}
+
+.admin-header .admin-header__main .logo {
+    font-size: 24px;
+    font-weight: bold;
+    color: #008ecc;
+    text-decoration: none;
+}
+
+.admin-header .admin-header__main .main__right {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 20px;
+}
+
+.admin-header .user-menu-trigger {
+    display: flex;
+    align-items: center;
+    color: #333;
+    text-decoration: none;
+    transition: color 0.2s ease;
+    gap: 8px;
+
+}
+
+.admin-header .user-menu-trigger:hover {
+    color: #008ecc;
+}
+
+.admin-header .user-menu-trigger .icon {
+    font-size: 18px;
+    color: #008ecc;
+}
+
+.admin-header .user-menu-trigger {
+    cursor: pointer;
+}
+
+.admin-header .user-menu-trigger .admin-name {
+    font-size: 16px;
+    font-weight: bold;
+}
+
+.admin-header .user-menu-trigger .down-icon {
+    font-size: 12px;
+}
