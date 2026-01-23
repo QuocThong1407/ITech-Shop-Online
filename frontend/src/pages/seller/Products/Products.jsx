@@ -44,6 +44,7 @@ import {
 import TextEditor from "../../../components/common/TextEditor/TextEditor.jsx"
 import dayjs from 'dayjs';
 import "./Products.css";
+import DescriptionEditor from "../../../components/common/DescriptionEditor/DescriptionEditor.jsx";
 
 const {Title, Text} = Typography;
 const {Option} = Select;
@@ -652,7 +653,7 @@ const Product = () => {
             children: (
                 <div className="section-content">
                     <Form.Item name="description" noStyle>
-                        <TextEditor placeholder="Enter details..."/>
+                        <DescriptionEditor placeholder="Enter details..."/>
                     </Form.Item>
                 </div>
             )
