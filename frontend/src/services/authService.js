@@ -10,15 +10,9 @@ import { get, post, patch } from "../utils/request.js";
 const login = async ({ email, password }) => {
     const response = await post('/auth/login', { email, password });
 
-    if (response && response.data) {
-        if (response.data.user) {
-            localStorage.setItem('user', JSON.stringify(response.data.user));
-        }
-        if (response.data.token) {
-            localStorage.setItem('token', response.data.token);
-        } else if (response.data.accessToken) {
-            localStorage.setItem('token', response.data.accessToken);
-        }
+    if (response.data) {
+        const token = response.data.accessToken;
+        localStorage.setItem('accessToken', token);
     }
 
     return response;
