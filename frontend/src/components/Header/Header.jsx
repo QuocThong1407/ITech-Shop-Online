@@ -156,7 +156,7 @@ const Header = () => {
             <Row className="header__middle">
                 <Col span={6}>
                     <Link to="/">
-                        <Typography.Title level={1} className="logo">
+                        <Typography.Title level={1} className="logo" style={{padding: 0, marginBottom: 8}}>
                             ITech Shop
                         </Typography.Title>
                     </Link>
@@ -175,7 +175,6 @@ const Header = () => {
                             <Input.Search
                                 placeholder="Search essentials, groceries and more..."
                                 enterButton
-                                size="large"
                                 onSearch={onSearchSubmit}
                             />
                         </AutoComplete>

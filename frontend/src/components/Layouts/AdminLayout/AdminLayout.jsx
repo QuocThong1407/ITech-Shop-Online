@@ -11,7 +11,7 @@ import {
     UserOutlined,
     DashboardOutlined,
     AppstoreOutlined,
-    DollarOutlined, SafetyCertificateOutlined
+    DollarOutlined, SafetyCertificateOutlined, SettingOutlined
 } from "@ant-design/icons";
 
 const { Content} = Layout;
@@ -71,6 +71,11 @@ const AdminLayout = () => {
                 }
             ]
         },
+        {
+            key: "/admin/settings",
+            icon: <SettingOutlined />,
+            label: <Link to="/admin/settings">Settings</Link>,
+        }
     ]
 
     return (

@@ -44,6 +44,7 @@ import ActivityReport from "../pages/admin/ActivityReport/ActivityReport.jsx";
 import AdminProducts from "../pages/admin/Products/Products.jsx";
 import ProtectedRoute from "./ProtectedRoute.jsx";
 import {Navigate} from "react-router";
+import Settings from "../pages/admin/Settings/Settings.jsx";
 
 export const routes = [
     {
@@ -204,6 +205,10 @@ export const routes = [
             {
                 path: 'products',
                 element: <AdminProducts/>
+            },
+            {
+                path: 'settings',
+                element: <Settings/>
             }
         ]
     },
