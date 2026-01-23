@@ -111,6 +111,10 @@ export const routes = [
                 element: <PaymentResult/>,
             },
             {
+                path: '/payment/result',
+                element: <PaymentResult/>,
+            },
+            {
                 path: '/profile',
                 element: <Profile/>,
                 children: [
