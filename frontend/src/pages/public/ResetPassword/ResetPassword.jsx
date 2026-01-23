@@ -22,17 +22,21 @@ const ResetPassword = () => {
     // Parse token from URL hash fragment (Supabase sends token in hash) or query params
     useEffect(() => {
         const parseTokenFromUrl = () => {
+            // Reset states for fresh detection
+            setHashError(null);
+            
             // First check query params (standard token param)
             const queryToken = searchParams.get('token');
             if (queryToken) {
                 setToken(queryToken);
+                sessionStorage.setItem('resetPasswordToken', queryToken);
                 setInitializing(false);
                 return;
             }
 
-            // Parse hash fragment (Supabase format: #access_token=xxx&type=recovery...)
-            const hash = location.hash;
-            if (hash) {
+            // Parse hash fragment using window.location.hash directly (more reliable)
+            const hash = window.location.hash;
+            if (hash && hash.length > 1) {
                 const hashParams = new URLSearchParams(hash.substring(1));
                 
                 // Check for errors in the hash
@@ -43,6 +47,7 @@ const ResetPassword = () => {
                         error,
                         description: errorDescription?.replace(/\+/g, ' ') || 'Unknown error'
                     });
+                    sessionStorage.removeItem('resetPasswordToken');
                     setInitializing(false);
                     return;
                 }
@@ -52,9 +57,20 @@ const ResetPassword = () => {
                 const type = hashParams.get('type');
                 if (accessToken && type === 'recovery') {
                     setToken(accessToken);
+                    sessionStorage.setItem('resetPasswordToken', accessToken);
                     setInitializing(false);
+                    // Clear hash from URL to prevent issues on refresh
+                    window.history.replaceState(null, '', window.location.pathname + window.location.search);
                     return;
                 }
+            }
+
+            // Check sessionStorage for previously stored token (survives navigation)
+            const storedToken = sessionStorage.getItem('resetPasswordToken');
+            if (storedToken) {
+                setToken(storedToken);
+                setInitializing(false);
+                return;
             }
 
             // No valid token found
@@ -62,7 +78,7 @@ const ResetPassword = () => {
         };
 
         parseTokenFromUrl();
-    }, [location.hash, searchParams]);
+    }, [location.hash, location.key, searchParams]);
 
     const onFinish = async (values) => {
         if (!token) {
@@ -73,6 +89,8 @@ const ResetPassword = () => {
         setLoading(true);
         try {
             await authServices.resetPassword(token, values.newPassword);
+            // Clear stored token after successful reset
+            sessionStorage.removeItem('resetPasswordToken');
             messageApi.success("Password reset successfully! Redirecting to login...", 2, () => {
                 navigate('/login');
             });
@@ -115,7 +133,7 @@ const ResetPassword = () => {
                 <div className="reset-password" style={{ textAlign: 'center', padding: '48px' }}>
                     <h2>Invalid Reset Link</h2>
                     <p style={{ color: '#ff4d4f' }}>{hashError.description}</p>
-                    <p>This password reset link is invalid or has expired.</p>
+                    <p>Please request a new password reset link.</p>
                     <Link to="/forgot-password">Request a new reset link</Link>
                 </div>
             </>
