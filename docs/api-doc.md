@@ -1964,6 +1964,136 @@ fetch("http://localhost:5000/api/users/me", {
 
 ---
 
+---
+
+## Payments
+
+The Payment service handles transaction processing for orders. It currently supports two methods: **COD** (Cash on Delivery) and **VNPAY** (Electronic Payment Gateway).
+
+### 1. Create New Payment
+
+Initializes a payment transaction for an order. If using VNPAY, the API returns a URL to redirect the user to the payment gateway.
+
+- **Method:** `POST`
+- **URL:** `/payments`
+- **Authentication:** `Required` (Role: `CUSTOMER`)
+- **Body:** `JSON`
+
+```json
+{
+  "orderId": "string (UUID)",
+  "method": "COD | VNPAY",
+  "returnUrl": "string (Required if method is VNPAY)"
+}
+```
+
+- **Response (201):**
+- **For COD method:**
+
+```json
+{
+  "success": true,
+  "message": "Payment created successfully",
+  "data": {
+    "payment": {
+      "id": "uuid",
+      "status": "PENDING",
+      "method": "COD",
+      "...": "..."
+    },
+    "message": "COD payment created. Pay when you receive the order."
+  }
+}
+```
+
+- **For VNPAY method:**
+
+```json
+{
+  "success": true,
+  "message": "Payment created successfully",
+  "data": {
+    "payment": {
+      "id": "uuid",
+      "status": "PENDING",
+      "method": "VNPAY",
+      "...": "..."
+    },
+    "paymentUrl": "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html?...",
+    "message": "Redirect to VNPay to complete payment"
+  }
+}
+```
+
+- **Note:** - The order must be in `PENDING` or `CONFIRMED` status.
+- `returnUrl` is the Frontend page address where VNPay will redirect the user after payment.
+
+- **Errors:** 400 (Invalid method, Missing params), 403 (Not order owner), 404 (Order not found).
+
+---
+
+### 2. Get Payment by Order ID
+
+Retrieves the specific payment details and status for a given order.
+
+- **Method:** `GET`
+- **URL:** `/payments/:orderId`
+- **Authentication:** `Required` (Order owner, Seller of products in the order, or Admin)
+- **Response (200):**
+
+```json
+{
+  "success": true,
+  "data": {
+    "id": "uuid",
+    "amount": 150000,
+    "method": "VNPAY",
+    "status": "SUCCESS",
+    "paymentDate": "2024-03-20T10:00:00Z",
+    "orderId": "uuid",
+    "createdAt": "...",
+    "updatedAt": "..."
+  }
+}
+```
+
+- **Errors:** 403 (Forbidden access), 404 (Payment not found).
+
+---
+
+### 3. VNPay Callbacks (Background Processing)
+
+These endpoints are called by VNPay to update transaction statuses in the system.
+
+#### VNPay IPN (Instant Payment Notification)
+
+- **Method:** `GET`
+- **URL:** `/payments/vnpay/ipn`
+- **Note:** - Server-to-Server background call from VNPay to update payment results even if the user closes the browser.
+- Updates the `Payment` table to `SUCCESS` and the `Order` table to `CONFIRMED` if `vnp_ResponseCode` is `00`.
+
+- **Response:** Returns VNPay specific format (e.g., `{"RspCode": "00", "Message": "Success"}`).
+
+#### VNPay Return URL
+
+- **Method:** `GET`
+- **URL:** `/payments/vnpay/return`
+- **Note:** - VNPay redirects the user's browser here.
+- After processing, the Server performs a **Redirect** to the Frontend with the following URL structure:
+  `${frontendUrl}/payment/result?success=true&orderId=...&message=...`
+
+- **Frontend Action:** The result page on the Frontend should use these query parameters to display the appropriate notification.
+
+---
+
+## Notes for Payment Implementation
+
+- **Status Flow:** Default status upon creation is `PENDING`. It only transitions to `SUCCESS` upon verified successful response from the payment gateway.
+- **Security:** All VNPay transactions are verified via `vnp_SecureHash` signature using `HMAC-SHA512` before updating the database.
+- **Environment Variables:** Ensure `VNPAY_TMN_CODE`, `VNPAY_HASH_SECRET`, `VNPAY_URL`, and `FRONTEND_URL` are configured in the `.env` file.
+
+---
+
 ## Notes for Frontend Implementation
 
 - Always use `Authorization: Bearer <token>` header for authenticated requests
