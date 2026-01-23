@@ -1,3 +1,0 @@
-1. Review and understand the entire codebase of the project.
-2. Implement the existing backend APIs into the frontend wherever the UI already provides sufficient information (i.e., the API endpoints are available and the required imported components already exist).
-3. Identify and document any missing or unresolved imports (e.g., components that are referenced but do not exist in the system).
