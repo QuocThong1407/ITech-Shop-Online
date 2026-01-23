@@ -438,20 +438,29 @@ const updateOrderStatusRecord = async (
 
 // cập nhật trạng thái thanh toán theo order
 const updatePaymentStatus = async (orderId, orderStatus, timestamp) => {
-  let paymentStatus = null;
+  const { data: payment } = await supabase
+    .from("Payment")
+    .select("id, method, status")
+    .eq("orderId", orderId)
+    .single();
 
-  if (orderStatus === "DELIVERED") {
-    paymentStatus = "COMPLETED";
-  } else if (orderStatus === "CANCELLED") {
-    paymentStatus = "FAILED";
-  }
+  if (!payment) return;
 
-  if (paymentStatus) {
+  // COD: giao hàng xong mới coi là thanh toán thành công
+  if (
+    orderStatus === "DELIVERED" &&
+    payment.method === "COD" &&
+    payment.status === "PENDING"
+  ) {
     await supabase
       .from("Payment")
-      .update({ status: paymentStatus, updatedAt: timestamp })
-      .eq("orderId", orderId);
+      .update({
+        status: "SUCCESS",
+        updatedAt: timestamp,
+      })
+      .eq("id", payment.id);
   }
+  // VNPay chỉ update trong paymentService.handleVNPayIPN
 };
 
 // authorization

@@ -130,10 +130,6 @@ const login = async ({ email, password }) => {
 
     user = res.data;
   }
-  await supabase.from("UserActivityLog").insert({
-    userId: user.id,
-    role: user.role,
-  });
 
   return {
     accessToken: session.access_token,
