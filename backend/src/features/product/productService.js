@@ -442,47 +442,62 @@ const getAllProducts = async ({
   search,
   minPrice,
   maxPrice,
-  sellerId,
+  sellerUserId, // frontend gửi userId
 }) => {
+  let sellerId;
+
+  if (sellerUserId) {
+    const { data: seller } = await supabase
+      .from("Seller")
+      .select("id")
+      .eq("userId", sellerUserId)
+      .single();
+
+    if (!seller) {
+      throw { status: 404, message: "Seller not found" };
+    }
+
+    sellerId = seller.id;
+  }
+
   let query = supabase
     .from("Product")
     .select(
-      `id, name, description, price, stockQuantity, images, variantTypes, variantOptions, is_deleted, createdAt, updatedAt, createdBy, categoryId,
-      Category!Product_categoryId_fkey(
-        id,
-        name,
-        description
-      ),
-      Seller!Product_createdBy_fkey(
-        id,
-        email,
-        image,
-        User!Seller_userId_fkey(
-          id,
-          username,
-          email
-        )
-      )
-    `,
+      `id, name, description, price, stockQuantity, images, variantTypes, variantOptions, createdAt, updatedAt,
+      createdBy, categoryId, Category(id, name), Seller(id, User(id, username, email))`,
       { count: "exact" },
     )
     .eq("is_deleted", false);
 
-  if (categoryId) query = query.eq("categoryId", categoryId);
   if (sellerId) {
-    query = query.eq("Seller.userId", sellerId);
+    query = query.eq("createdBy", sellerId);
   }
 
-  if (search)
+  if (categoryId) {
+    query = query.eq("categoryId", categoryId);
+  }
+
+  if (search && search.trim() !== "") {
     query = query.or(`name.ilike.%${search}%,description.ilike.%${search}%`);
-  if (minPrice !== undefined) query = query.gte("price", parseFloat(minPrice));
-  if (maxPrice !== undefined) query = query.lte("price", parseFloat(maxPrice));
+  }
+
+  if (minPrice !== undefined) {
+    query = query.gte("price", Number(minPrice));
+  }
+
+  if (maxPrice !== undefined) {
+    query = query.lte("price", Number(maxPrice));
+  }
+
+  if (minPrice !== undefined) query = query.gte("price", Number(minPrice));
+  if (maxPrice !== undefined) query = query.lte("price", Number(maxPrice));
 
   const from = (page - 1) * limit;
   const to = from + limit - 1;
-  query = query.range(from, to).order("createdAt", { ascending: false });
 
-  const { data, error, count } = await query;
+  const { data, error, count } = await query
+    .range(from, to)
+    .order("createdAt", { ascending: false });
 
   if (error) throw error;
 
@@ -502,8 +517,8 @@ const getAllProducts = async ({
   return {
     products: productsWithStats,
     pagination: {
-      page: parseInt(page),
-      limit: parseInt(limit),
+      page,
+      limit,
       total: count,
       totalPages: Math.ceil(count / limit),
     },
