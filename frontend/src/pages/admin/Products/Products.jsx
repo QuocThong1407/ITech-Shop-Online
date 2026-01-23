@@ -1,4 +1,4 @@
-import React, {useState, useEffect, useCallback, useMemo} from "react";
+import React, {useState, useEffect, useMemo} from "react";
 import productService from "../../../services/productService";
 import productVariantService from "../../../services/productVariantService";
 import categoryService from "../../../services/categoryService";
@@ -235,7 +235,7 @@ const Products = () => {
             });
             setStats({ total: allProducts.length, active, lowStock: low, outStock: out });
         }
-        catch (error) {
+        catch {
             console.error("Stats error");
         }
     };
@@ -342,7 +342,7 @@ const Products = () => {
                     messageApi.success('Deleted Successfully!');
                     fetchProducts(searchText);
                     fetchGlobalStats();
-                } catch (e) {
+                } catch {
                     messageApi.error("Delete failed");
                 }
             }

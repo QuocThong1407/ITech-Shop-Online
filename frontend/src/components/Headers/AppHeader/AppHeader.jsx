@@ -4,7 +4,7 @@ import {Link} from "react-router-dom";
 import "./AppHeader.css"
 import authService from "../../../services/authService.js";
 
-const AppHeader = ({title, homePath, username = "User", onLogout}) => {
+const AppHeader = ({title, homePath, username = "User"}) => {
     const handleLogout = async () => {
         await authService.logout();
     }

@@ -1,4 +1,4 @@
-import React, {useState, useEffect, useCallback} from "react";
+import React, {useState, useEffect} from "react";
 import couponService from "../../../services/couponService";
 import promotionService from "../../../services/promotionService";
 import userService from "../../../services/userService";
@@ -123,7 +123,7 @@ const Coupons = () => {
                 });
                 setStats({total: coupons.length, active, upcoming, expired, inactive});
             }
-        } catch (error) {
+        } catch {
             messageApi.error("Failed to load coupons");
         } finally {
             setLoading(false);
@@ -212,7 +212,7 @@ const Coupons = () => {
                     await couponService.deleteCoupon(id);
                     messageApi.success("Deleted successfully");
                     fetchCoupons();
-                } catch (error) {
+                } catch {
                     messageApi.error("Delete failed");
                 }
             }

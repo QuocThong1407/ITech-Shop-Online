@@ -50,8 +50,7 @@ const Home = () => {
         }
 
         setError(null)
-      } catch (error) {
-        console.error("Error loading data:", error);
+      } catch {
         setError("Unable to load data.");
       } finally {
         setIsLoading(false)

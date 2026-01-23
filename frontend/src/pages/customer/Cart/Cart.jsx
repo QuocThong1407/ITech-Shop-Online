@@ -314,9 +314,6 @@ const Cart = () => {
 
         try {
             setCouponLoading(true);
-            const productVariantIds = cart.cartItems
-                .filter((item) => selectedItems.includes(item.id))
-                .map((item) => item.productVariant.id);
 
             const response = await couponService.getAllCoupons();
             console.log('Available coupons response:', response);

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import cancellationService from "../../../services/cancellationService";
 import {
     Button,
@@ -123,7 +123,7 @@ const Cancellations = () => {
                     await cancellationService.updateCancellationStatus(id, newStatus);
                     messageApi.success(`Status updated to ${newStatus}`);
                     fetchCancellations();
-                } catch (error) {
+                } catch {
                     messageApi.error("Failed to update status");
                 }
             }
@@ -137,7 +137,7 @@ const Cancellations = () => {
             const detail = response.data || record;
             setSelectedCancel(detail);
             setIsViewModalOpen(true);
-        } catch (error) {
+        } catch {
             setSelectedCancel(record);
             setIsViewModalOpen(true);
         }

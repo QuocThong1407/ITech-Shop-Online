@@ -1,6 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { List, Rate, Avatar, Typography, Spin, Empty, Pagination, Select, Space } from 'antd';
-import productService from '../../../../services/productService';
 import reviewService from '../../../../services/reviewService';
 import { UserOutlined } from '@ant-design/icons';
 
@@ -44,7 +43,7 @@ const ProductReviews = ({ productId }) => {
         if (productId) {
             fetchReviews(1, pagination.pageSize, ratingFilter);
         }
-    }, [productId, ratingFilter]);
+    }, [productId, ratingFilter, fetchReviews, pagination.pageSize]);
 
     const handlePageChange = (page, pageSize) => {
         setPagination(prev => ({ ...prev, current: page, pageSize }));

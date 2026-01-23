@@ -1,4 +1,4 @@
-import {useCallback, useEffect, useState} from "react";
+import {useEffect, useState} from "react";
 import userService from "../../../services/userService.js";
 import {Avatar, Badge, Button, Drawer, Form, Input, message, Modal, Select, Table, Tabs, Tag, Typography} from "antd";
 import {
@@ -50,7 +50,7 @@ const Users = () => {
 
             if (response) setStats(response.data);
         }
-        catch (error) {
+        catch {
             console.error("Failed to fetch stats");
         }
     }
@@ -77,7 +77,7 @@ const Users = () => {
                 }));
             }
         }
-        catch (error) {
+        catch {
             console.error("Failed to fetch users");
         }
         finally {

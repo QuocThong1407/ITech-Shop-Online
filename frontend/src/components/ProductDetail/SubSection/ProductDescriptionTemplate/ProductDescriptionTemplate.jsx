@@ -84,7 +84,7 @@ const ProductDescriptionTemplate = () => {
     else if (parsed.type === 'simple' && typeof parsed.content === 'string') {
       simpleContent = parsed.content;
     }
-  } catch (error) {
+  } catch {
     // Fallback: treat as plain HTML string (legacy or plain text)
     simpleContent = product.description;
   }

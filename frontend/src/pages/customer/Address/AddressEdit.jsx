@@ -4,8 +4,6 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { ExclamationCircleFilled } from '@ant-design/icons';
 import addressService from '../../../services/addressService';
 
-const { confirm } = Modal;
-
 const AddressEdit = () => {
     const [form] = Form.useForm();
     const [loading, setLoading] = useState(false);

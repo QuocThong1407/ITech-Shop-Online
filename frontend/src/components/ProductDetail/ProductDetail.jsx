@@ -29,15 +29,24 @@ const ProductDetail = () => {
         setIsLoading(true)
         const fetchProductData = async () => {
             try {
-                // const data = await get(`/products/${productId}`)
                 const data = await productService.getProductById(productId)
                 setProductData(data.data)
 
-                // Don't auto-select variants - let user choose
+                // Auto-select first variant if product has variants
+                const productVariants = data.data?.ProductVariant || []
+                const variantTypes = data.data?.variantTypes || []
+                
+                if (variantTypes.length > 0 && productVariants.length > 0) {
+                    // Get the first variant and extract its attributes
+                    const firstVariant = productVariants[0]
+                    if (firstVariant?.variantAttributes) {
+                        setSelectedAttributes(firstVariant.variantAttributes)
+                    }
+                }
+
                 // Set initial image to first available
                 setSelectedImage(data.data?.images?.[0] || null)
-            } catch (error) {
-                console.error("Lỗi khi tải dữ liệu sản phẩm:", error)
+            } catch {
                 setProductData(null)
             } finally {
                 setIsLoading(false)
