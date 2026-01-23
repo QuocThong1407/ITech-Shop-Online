@@ -59,6 +59,9 @@ const completeProfile = async (authUser) => {
     id: authUser.id,
     username,
     email: authUser.email,
+    emailVerified: authUser.email_confirmed_at
+      ? new Date(authUser.email_confirmed_at)
+      : null,
     role: "CUSTOMER",
     createdAt: now,
     updatedAt: now,
