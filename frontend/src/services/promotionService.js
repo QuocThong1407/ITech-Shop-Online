@@ -97,10 +97,22 @@ const getPromotionStats = () => {
     return get('/promotions/stats');
 };
 
+/**
+ * Get active promotions (public endpoint)
+ * @param {Object} params - Query parameters
+ * @param {number} [params.take=5] - Number of promotions to fetch
+ * @returns {Promise} Active promotions
+ */
+const getActivePromotions = (params = {}) => {
+    const { take = 5 } = params;
+    return get(`/promotions?status=ACTIVE&limit=${take}`);
+};
+
 const promotionService = {
     getAllPromotions,
     getPromotionById,
     getPromotionStats,
+    getActivePromotions,
     createPromotion,
     updatePromotion,
     updatePromotionStatus,

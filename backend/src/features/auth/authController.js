@@ -61,7 +61,16 @@ const login = async (req, res) => {
 
     const result = await authService.login({ email, password });
 
-    successResponse(res, 200, result, "Login successful");
+    // Set access token as httpOnly, Secure cookie
+    res.cookie('accessToken', result.accessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production', // true in production
+      sameSite: 'lax',
+      maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+    });
+
+    // Return user data only, not the token
+    successResponse(res, 200, { user: result.user }, "Login successful");
   } catch (err) {
     errorResponse(res, err.status || 401, err.message || "Login failed");
   }
@@ -69,12 +78,20 @@ const login = async (req, res) => {
 
 const logout = async (req, res) => {
   try {
-    const token = req.headers.authorization?.split(" ")[1];
+    const token = req.cookies.accessToken;
     if (!token) {
       return errorResponse(res, 401, "Access token required");
     }
 
     await authService.logout(token);
+    
+    // Clear the httpOnly cookie
+    res.clearCookie('accessToken', {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax'
+    });
+    
     successResponse(res, 200, null, "Logout successful");
   } catch {
     errorResponse(res, 500, "Logout failed");

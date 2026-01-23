@@ -91,13 +91,19 @@ const ProductReviews = ({ productId }) => {
                         loading={loading}
                         itemLayout="horizontal"
                         dataSource={reviews}
-                        renderItem={(review) => (
+                        renderItem={(review) => {
+                            // Handle both PascalCase (from Supabase) and camelCase
+                            const customer = review.customer;
+                            const customerImage = customer?.image;
+                            const username = customer?.user?.username || customer?.User?.username || 'Anonymous';
+                            
+                            return (
                             <List.Item>
                                 <List.Item.Meta
-                                    avatar={<Avatar icon={<UserOutlined />} src={review.customer?.image} />}
+                                    avatar={<Avatar icon={<UserOutlined />} src={customerImage} />}
                                     title={
                                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                            <Text strong>{review.customer?.user?.username || 'Anonymous'}</Text>
+                                            <Text strong>{username}</Text>
                                             <Text type="secondary" style={{ fontSize: '12px' }}>
                                                 {new Date(review.reviewDate).toLocaleDateString()}
                                             </Text>
@@ -123,7 +129,7 @@ const ProductReviews = ({ productId }) => {
                                     }
                                 />
                             </List.Item>
-                        )}
+                        )}}
                     />
                     
                     {/* Pagination */}

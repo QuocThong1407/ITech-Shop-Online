@@ -2,10 +2,12 @@ import React, { use, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router'
 import CategoryListing from '../../../components/Category/CategoryListing'
 import ProductSection from '../../../components/Product/ProductSection'
+import PromotionFlag from '../../../components/PromotionFlag/PromotionFlag'
 import { setProducts } from '../../../redux/actions/productAction.js'
 import { useDispatch, useSelector } from 'react-redux'
 import { get } from '../../../utils/request'
 import categoryService from '../../../services/categoryService.js'
+import productService from '../../../services/productService.js'
 
 const Home = () => {
   const dispatch = useDispatch()
@@ -31,7 +33,7 @@ const Home = () => {
     const getProducts = async () => {
       try {
         setIsLoading(true)
-        const data = await get('/products')
+        const data = await productService.getAllProducts({ limit: 100 })
 
         dispatch(setProducts(data.data.products))
         setError(null)
@@ -61,6 +63,7 @@ const Home = () => {
   return (
     <div>
       <CategoryListing />
+      <PromotionFlag />
       {topCategories.map(category => (
         <ProductSection
           key={category.id}

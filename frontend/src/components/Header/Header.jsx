@@ -80,7 +80,7 @@ const Header = () => {
     }, [searchValue]);
 
     const onSelect = (value, option) => {
-        navigate(`/products/${option.key}`);
+        navigate(`/product/${option.key}`);
         setSearchValue('');
     };
 
@@ -156,8 +156,10 @@ const Header = () => {
             </div> */}
             <Row className="header__middle">
                 <Col span={6}>
-                    <Link to="/" className="logo">
-                        ITech Shop
+                    <Link to="/">
+                        <Typography.Title level={2} className="logo">
+                            ITech Shop
+                        </Typography.Title>
                     </Link>
                 </Col>
                 <Col span={12}>

@@ -48,16 +48,19 @@ const OrderDetail = () => {
             setLoading(true);
             const response = await orderService.getOrderById(orderId);
             console.log('Order detail response:', response);
+            
+            // Handle response structure: response.data should be the order object
             const orderData = response?.data || null;
-            if (orderData) {
+            
+            if (orderData && orderData.id) {
                 setOrder(orderData);
             } else {
                 message.error('Order not found');
                 navigate('/orders');
             }
         } catch (error) {
-            message.error('Failed to load order details');
             console.error('Error fetching order details:', error);
+            message.error(error?.message || 'Failed to load order details');
             navigate('/orders');
         } finally {
             setLoading(false);
@@ -67,6 +70,7 @@ const OrderDetail = () => {
     const getStatusIcon = (status) => {
         switch (status) {
             case 'PENDING': return <ClockCircleOutlined />;
+            case 'CONFIRMED': return <CheckCircleOutlined />;
             case 'SHIPPED': return <CarOutlined />;
             case 'DELIVERED': return <CheckCircleOutlined />;
             case 'CANCELLED': return <CloseCircleOutlined />;
@@ -77,6 +81,7 @@ const OrderDetail = () => {
     const getStatusColor = (status) => {
         switch (status) {
             case 'PENDING': return 'orange';
+            case 'CONFIRMED': return 'cyan';
             case 'SHIPPED': return 'blue';
             case 'DELIVERED': return 'green';
             case 'CANCELLED': return 'red';
@@ -148,12 +153,12 @@ const OrderDetail = () => {
                         </Tag>
                     </Descriptions.Item>
                     <Descriptions.Item label="Order Date">
-                        {new Date(order.createdAt).toLocaleDateString('en-US', {
+                        {order.createdAt ? new Date(order.createdAt).toLocaleDateString('en-US', {
                             year: 'numeric', month: 'long', day: 'numeric',
                             hour: '2-digit', minute: '2-digit'
-                        })}
+                        }) : 'N/A'}
                     </Descriptions.Item>
-                    {order.Payment && (
+                    {order.Payment && order.Payment.length > 0 && (
                         <>
                             <Descriptions.Item label="Payment Method">
                                 <Tag color={order.Payment[0].method === 'COD' ? 'gold' : 'blue'}>
@@ -175,10 +180,10 @@ const OrderDetail = () => {
                 <Card title="Delivery Address" style={{ marginBottom: '16px' }}>
                     <Descriptions bordered column={1}>
                         <Descriptions.Item label="Recipient">
-                            {order.Address.recipientName}
+                            {order.Customer?.User?.username || order.Address.recipientName || 'Customer'}
                         </Descriptions.Item>
                         <Descriptions.Item label="Phone">
-                            {order.Address.phoneNumber || order.Address.phone}
+                            {order.Address.phoneNumber}
                         </Descriptions.Item>
                         <Descriptions.Item label="Address">
                             {order.Address.address ||
@@ -192,50 +197,50 @@ const OrderDetail = () => {
             <Card title="Order Items">
                 <List
                     itemLayout="horizontal"
-                    dataSource={order.OrderItem || []}
-                    renderItem={(item) => (
-                        <List.Item>
-                            <List.Item.Meta
-                                avatar={
-                                    <Image
-                                        width={80}
-                                        src={
-                                            item.ProductVariant?.images?.[0] ||
-                                            item.ProductVariant?.Product?.images?.[0] ||
-                                            'https://via.placeholder.com/80'
-                                        }
-                                        style={{ objectFit: 'cover', borderRadius: '4px' }}
-                                    />
-                                }
-                                title={
-                                    <Text strong>
-                                        {item.ProductVariant?.Product?.name || 'Product'}
+                    dataSource={order.OrderItem || order.orderItems || []}
+                    renderItem={(item) => {
+                        const productVariant = item.ProductVariant || item.productVariant;
+                        const product = productVariant?.Product || productVariant?.product;
+                        const productName = product?.name || 'Product';
+                        const productImage = productVariant?.images?.[0] || product?.images?.[0] || 'https://via.placeholder.com/80';
+                        
+                        return (
+                            <List.Item>
+                                <List.Item.Meta
+                                    avatar={
+                                        <Image
+                                            width={80}
+                                            src={productImage}
+                                            style={{ objectFit: 'cover', borderRadius: '4px' }}
+                                            fallback="https://via.placeholder.com/80"
+                                        />
+                                    }
+                                    title={<Text strong>{productName}</Text>}
+                                    description={
+                                        <Space direction="vertical" size="small">
+                                            {productVariant?.variantAttributes && (
+                                                <Text type="secondary">
+                                                    {Object.entries(productVariant.variantAttributes)
+                                                        .map(([key, value]) => `${key}: ${value}`)
+                                                        .join(', ')}
+                                                </Text>
+                                            )}
+                                            <Text>Quantity: {item.quantity}</Text>
+                                        </Space>
+                                    }
+                                />
+                                <div style={{ textAlign: 'right' }}>
+                                    <Text strong style={{ fontSize: '16px' }}>
+                                        {formatCurrency(getItemPrice(item) * item.quantity)}
                                     </Text>
-                                }
-                                description={
-                                    <Space direction="vertical" size="small">
-                                        {item.ProductVariant?.variantAttributes && (
-                                            <Text type="secondary">
-                                                {Object.entries(item.ProductVariant.variantAttributes)
-                                                    .map(([key, value]) => `${key}: ${value}`)
-                                                    .join(', ')}
-                                            </Text>
-                                        )}
-                                        <Text>Quantity: {item.quantity}</Text>
-                                    </Space>
-                                }
-                            />
-                            <div style={{ textAlign: 'right' }}>
-                                <Text strong style={{ fontSize: '16px' }}>
-                                    {formatCurrency(getItemPrice(item) * item.quantity)}
-                                </Text>
-                                <br />
-                                <Text type="secondary">
-                                    {formatCurrency(getItemPrice(item))} each
-                                </Text>
-                            </div>
-                        </List.Item>
-                    )}
+                                    <br />
+                                    <Text type="secondary">
+                                        {formatCurrency(getItemPrice(item))} each
+                                    </Text>
+                                </div>
+                            </List.Item>
+                        );
+                    }}
                 />
 
                 <Divider />

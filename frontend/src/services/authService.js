@@ -5,14 +5,12 @@ import { get, post, patch } from "../utils/request.js";
  * @param {Object} credentials - Login credentials
  * @param {string} credentials.email - User email
  * @param {string} credentials.password - User password
- * @returns {Promise} User data + access token
+ * @returns {Promise} User data (token stored in httpOnly cookie)
  */
 const login = async ({ email, password }) => {
     const response = await post('/auth/login', { email, password });
-    if (response.data) {
-        const token = response.data.accessToken;
-        localStorage.setItem('accessToken', token);
-    }
+    // Token is now stored in httpOnly cookie by the server
+    // No need to store it in localStorage
     return response;
 };
 
@@ -33,8 +31,7 @@ const register = ({ username, email, password, password_confirmation }) => {
  * @returns {Promise} Success message
  */
 const logout = () => {
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('user');
+    // Token cookie will be cleared by the server
     return post('/auth/logout');
 };
 

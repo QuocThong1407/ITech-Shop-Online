@@ -8,12 +8,12 @@ const supabase = createClient(
 
 const authenticate = async (req, res, next) => {
   try {
-    const authHeader = req.headers.authorization;
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    // Read token from httpOnly cookie instead of Authorization header
+    const token = req.cookies.accessToken;
+    
+    if (!token) {
       return errorResponse(res, 401, "No token provided");
     }
-
-    const token = authHeader.substring(7);
 
     const {
       data: { user },

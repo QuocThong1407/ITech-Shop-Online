@@ -110,34 +110,10 @@ const deleteAddress = async (req, res) => {
   }
 };
 
-// đặt địa chỉ làm mặc định
-const setDefaultAddress = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const customerId = req.user.customerId;
-
-    if (!customerId) {
-      return errorResponse(res, 403, "Customer profile not found");
-    }
-
-    const result = await addressService.setDefaultAddress(id, customerId);
-    successResponse(res, 200, result, "Default address updated successfully");
-  } catch (error) {
-    console.error("Set default address error:", error);
-    const statusCode = error.status || 400;
-    errorResponse(
-      res,
-      statusCode,
-      error.message || "Failed to set default address"
-    );
-  }
-};
-
 module.exports = {
   getMyAddresses,
   getAddressById,
   createAddress,
   updateAddress,
   deleteAddress,
-  setDefaultAddress,
 };

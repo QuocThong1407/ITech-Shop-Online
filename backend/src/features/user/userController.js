@@ -122,6 +122,33 @@ const updateMe = async (req, res) => {
   }
 };
 
+const getPfp = async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    const result = await userService.getPfp(userId);
+    successResponse(res, 200, result);
+  } catch (error) {
+    console.error("Get pfp error:", error);
+    errorResponse(res, 500, "Failed to get profile picture");
+  }
+};
+
+const uploadPfp = async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    
+    if (!req.file) {
+      return errorResponse(res, 400, "No file uploaded");
+    }
+
+    const result = await userService.uploadPfp(userId, req.file);
+    successResponse(res, 200, result, "Profile picture updated successfully");
+  } catch (error) {
+    console.error("Upload pfp error:", error);
+    errorResponse(res, 400, error.message || "Failed to upload profile picture");
+  }
+};
+
 module.exports = {
   getAllUsers,
   getUserStats,
@@ -131,4 +158,6 @@ module.exports = {
   deleteUser,
   getMe,
   updateMe,
+  getPfp,
+  uploadPfp,
 };

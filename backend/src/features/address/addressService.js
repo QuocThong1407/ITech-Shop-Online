@@ -7,10 +7,9 @@ const getAddressesByCustomer = async (customerId) => {
   const { data, error } = await supabase
     .from("Address")
     .select(
-      "id, phoneNumber, address, street, ward, district, province, createdAt, updatedAt, isDefault"
+      "id, phoneNumber, address, street, ward, district, province, createdAt, updatedAt"
     )
     .eq("customerId", customerId)
-    .order("isDefault", { ascending: false })
     .order("createdAt", { ascending: false });
 
   if (error) throw error;
@@ -23,7 +22,7 @@ const getAddressById = async (addressId, customerId) => {
   const { data, error } = await supabase
     .from("Address")
     .select(
-      "id, phoneNumber, address, street, ward, district, province, createdAt, updatedAt, isDefault"
+      "id, phoneNumber, address, street, ward, district, province, createdAt, updatedAt"
     )
     .eq("id", addressId)
     .eq("customerId", customerId)
@@ -58,14 +57,6 @@ const createAddress = async ({
     throw { status: 404, message: "Customer not found" };
   }
 
-  // kt địa chỉ
-  const { count, error: countError } = await supabase
-    .from("Address")
-    .select("id", { count: "exact", head: true })
-    .eq("customerId", customerId);
-  if (countError) throw countError;
-  const isFirstAddress = count === 0;
-
   const now = new Date().toISOString();
   const { data, error } = await supabase
     .from("Address")
@@ -78,12 +69,11 @@ const createAddress = async ({
       ward,
       district,
       province,
-      isDefault: isFirstAddress,
       createdAt: now,
       updatedAt: now,
     })
     .select(
-      "id, phoneNumber, address, street, ward, district, province, createdAt, updatedAt, isDefault"
+      "id, phoneNumber, address, street, ward, district, province, createdAt, updatedAt"
     )
     .single();
 
@@ -173,13 +163,6 @@ const deleteAddress = async (addressId, customerId) => {
     };
   }
 
-  if (address.isDefault) {
-    throw {
-      status: 400,
-      message: "Cannot delete default address",
-    };
-  }
-
   const { error: deleteError } = await supabase
     .from("Address")
     .delete()
@@ -190,45 +173,10 @@ const deleteAddress = async (addressId, customerId) => {
   return true;
 };
 
-const setDefaultAddress = async (addressId, customerId) => {
-  const { data: address, error: checkError } = await supabase
-    .from("Address")
-    .select("id")
-    .eq("id", addressId)
-    .eq("customerId", customerId)
-    .single();
-
-  if (checkError) {
-    checkError.status = 404;
-    throw checkError;
-  }
-
-  // unset default cũ
-  const { error: unsetError } = await supabase
-    .from("Address")
-    .update({ isDefault: false })
-    .eq("customerId", customerId);
-
-  if (unsetError) throw unsetError;
-
-  // set default mới
-  const { data, error } = await supabase
-    .from("Address")
-    .update({ isDefault: true })
-    .eq("id", addressId)
-    .eq("customerId", customerId)
-    .select()
-    .single();
-
-  if (error) throw error;
-  return data;
-};
-
 module.exports = {
   getAddressesByCustomer,
   getAddressById,
   createAddress,
   updateAddress,
   deleteAddress,
-  setDefaultAddress,
 };

@@ -1,29 +1,24 @@
 import { AuthActionTypes } from "../constants/auth-action-types.js";
 
-// Try to restore user from localStorage on initialization
-const storedUser = localStorage.getItem('user');
-const parsedUser = storedUser ? JSON.parse(storedUser) : {};
-const storedToken = localStorage.getItem('accessToken');
-
+// Don't restore from localStorage for security - will check session via API on app load
 const initialState = {
-    isAuthenticated: !!storedToken && !!storedUser,
-    user: parsedUser
+    isAuthenticated: false,
+    user: {}
 };
 
 const authReducer = (state = initialState, action) => {
     switch (action.type) {
         case AuthActionTypes.LOGIN_SUCCESS:
-            // Store user in localStorage for persistence
-            // localStorage.setItem('user', JSON.stringify(action.payload));
+            // Store user in memory only, not localStorage
             return {
                 ...state,
                 isAuthenticated: true,
                 user: action.payload,
             };
         case AuthActionTypes.LOGOUT:
-            // Clear localStorage on logout
-            // localStorage.removeItem('accessToken');
-            // localStorage.removeItem('user');
+            // Clear all stored data on logout
+            // Token cookie is cleared by server
+            sessionStorage.clear();
             return {
                 isAuthenticated: false,
                 user: {},
