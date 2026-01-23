@@ -240,42 +240,42 @@ const createVNPayUrl = ({ orderId, amount, orderInfo, returnUrl, ipAddr }) => {
   let vnp_IpAddr =
     ipAddr === "::1" || ipAddr === "::ffff:127.0.0.1" ? "127.0.0.1" : ipAddr;
 
-  let vnp_Params = {
-    vnp_Version: "2.1.0",
-    vnp_Command: "pay",
-    vnp_TmnCode: vnp_TmnCode,
-    vnp_Locale: "vn",
-    vnp_CurrCode: "VND",
-    vnp_TxnRef: orderId,
-    vnp_OrderInfo: orderInfo
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "")
-      .replace(/[^\w\s]/gi, " ")
-      .trim(),
-    vnp_OrderType: "other",
-    vnp_Amount: vnpAmount * 100,
-    vnp_ReturnUrl: returnUrl,
-    vnp_IpAddr: vnp_IpAddr,
-    vnp_CreateDate: vnp_CreateDate,
-    vnp_ExpireDate: vnp_ExpireDate,
-  };
+  // Clean orderInfo - only alphanumeric
+  const cleanOrderInfo = `Order${orderId.replace(/-/g, "")}`;
 
-  // sắp xếp tham số
+  let vnp_Params = {};
+  vnp_Params["vnp_Version"] = "2.1.0";
+  vnp_Params["vnp_Command"] = "pay";
+  vnp_Params["vnp_TmnCode"] = vnp_TmnCode;
+  vnp_Params["vnp_Locale"] = "vn";
+  vnp_Params["vnp_CurrCode"] = "VND";
+  vnp_Params["vnp_TxnRef"] = orderId;
+  vnp_Params["vnp_OrderInfo"] = cleanOrderInfo;
+  vnp_Params["vnp_OrderType"] = "other";
+  vnp_Params["vnp_Amount"] = vnpAmount * 100;
+  vnp_Params["vnp_ReturnUrl"] = returnUrl;
+  vnp_Params["vnp_IpAddr"] = vnp_IpAddr;
+  vnp_Params["vnp_CreateDate"] = vnp_CreateDate;
+  vnp_Params["vnp_ExpireDate"] = vnp_ExpireDate;
+
+  // Sort parameters
   vnp_Params = sortObject(vnp_Params);
 
-  // tạo chuỗi dữ liệu băm
-  // VNPay 2.1.0 yêu cầu encode dữ liệu TRƯỚC khi hash
-  const signData = querystring.stringify(vnp_Params, { encode: true });
+  // Create sign data using URLSearchParams for proper encoding
+  const searchParams = new URLSearchParams();
+  for (const key in vnp_Params) {
+    searchParams.append(key, vnp_Params[key].toString());
+  }
+  const signData = searchParams.toString();
 
-  // tạo mã Hash
+  // Create hash
   const hmac = crypto.createHmac("sha512", vnp_HashSecret);
   const signed = hmac.update(Buffer.from(signData, "utf-8")).digest("hex");
 
-  vnp_Params["vnp_SecureHash"] = signed;
+  // Add hash to URL
+  searchParams.append("vnp_SecureHash", signed);
 
-  // tạo URL cuối cùng
-  const finalUrl =
-    vnp_Url + "?" + querystring.stringify(vnp_Params, { encode: true });
+  const finalUrl = `${vnp_Url}?${searchParams.toString()}`;
 
   // LOG
   console.log("--- DEBUG VNPAY ---");
@@ -283,6 +283,7 @@ const createVNPayUrl = ({ orderId, amount, orderInfo, returnUrl, ipAddr }) => {
   console.log("2. SignData (Chuỗi trước khi hash):", signData);
   console.log("3. SecureHash (Kết quả hash):", signed);
   console.log("4. HashSecret (Độ dài):", vnp_HashSecret?.length);
+  console.log("5. Final URL:", finalUrl);
   console.log("-------------------");
 
   return finalUrl;
@@ -301,9 +302,22 @@ const handleVNPayIPN = async (vnpParams) => {
   delete vnpParams.vnp_SecureHashType;
 
   const sortedParams = sortObject(vnpParams);
-  const signData = querystring.stringify(sortedParams, { encode: false });
+  
+  // Use URLSearchParams for consistent encoding
+  const searchParams = new URLSearchParams();
+  for (const key in sortedParams) {
+    searchParams.append(key, sortedParams[key].toString());
+  }
+  const signData = searchParams.toString();
+  
   const hmac = crypto.createHmac("sha512", vnp_HashSecret);
   const checkSum = hmac.update(Buffer.from(signData, "utf-8")).digest("hex");
+
+  console.log("--- DEBUG VNPAY IPN ---");
+  console.log("Received SecureHash:", secureHash);
+  console.log("Calculated CheckSum:", checkSum);
+  console.log("SignData:", signData);
+  console.log("------------------------");
 
   // kt checksum
   if (secureHash !== checkSum) {
@@ -379,9 +393,22 @@ const handleVNPayReturn = async (vnpParams) => {
   delete vnpParams.vnp_SecureHashType;
 
   const sortedParams = sortObject(vnpParams);
-  const signData = querystring.stringify(sortedParams, { encode: true });
+  
+  // Use URLSearchParams for consistent encoding
+  const searchParams = new URLSearchParams();
+  for (const key in sortedParams) {
+    searchParams.append(key, sortedParams[key].toString());
+  }
+  const signData = searchParams.toString();
+  
   const hmac = crypto.createHmac("sha512", vnp_HashSecret);
   const checkSum = hmac.update(Buffer.from(signData, "utf-8")).digest("hex");
+
+  console.log("--- DEBUG VNPAY RETURN ---");
+  console.log("Received SecureHash:", secureHash);
+  console.log("Calculated CheckSum:", checkSum);
+  console.log("SignData:", signData);
+  console.log("--------------------------");
 
   if (secureHash !== checkSum) {
     return { success: false, message: "Invalid signature" };
