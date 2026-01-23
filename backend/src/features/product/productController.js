@@ -7,8 +7,15 @@ const {
 
 const getAllProducts = async (req, res) => {
   try {
-    const { page, limit, categoryId, search, minPrice, maxPrice, sellerId } =
-      req.query;
+    const {
+      page,
+      limit,
+      categoryId,
+      search,
+      minPrice,
+      maxPrice,
+      sellerUserId,
+    } = req.query;
     const result = await productService.getAllProducts({
       page,
       limit,
@@ -16,7 +23,7 @@ const getAllProducts = async (req, res) => {
       search,
       minPrice,
       maxPrice,
-      sellerId,
+      sellerUserId,
     });
     successResponse(res, 200, result);
   } catch (error) {
