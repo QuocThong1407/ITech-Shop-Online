@@ -31,13 +31,13 @@ const { Title, Text } = Typography;
 
 const Settings = () => {
     const [loading, setLoading] = useState(false);
-
+    
     const [vatForm] = Form.useForm();
     const [shippingForm] = Form.useForm();
-
+    
     const [membershipTierForm] = Form.useForm();
     const [membershipBenefitForm] = Form.useForm();
-
+    
     const [tiers, setTiers] = useState([]);
     const [benefits, setBenefits] = useState([]);
 
