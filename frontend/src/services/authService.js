@@ -9,8 +9,18 @@ import { get, post, patch } from "../utils/request.js";
  */
 const login = async ({ email, password }) => {
     const response = await post('/auth/login', { email, password });
-    // Token is now stored in httpOnly cookie by the server
-    // No need to store it in localStorage
+
+    if (response && response.data) {
+        if (response.data.user) {
+            localStorage.setItem('user', JSON.stringify(response.data.user));
+        }
+        if (response.data.token) {
+            localStorage.setItem('token', response.data.token);
+        } else if (response.data.accessToken) {
+            localStorage.setItem('token', response.data.accessToken);
+        }
+    }
+
     return response;
 };
 
@@ -32,6 +42,8 @@ const register = ({ username, email, password, password_confirmation }) => {
  */
 const logout = () => {
     // Token cookie will be cleared by the server
+    localStorage.removeItem('user');
+    localStorage.removeItem('token');
     return post('/auth/logout');
 };
 
