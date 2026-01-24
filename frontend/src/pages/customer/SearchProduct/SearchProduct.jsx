@@ -2,12 +2,13 @@ import React, {useState, useMemo} from 'react'
 import { useSearchParams, Link } from 'react-router'
 import { useEffect } from 'react'
 import productService from '../../../services/productService'
-import {Flex, Typography, Pagination, Layout, Spin, Row, Col, Empty} from 'antd'
+import {Flex, Typography, Pagination, Layout, Spin, Row, Col, Empty, Grid} from 'antd'
 import { FrownOutlined } from '@ant-design/icons'
 import ProductFilters from "../../../components/ProductFilters/ProductFilters.jsx";
 import ProductCard from "../../../components/Product/ProductCard.jsx";
 
 const { Sider, Content } = Layout;
+const { useBreakpoint } = Grid;
 
 const SearchProduct = () => {
     const [searchParam] = useSearchParams();
@@ -15,6 +16,9 @@ const SearchProduct = () => {
     const [productsByName, setProductsByName] = React.useState([])
     const [loading, setLoading] = useState(true);
     const [filters, setFilters] = useState({});
+    
+    const screens = useBreakpoint();
+    const isMobile = !screens.sm;
 
     const handleFilterChange = (filterKey, value) => {
         setFilters(prevFilters => ({
@@ -94,29 +98,41 @@ const SearchProduct = () => {
     };
 
     return (
-        <Layout style={{ background: 'transparent' }}>
-            <Sider width={300} style={{ background: 'transparent', paddingRight: '24px', marginTop: '24px' }}>
-                <ProductFilters onFilterChange={handleFilterChange} initialFilters={filters} />
-            </Sider>
+        <>
+            {/* Mobile: Filter as dropdown above products */}
+            {isMobile && (
+                <div style={{ marginTop: '16px' }}>
+                    <ProductFilters onFilterChange={handleFilterChange} initialFilters={filters} />
+                </div>
+            )}
 
-            <Content style={{ padding: '24px', background: '#fff', borderRadius: '8px', marginTop: '24px' }}>
-                <Spin spinning={loading}>
-                    {filteredAndSortedProducts.length > 0 ? (
-                        <Row gutter={[16, 16]}>
-                            {filteredAndSortedProducts.map(product => (
-                                <Col key={product.id} xs={24} sm={12} md={8} lg={6}>
-                                    <Link to={`/product/${product.id}`}>
-                                        <ProductCard product={product} />
-                                    </Link>
-                                </Col>
-                            ))}
-                        </Row>
-                    ) : (
-                        !loading && renderEmptyState()
-                    )}
-                </Spin>
-            </Content>
-        </Layout>
+            <Layout style={{ background: 'transparent' }}>
+                {/* Desktop: Filter as sidebar */}
+                {!isMobile && (
+                    <Sider width={300} style={{ background: 'transparent', paddingRight: '24px', marginTop: '24px' }}>
+                        <ProductFilters onFilterChange={handleFilterChange} initialFilters={filters} />
+                    </Sider>
+                )}
+
+                <Content style={{ padding: '24px', background: '#fff', borderRadius: '8px', marginTop: isMobile ? '0' : '24px' }}>
+                    <Spin spinning={loading}>
+                        {filteredAndSortedProducts.length > 0 ? (
+                            <Row gutter={[16, 16]}>
+                                {filteredAndSortedProducts.map(product => (
+                                    <Col key={product.id} xs={12} sm={12} md={8} lg={6}>
+                                        <Link to={`/product/${product.id}`}>
+                                            <ProductCard product={product} />
+                                        </Link>
+                                    </Col>
+                                ))}
+                            </Row>
+                        ) : (
+                            !loading && renderEmptyState()
+                        )}
+                    </Spin>
+                </Content>
+            </Layout>
+        </>
     )
 }
 

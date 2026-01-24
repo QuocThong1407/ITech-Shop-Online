@@ -44,6 +44,46 @@
     text-decoration: none;
 }
 
+/* Logo visibility - default: show text, hide circle */
+.header .header__middle .logo-link {
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+}
+
+.header .header__middle .logo-text {
+    display: block;
+}
+
+.header .header__middle .logo-circle {
+    display: none;
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #008ecc 0%, #00b4d8 100%);
+    color: white;
+    font-weight: bold;
+    font-size: 16px;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 2px 8px rgba(0, 142, 204, 0.3);
+}
+
+/* Mobile top row circle logo */
+.header .header__mobile-top .logo-circle {
+    display: flex;
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #008ecc 0%, #00b4d8 100%);
+    color: white;
+    font-weight: bold;
+    font-size: 16px;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 2px 8px rgba(0, 142, 204, 0.3);
+}
+
 .header .header__middle .ant-input-search-button {
     background-color: #008ecc !important;
     border-color: #008ecc !important;
@@ -97,6 +137,31 @@
     border-bottom: 1px solid #e8e8e8;
 }
 
+/* Mobile Top Row - hidden by default, shown on mobile */
+.header .header__mobile-top {
+    display: none;
+    padding: 12px 16px;
+    background-color: #fff;
+}
+
+.header .header__mobile-top .mobile-top__actions {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.header .header__mobile-top .header-action-item .icon,
+.header .header__mobile-top .user-menu-trigger .icon {
+    font-size: 22px;
+}
+
+/* Mobile Search Row - hidden by default, shown on mobile */
+.header .header__mobile-search {
+    display: none;
+    padding: 0 16px 12px 16px;
+    background-color: #fff;
+}
+
 /* Search Suggestion Styles */
 .search-suggestion-item {
     display: flex;
@@ -123,4 +188,100 @@
 .search-suggestion-info .product-price {
     font-size: 13px;
     font-weight: 600;
+}
+
+/* Responsive Header Styles */
+@media (max-width: 1400px) {
+    .header .header__upper {
+        padding: 8px 80px;
+    }
+    .header .header__middle {
+        padding: 22px 80px 32px 80px;
+    }
+    .header .header__lower {
+        padding: 8px 80px;
+    }
+}
+
+@media (max-width: 1200px) {
+    .header .header__upper {
+        padding: 8px 60px;
+    }
+    .header .header__middle {
+        padding: 20px 60px 28px 60px;
+    }
+    .header .header__lower {
+        padding: 8px 60px;
+    }
+}
+
+@media (max-width: 992px) {
+    .header .header__upper {
+        padding: 8px 40px;
+    }
+    .header .header__middle {
+        padding: 16px 40px 24px 40px;
+    }
+    .header .header__middle .logo {
+        font-size: 20px !important;
+    }
+    .header .header__lower {
+        padding: 8px 40px;
+    }
+    .header .header__middle .middle__right {
+        gap: 12px;
+    }
+    .header-action-item span,
+    .user-menu-trigger span:not(.icon) {
+        display: none;
+    }
+}
+
+@media (max-width: 768px) {
+    .header .header__upper {
+        padding: 8px 24px;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+    .header .header__middle {
+        padding: 12px 24px 16px 24px;
+        flex-wrap: wrap;
+    }
+    .header .header__middle .logo {
+        font-size: 18px !important;
+    }
+    .header .header__lower {
+        padding: 8px 24px;
+    }
+    .header .header__middle .middle__right {
+        gap: 10px;
+    }
+    .header-action-item .icon,
+    .user-menu-trigger .icon {
+        font-size: 20px;
+    }
+}
+
+@media (max-width: 576px) {
+    .header .header__upper {
+        padding: 6px 16px;
+        font-size: 11px;
+    }
+    /* Hide desktop header row on mobile */
+    .header .header__middle {
+        display: none;
+    }
+    /* Show mobile rows */
+    .header .header__mobile-top {
+        display: flex;
+    }
+    .header .header__mobile-search {
+        display: block;
+    }
+    .header .header__lower {
+        padding: 6px 16px;
+    }
+    .search-suggestion-info .product-name {
+        max-width: 180px;
+    }
 }

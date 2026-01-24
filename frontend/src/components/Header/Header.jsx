@@ -153,19 +153,75 @@ const Header = () => {
                     </span>
                 </div>
             </div> */}
-            <Row className="header__middle">
-                <Col span={6}>
-                    <Link to="/">
-                        <Typography.Title level={1} className="logo" style={{padding: 0, marginBottom: 8}}>
+            {/* Mobile: Top row with logo and action icons */}
+            <Row className="header__mobile-top" align="middle" justify="space-between">
+                <Col>
+                    <Link to="/" className="logo-link">
+                        <div className="logo logo-circle">
+                            <span>iT</span>
+                        </div>
+                    </Link>
+                </Col>
+                <Col>
+                    <div className="mobile-top__actions">
+                        {isAuthenticated ? (
+                            <>
+                                <Link to="/cart" className="header-action-item">
+                                    <ShoppingCartOutlined className="icon" />
+                                </Link>
+                                <Link to="/orders" className="header-action-item">
+                                    <DropboxOutlined className="icon" />
+                                </Link>
+                                <Dropdown menu={userMenu} placement="bottomLeft" arrow>
+                                    <a onClick={(e) => e.preventDefault()} className="user-menu-trigger">
+                                        <UserOutlined className="icon" />
+                                    </a>
+                                </Dropdown>
+                            </>
+                        ) : (
+                            <Link to="/login" className="header-action-item">
+                                <UserOutlined className="icon" />
+                            </Link>
+                        )}
+                    </div>
+                </Col>
+            </Row>
+            {/* Mobile: Search bar row */}
+            <Row className="header__mobile-search">
+                <Col span={24}>
+                    <div  ref={searchContainerRef}>
+                        <AutoComplete
+                            popupMatchSelectWidth={true}
+                            style={{width: '100%'}}
+                            options={options}
+                            onSelect={onSelect}
+                            onSearch={(text) => setSearchValue(text)}
+                            value={searchValue}
+                            defaultActiveFirstOption={false}
+                        >
+                            <Input.Search
+                                placeholder="Search products..."
+                                enterButton
+                                onSearch={onSearchSubmit}
+                            />
+                        </AutoComplete>
+                    </div>
+                </Col>
+            </Row>
+            {/* Desktop/Tablet: Main header row */}
+            <Row className="header__middle" align="middle">
+                <Col sm={6} md={5} lg={5} xl={6}>
+                    <Link to="/" className="logo-link">
+                        <Typography.Title level={1} className="logo logo-text" style={{padding: 0, marginBottom: 8}}>
                             ITech Shop
                         </Typography.Title>
                     </Link>
                 </Col>
-                <Col span={12}>
-                    <div style={{position: 'relative', width: '100%'}} ref={searchContainerRef}>
+                <Col sm={12} md={13} lg={13} xl={12}>
+                    <div style={{position: 'relative', width: '100%'}}>
                         <AutoComplete
                             popupMatchSelectWidth={true}
-                            style={{width: '90%'}}
+                            style={{width: '95%', maxWidth: '100%'}}
                             options={options}
                             onSelect={onSelect}
                             onSearch={(text) => setSearchValue(text)}
@@ -180,7 +236,8 @@ const Header = () => {
                         </AutoComplete>
                     </div>
                 </Col>
-                <Col span={6}>
+                {/* Desktop/Tablet: Right side actions */}
+                <Col sm={6} md={6} lg={6} xl={6}>
                     <div className="middle__right">
                         {isAuthenticated ? (
                             <>

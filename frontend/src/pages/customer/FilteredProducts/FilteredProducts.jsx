@@ -1,13 +1,14 @@
 import { Link, useParams } from "react-router";
 import { useEffect, useState, useMemo } from "react";
 import { useSelector } from "react-redux";
-import { Card, Col, Empty, Layout, Menu, Row, Spin } from "antd";
+import { Card, Col, Empty, Layout, Menu, Row, Spin, Grid } from "antd";
 import ProductCard from "../../../components/Product/ProductCard.jsx";
 import BreadscrumbMenu from "../../../components/BreadscrumbMenu/BreadscrumbMenu.jsx";
 import ProductFilters from "../../../components/ProductFilters/ProductFilters.jsx";
 import productService from "../../../services/productService.js";
 
 const { Sider, Content } = Layout;
+const { useBreakpoint } = Grid;
 
 
 const FilteredProducts = () => {
@@ -16,6 +17,9 @@ const FilteredProducts = () => {
     const [currentCategory, setCurrentCategory] = useState(null);
     const [loading, setLoading] = useState(true);
     const [filters, setFilters] = useState({});
+    
+    const screens = useBreakpoint();
+    const isMobile = !screens.sm;
 
     const categories = useSelector(state => state.categories.allCategories);
 
@@ -99,17 +103,27 @@ const FilteredProducts = () => {
         <>
             <BreadscrumbMenu items={breadcrumbItems} />
 
-            <Layout style={{ background: 'transparent' }}>
-                <Sider width={300} style={{ background: 'transparent', paddingRight: '24px', marginTop: '24px' }}>
+            {/* Mobile: Filter as dropdown above products */}
+            {isMobile && (
+                <div style={{ marginTop: '16px' }}>
                     <ProductFilters onFilterChange={handleFilterChange} initialFilters={filters} />
-                </Sider>
+                </div>
+            )}
 
-                <Content style={{ padding: '24px', background: '#fff', borderRadius: '8px', marginTop: '24px' }}>
+            <Layout style={{ background: 'transparent' }}>
+                {/* Desktop: Filter as sidebar */}
+                {!isMobile && (
+                    <Sider width={300} style={{ background: 'transparent', paddingRight: '24px', marginTop: '24px' }}>
+                        <ProductFilters onFilterChange={handleFilterChange} initialFilters={filters} />
+                    </Sider>
+                )}
+
+                <Content style={{ padding: '24px', background: '#fff', borderRadius: '8px', marginTop: isMobile ? '0' : '24px' }}>
                     <Spin spinning={loading}>
                         {filteredAndSortedProducts.length > 0 ? (
                             <Row gutter={[16, 16]}>
                                 {filteredAndSortedProducts.map(product => (
-                                    <Col key={product.id} xs={24} sm={12} md={8} lg={6}>
+                                    <Col key={product.id} xs={12} sm={12} md={8} lg={6}>
                                         <Link to={`/product/${product.id}`}>
                                             <ProductCard product={product} />
                                         </Link>
