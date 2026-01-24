@@ -261,7 +261,7 @@ const ActionButtons = ({ selectedProductVariant, amount, productData, isAuthenti
                                 : "Add to Cart"
                     }
                 </Button>
-                <Button
+                {/* <Button
                     type="primary"
                     size="large"
                     className="action__buy-now"
@@ -281,7 +281,7 @@ const ActionButtons = ({ selectedProductVariant, amount, productData, isAuthenti
                             ? "Out of Stock"
                             : "Buy Now"
                     }
-                </Button>
+                </Button> */}
             </div>
 
             <Modal

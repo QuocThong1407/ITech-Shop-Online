@@ -40,7 +40,13 @@ const ProductDetail = () => {
                     // Get the first variant and extract its attributes
                     const firstVariant = productVariants[0]
                     if (firstVariant?.variantAttributes) {
-                        setSelectedAttributes(firstVariant.variantAttributes)
+                        // Normalize keys to lowercase for consistent matching
+                        const normalizedAttrs = Object.fromEntries(
+                            Object.entries(firstVariant.variantAttributes).map(
+                                ([key, value]) => [key.toLowerCase(), value]
+                            )
+                        )
+                        setSelectedAttributes(normalizedAttrs)
                     }
                 }
 

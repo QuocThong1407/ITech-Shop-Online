@@ -1,0 +1,15 @@
+/* Product Filters Styles */
+
+.product-filters-mobile .ant-collapse-header {
+    padding: 12px 16px !important;
+    font-weight: 600;
+}
+
+.product-filters-mobile .ant-collapse-content-box {
+    padding: 16px !important;
+}
+
+/* Ensure Rating component fits well on mobile */
+.product-filters-mobile .ant-rate {
+    font-size: 18px;
+}
