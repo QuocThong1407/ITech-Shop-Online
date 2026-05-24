@@ -132,6 +132,16 @@ curl http://localhost:5000/health
 
 ---
 
+## 🚀 Cài đặt Frontend
+
+- cd ITech-Shop-Online/frontend
+- npm install
+- cp .env.example .env   # điền VITE_API_URL=http://localhost:5000
+- npm run dev
+# → http://localhost:5173
+
+---
+
 ## 🔑 Biến môi trường
 
 Tạo file `.env` ở thư mục `backend/` với nội dung sau:
